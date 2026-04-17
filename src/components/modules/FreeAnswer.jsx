@@ -34,25 +34,17 @@ export default function FreeAnswer({ subject }) {
     setCurrentQuestion(null);
     setLoadingQuestion(true);
 
-    // Cherche d'abord une question de révision existante pour ce chapitre
-    let questionText = null;
-    try {
-      const revQuestions = await base44.entities.RevisionQuestion.filter({ subject });
-      const chapterQuestions = revQuestions.filter(q =>
-        q.chapter && course.title && course.title.toLowerCase().includes(q.chapter.split(" - ")[0]?.toLowerCase() ?? "")
-      );
-      if (chapterQuestions.length > 0) {
-        const picked = chapterQuestions[Math.floor(Math.random() * chapterQuestions.length)];
-        questionText = picked.question;
-      }
-    } catch (_) {}
-
-    // Si pas de question trouvée, génère une via l'IA
-    if (!questionText) {
-      questionText = await base44.integrations.Core.InvokeLLM({
-        prompt: `Tu es un professeur de BTS Banque. Voici le contenu du cours "${course.title}" pour la matière ${subject} :\n\n${course.content}\n\nPose une question de révision ouverte et précise à l'étudiant sur ce cours. La question doit nécessiter une vraie réflexion et une réponse développée. Pose UNE seule question, directement, sans introduction.`,
-      });
-    }
+    // Cherche uniquement dans les questions de révision existantes
+    const allRevQuestions = await base44.entities.RevisionQuestion.filter({ subject });
+    // Filtre par correspondance avec le titre du cours
+    const chapterQuestions = allRevQuestions.filter(q =>
+      q.chapter && course.title &&
+      (course.title.toLowerCase().includes(q.chapter.split(" - ").slice(1).join(" - ").toLowerCase()) ||
+       q.chapter.toLowerCase().includes(course.title.toLowerCase().replace(/chapitre \d+ - /i, "")))
+    );
+    const pool = chapterQuestions.length > 0 ? chapterQuestions : allRevQuestions;
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    const questionText = picked ? picked.question : "Aucune question de révision disponible pour ce chapitre.";
 
     setCurrentQuestion(questionText);
     setMessages([{ role: "assistant", content: `📖 **${course.title}**\n\n${questionText}` }]);
@@ -69,11 +61,22 @@ export default function FreeAnswer({ subject }) {
     const course = selectedChapter;
     const history = messages.map((m) => `${m.role === "user" ? "Étudiant" : "Professeur"}: ${m.content}`).join("\n");
 
-    const feedback = await base44.integrations.Core.InvokeLLM({
-      prompt: `Tu es un professeur de BTS Banque ultra-pédagogique, bienveillant et dynamique. Tu utilises des métaphores concrètes et des analogies du quotidien pour rendre les concepts accessibles. Tu parles directement à l'étudiant (tutoiement).
+    // Cherche une nouvelle question de révision différente
+    const allRevQuestions = await base44.entities.RevisionQuestion.filter({ subject });
+    const usedQuestions = messages.filter(m => m.role === "assistant").map(m => m.content);
+    const available = allRevQuestions.filter(q =>
+      q.chapter && course.title &&
+      (course.title.toLowerCase().includes(q.chapter.split(" - ").slice(1).join(" - ").toLowerCase()) ||
+       q.chapter.toLowerCase().includes(course.title.toLowerCase().replace(/chapitre \d+ - /i, "")))
+    ).filter(q => !usedQuestions.some(u => u.includes(q.question)));
+    const pool = available.length > 0 ? available : allRevQuestions.filter(q => !usedQuestions.some(u => u.includes(q.question)));
+    const nextQ = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
+    const nextQuestion = nextQ ? nextQ.question : null;
 
-Cours de référence (matière ${subject}) — "${course.title}" :
-${course.content}
+    const feedback = await base44.integrations.Core.InvokeLLM({
+      prompt: `Tu es un professeur de BTS Banque ultra-pédagogique, bienveillant et dynamique. Tu parles directement à l'étudiant (tutoiement).
+
+Cours de référence (matière ${subject}) — "${course.title}".
 
 Historique de la conversation :
 ${history}
@@ -81,13 +84,13 @@ ${history}
 Réponse de l'étudiant : "${userMsg}"
 
 Ta mission :
-1. Évalue si la réponse est correcte, partielle ou incorrecte par rapport au cours.
-2. Donne un feedback très pédagogique avec des métaphores simples (ex: "C'est comme si tu..." ou "Imagine que...").
+1. Évalue si la réponse est correcte, partielle ou incorrecte.
+2. Donne un feedback pédagogique (2-3 paragraphes max).
 3. Complète ce qui manque si la réponse est partielle.
 4. Encourage et motive (mais sois honnête).
-5. Termine en posant UNE nouvelle question sur un autre aspect du même cours pour continuer la révision.
+${nextQuestion ? `5. Termine avec la ligne "---" puis pose exactement cette question de révision : "${nextQuestion}"` : "5. Dis à l'étudiant qu'il a couvert toutes les questions de ce chapitre."}
 
-Format : feedback d'abord (2-4 paragraphes), puis une ligne séparatrice "---", puis la nouvelle question.`,
+Format : feedback, puis "---", puis la question.`,
     });
 
     setMessages((m) => [...m, { role: "assistant", content: feedback }]);

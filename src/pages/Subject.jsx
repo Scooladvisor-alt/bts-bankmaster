@@ -35,8 +35,6 @@ const SUBJECT_CONFIG = {
 };
 
 const METHODS = [
-  { slug: "methodo-note", label: "Méthodo : note structurée", desc: "Méthodologie U5", icon: BookOpen, color: "bg-violet-500", text: "text-white", href: true },
-  { slug: "methodo-cas", label: "Méthodo : cas pratique", desc: "Méthodologie U5", icon: BookOpen, color: "bg-violet-700", text: "text-white", href: true },
   { slug: "pareto", label: "QCM Pareto", desc: "L'essentiel 20/80", icon: Target, color: "bg-yellow-400", text: "text-yellow-900" },
   { slug: "jeu", label: "QCM Mode Jeu", desc: "Cours, choisis, mémorise", icon: Gamepad2, color: "bg-pink-400", text: "text-pink-900" },
   { slug: "infini", label: "QCM Infini", desc: "Mode hardcore", icon: InfinityIcon, color: "bg-red-400", text: "text-red-900" },
