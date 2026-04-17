@@ -264,6 +264,26 @@ export default function GameQCM({ subject }) {
     }, 1800);
   }, [spawnSplit]);
 
+  // ── Choose lane ──
+  const chooseLane = useCallback((laneIdx) => {
+    if (stateRef.current !== STATE.DRIVING || choosingRef.current) return;
+    choosingRef.current = true;
+
+    const xPositions = [-LANE_SPREAD, 0, LANE_SPREAD];
+    targetXRef.current = xPositions[laneIdx];
+
+    const q = questionsRef.current[idxRef.current];
+    const correct = laneIdx === q.correct_index;
+
+    setTimeout(() => {
+      if (correct) triggerCorrect();
+      else triggerFail();
+    }, 400);
+  }, [triggerCorrect, triggerFail]);
+
+  const chooseLaneRef = useRef(chooseLane);
+  useEffect(() => { chooseLaneRef.current = chooseLane; }, [chooseLane]);
+
   // ── Build Three.js scene ──
   useEffect(() => {
     if (loading || questions.length === 0 || !mountRef.current) return;
@@ -344,9 +364,9 @@ export default function GameQCM({ subject }) {
     const onKey = (e) => {
       if (["ArrowLeft", "ArrowRight", "ArrowUp"].includes(e.key)) {
         e.preventDefault();
-        if (e.key === "ArrowLeft") chooseLane(0);
-        else if (e.key === "ArrowUp") chooseLane(1);
-        else if (e.key === "ArrowRight") chooseLane(2);
+        if (e.key === "ArrowLeft") chooseLaneRef.current(0);
+        else if (e.key === "ArrowUp") chooseLaneRef.current(1);
+        else if (e.key === "ArrowRight") chooseLaneRef.current(2);
       }
       if (e.key === "Escape" || e.key === " ") {
         e.preventDefault();
@@ -437,24 +457,7 @@ export default function GameQCM({ subject }) {
         mountRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [loading, questions.length, spawnSplit, triggerFail, chooseLane]);
-
-  // ── Choose lane ──
-  const chooseLane = useCallback((laneIdx) => {
-    if (stateRef.current !== STATE.DRIVING || choosingRef.current) return;
-    choosingRef.current = true;
-
-    const xPositions = [-LANE_SPREAD, 0, LANE_SPREAD];
-    targetXRef.current = xPositions[laneIdx];
-
-    const q = questionsRef.current[idxRef.current];
-    const correct = laneIdx === q.correct_index;
-
-    setTimeout(() => {
-      if (correct) triggerCorrect();
-      else triggerFail();
-    }, 400);
-  }, [triggerCorrect, triggerFail]);
+  }, [loading, questions.length, spawnSplit, triggerFail]);
 
   // ── Toggle pause ──
   const togglePause = useCallback(() => {
