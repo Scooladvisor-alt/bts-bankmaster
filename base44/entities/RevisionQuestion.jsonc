@@ -1,0 +1,38 @@
+{
+  "name": "RevisionQuestion",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOGES",
+        "CESBF"
+      ]
+    },
+    "chapter": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string",
+      "description": "Question ouverte"
+    },
+    "expected_answer": {
+      "type": "string",
+      "description": "R\u00e9ponse attendue"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "mentale",
+        "libre"
+      ],
+      "default": "mentale",
+      "description": "Mentale = l'utilisateur affiche la r\u00e9ponse. Libre = l'utilisateur \u00e9crit."
+    }
+  },
+  "required": [
+    "subject",
+    "question",
+    "expected_answer"
+  ]
+}

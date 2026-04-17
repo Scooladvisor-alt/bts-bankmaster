@@ -1,0 +1,21 @@
+{
+  "name": "AssistantLink",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOGES",
+        "CESBF"
+      ]
+    },
+    "url": {
+      "type": "string",
+      "description": "Lien vers l'assistant externe (ChatGPT)"
+    }
+  },
+  "required": [
+    "subject",
+    "url"
+  ]
+}

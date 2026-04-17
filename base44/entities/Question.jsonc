@@ -1,0 +1,62 @@
+{
+  "name": "Question",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOGES",
+        "CESBF"
+      ],
+      "description": "Mati\u00e8re concern\u00e9e"
+    },
+    "chapter": {
+      "type": "string",
+      "description": "Chapitre ou th\u00e8me"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "pareto",
+        "infini",
+        "jeu"
+      ],
+      "description": "Mode de QCM auquel la question appartient"
+    },
+    "question": {
+      "type": "string",
+      "description": "\u00c9nonc\u00e9 de la question"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Les 4 options de r\u00e9ponse"
+    },
+    "correct_index": {
+      "type": "number",
+      "description": "Index (0-3) de la bonne r\u00e9ponse"
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Explication affich\u00e9e apr\u00e8s r\u00e9ponse"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "facile",
+        "moyen",
+        "difficile"
+      ],
+      "default": "moyen"
+    }
+  },
+  "required": [
+    "subject",
+    "mode",
+    "question",
+    "options",
+    "correct_index"
+  ]
+}

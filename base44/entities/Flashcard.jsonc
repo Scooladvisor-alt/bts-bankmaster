@@ -1,0 +1,29 @@
+{
+  "name": "Flashcard",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOGES",
+        "CESBF"
+      ]
+    },
+    "chapter": {
+      "type": "string"
+    },
+    "front": {
+      "type": "string",
+      "description": "Recto (question)"
+    },
+    "back": {
+      "type": "string",
+      "description": "Verso (r\u00e9ponse)"
+    }
+  },
+  "required": [
+    "subject",
+    "front",
+    "back"
+  ]
+}

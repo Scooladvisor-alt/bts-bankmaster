@@ -1,0 +1,37 @@
+{
+  "name": "Resource",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOGES",
+        "CESBF"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "video",
+        "podcast",
+        "diagramme",
+        "lien"
+      ],
+      "default": "lien"
+    }
+  },
+  "required": [
+    "subject",
+    "title",
+    "url"
+  ]
+}

@@ -1,28 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka:wght@500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --font-nunito: 'Nunito', sans-serif;
+    --font-fredoka: 'Fredoka', sans-serif;
+
+    --background: 150 40% 98%;
+    --foreground: 160 20% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 160 20% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 160 20% 15%;
+    --primary: 142 72% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 48 96% 60%;
+    --secondary-foreground: 30 40% 20%;
+    --muted: 150 20% 94%;
+    --muted-foreground: 160 10% 45%;
+    --accent: 200 95% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --border: 150 20% 88%;
+    --input: 150 20% 88%;
+    --ring: 142 72% 45%;
+
+    --voges: 260 70% 60%;
+    --voges-soft: 260 80% 95%;
+    --cesbf: 14 90% 60%;
+    --cesbf-soft: 14 90% 95%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -84,5 +94,40 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-nunito);
   }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-fredoka);
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .text-voges { color: hsl(var(--voges)); }
+  .bg-voges { background-color: hsl(var(--voges)); }
+  .bg-voges-soft { background-color: hsl(var(--voges-soft)); }
+  .border-voges { border-color: hsl(var(--voges)); }
+  .text-cesbf { color: hsl(var(--cesbf)); }
+  .bg-cesbf { background-color: hsl(var(--cesbf)); }
+  .bg-cesbf-soft { background-color: hsl(var(--cesbf-soft)); }
+  .border-cesbf { border-color: hsl(var(--cesbf)); }
+
+  .shadow-duo {
+    box-shadow: 0 4px 0 0 rgba(0,0,0,0.15);
+  }
+  .shadow-duo-lg {
+    box-shadow: 0 6px 0 0 rgba(0,0,0,0.15);
+  }
+  .active\:shadow-duo-active:active {
+    box-shadow: 0 1px 0 0 rgba(0,0,0,0.15);
+    transform: translateY(3px);
+  }
+
+  .pareto-bg-1 { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+  .pareto-bg-2 { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+  .pareto-bg-3 { background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); }
+  .pareto-bg-4 { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
+  .pareto-bg-5 { background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); }
+  .pareto-bg-6 { background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); }
 }

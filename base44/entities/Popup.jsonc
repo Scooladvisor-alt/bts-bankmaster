@@ -1,0 +1,26 @@
+{
+  "name": "Popup",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOGES",
+        "CESBF",
+        "ALL"
+      ],
+      "default": "ALL"
+    },
+    "content": {
+      "type": "string",
+      "description": "Texte court (fait m\u00e9mo)"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Emoji pour visuel"
+    }
+  },
+  "required": [
+    "content"
+  ]
+}
