@@ -34,13 +34,28 @@ export default function FreeAnswer({ subject }) {
     setCurrentQuestion(null);
     setLoadingQuestion(true);
 
-    // Génère une question sur ce chapitre
-    const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `Tu es un professeur de BTS Banque. Voici le contenu du cours "${course.title}" pour la matière ${subject} :\n\n${course.content}\n\nPose une question de révision ouverte et précise à l'étudiant sur ce cours. La question doit nécessiter une vraie réflexion et une réponse développée. Pose UNE seule question, directement, sans introduction.`,
-    });
+    // Cherche d'abord une question de révision existante pour ce chapitre
+    let questionText = null;
+    try {
+      const revQuestions = await base44.entities.RevisionQuestion.filter({ subject });
+      const chapterQuestions = revQuestions.filter(q =>
+        q.chapter && course.title && course.title.toLowerCase().includes(q.chapter.split(" - ")[0]?.toLowerCase() ?? "")
+      );
+      if (chapterQuestions.length > 0) {
+        const picked = chapterQuestions[Math.floor(Math.random() * chapterQuestions.length)];
+        questionText = picked.question;
+      }
+    } catch (_) {}
 
-    setCurrentQuestion(res);
-    setMessages([{ role: "assistant", content: `📖 **${course.title}**\n\n${res}` }]);
+    // Si pas de question trouvée, génère une via l'IA
+    if (!questionText) {
+      questionText = await base44.integrations.Core.InvokeLLM({
+        prompt: `Tu es un professeur de BTS Banque. Voici le contenu du cours "${course.title}" pour la matière ${subject} :\n\n${course.content}\n\nPose une question de révision ouverte et précise à l'étudiant sur ce cours. La question doit nécessiter une vraie réflexion et une réponse développée. Pose UNE seule question, directement, sans introduction.`,
+      });
+    }
+
+    setCurrentQuestion(questionText);
+    setMessages([{ role: "assistant", content: `📖 **${course.title}**\n\n${questionText}` }]);
     setLoadingQuestion(false);
   };
 

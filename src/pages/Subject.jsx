@@ -35,6 +35,8 @@ const SUBJECT_CONFIG = {
 };
 
 const METHODS = [
+  { slug: "methodo-note", label: "Méthodo : note structurée", desc: "Méthodologie U5", icon: BookOpen, color: "bg-violet-500", text: "text-white", href: true },
+  { slug: "methodo-cas", label: "Méthodo : cas pratique", desc: "Méthodologie U5", icon: BookOpen, color: "bg-violet-700", text: "text-white", href: true },
   { slug: "pareto", label: "QCM Pareto", desc: "L'essentiel 20/80", icon: Target, color: "bg-yellow-400", text: "text-yellow-900" },
   { slug: "jeu", label: "QCM Mode Jeu", desc: "Cours, choisis, mémorise", icon: Gamepad2, color: "bg-pink-400", text: "text-pink-900" },
   { slug: "infini", label: "QCM Infini", desc: "Mode hardcore", icon: InfinityIcon, color: "bg-red-400", text: "text-red-900" },
@@ -90,24 +92,30 @@ export default function Subject() {
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-          {METHODS.map((m, i) => (
-            <motion.div
-              key={m.slug}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
-            >
-              <Link to={`/${subject}/${m.slug}`}>
-                <div className={`${m.color} ${m.text} rounded-2xl p-4 md:p-5 shadow-duo border-b-4 border-black/15 h-full flex flex-col items-start hover:-translate-y-0.5 transition-transform`}>
-                  <m.icon className="w-6 h-6 mb-2" />
-                  <div className="font-display font-bold text-base md:text-lg leading-tight">
-                    {m.label}
-                  </div>
-                  <div className="text-xs font-medium opacity-80 mt-0.5">{m.desc}</div>
+          {METHODS.map((m, i) => {
+            const card = (
+              <div className={`${m.color} ${m.text} rounded-2xl p-4 md:p-5 shadow-duo border-b-4 border-black/15 h-full flex flex-col items-start hover:-translate-y-0.5 transition-transform`}>
+                <m.icon className="w-6 h-6 mb-2" />
+                <div className="font-display font-bold text-base md:text-lg leading-tight">
+                  {m.label}
                 </div>
-              </Link>
-            </motion.div>
-          ))}
+                <div className="text-xs font-medium opacity-80 mt-0.5">{m.desc}</div>
+              </div>
+            );
+            return (
+              <motion.div
+                key={m.slug}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+              >
+                {m.href
+                  ? <Link to={`/${subject}/cours`}>{card}</Link>
+                  : <Link to={`/${subject}/${m.slug}`}>{card}</Link>
+                }
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </div>
