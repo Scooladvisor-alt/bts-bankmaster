@@ -1,13 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import FloatingPopup from "@/components/popup/FloatingPopup";
-
 export default function ModuleShell({ subject, title, emoji, bgClass = "bg-gradient-to-b from-green-50 to-white", children }) {
   const navigate = useNavigate();
   return (
     <div className={`min-h-screen ${bgClass}`}>
-      <FloatingPopup subject={subject} />
       <div className="max-w-3xl mx-auto px-4 md:px-6 pt-5 pb-24">
         <button
           onClick={() => navigate(`/${subject.toLowerCase()}`)}

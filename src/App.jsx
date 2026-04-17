@@ -9,6 +9,7 @@ import Landing from '@/pages/Landing';
 import Subject from '@/pages/Subject';
 import Module from '@/pages/Module';
 import Admin from '@/pages/Admin';
+import Teacher from '@/pages/Teacher';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -38,6 +39,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/teacher/:subject" element={<Teacher />} />
       <Route path="/:subject" element={<Subject />} />
       <Route path="/:subject/:method" element={<Module />} />
       <Route path="*" element={<PageNotFound />} />

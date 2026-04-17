@@ -1,0 +1,26 @@
+{
+  "name": "Teacher",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Email du professeur"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nom affich\u00e9"
+    },
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOGES",
+        "CESBF"
+      ],
+      "description": "Mati\u00e8re assign\u00e9e"
+    }
+  },
+  "required": [
+    "email",
+    "subject"
+  ]
+}

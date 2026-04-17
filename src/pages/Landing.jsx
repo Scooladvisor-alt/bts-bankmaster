@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
+import RoleModal from "@/components/landing/RoleModal";
 import { Sparkles, Zap, Brain, Settings } from "lucide-react";
 
 export default function Landing() {
+  const [showRoleModal, setShowRoleModal] = useState(false);
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-blue-50 relative overflow-hidden">
       <FloatingPopup subject="ALL" />
@@ -13,13 +15,15 @@ export default function Landing() {
       <div className="absolute top-20 -left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
       <div className="absolute bottom-20 -right-20 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
 
-      <Link
-        to="/admin"
+      <button
+        onClick={() => setShowRoleModal(true)}
         className="absolute top-4 left-4 z-10 bg-white/70 backdrop-blur rounded-full p-2 text-stone-500 hover:text-stone-800"
-        aria-label="Admin"
+        aria-label="Paramètres"
       >
         <Settings className="w-4 h-4" />
-      </Link>
+      </button>
+
+      {showRoleModal && <RoleModal onClose={() => setShowRoleModal(false)} />}
 
       <div className="relative max-w-4xl mx-auto px-6 pt-16 pb-20">
         <motion.div

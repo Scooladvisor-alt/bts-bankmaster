@@ -55,7 +55,7 @@ function makeTile() {
   return g;
 }
 
-function makeSplitSection(options) {
+function makeSplitSection() {
   const g = new THREE.Group();
   const lanePositions = [-LANE_SPREAD, 0, LANE_SPREAD];
   const laneColors = [0xb845f5, 0x2dd4f0, 0xf59e0b];
@@ -70,6 +70,7 @@ function makeSplitSection(options) {
     lane.position.set(x, 0.01, -LANE_LEN / 2);
     g.add(lane);
 
+    // Separator walls only
     if (i < 2) {
       const wall = new THREE.Mesh(
         new THREE.BoxGeometry(0.18, 0.7, LANE_LEN),
@@ -78,42 +79,6 @@ function makeSplitSection(options) {
       wall.position.set(x + LANE_SPREAD / 2, 0.35, -LANE_LEN / 2);
       g.add(wall);
     }
-
-    // Sign
-    const canvas = document.createElement("canvas");
-    canvas.width = 512; canvas.height = 256;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#0f172a";
-    ctx.beginPath(); ctx.roundRect(8, 8, 496, 240, 22); ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 30px Arial";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    const words = (options[i] || "").split(" ");
-    const lines = [];
-    let line = "";
-    words.forEach((w) => {
-      const test = line ? line + " " + w : w;
-      if (ctx.measureText(test).width > 470) { lines.push(line); line = w; }
-      else line = test;
-    });
-    if (line) lines.push(line);
-    const startY = 128 - (lines.length * 44) / 2 + 22;
-    lines.forEach((l, li) => ctx.fillText(l, 256, startY + li * 44));
-
-    const tex = new THREE.CanvasTexture(canvas);
-    const sign = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.8, 1.4),
-      new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide })
-    );
-    sign.position.set(x, 1.6, -8);
-    g.add(sign);
-
-    const post = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.07, 0.07, 1.6, 8),
-      new THREE.MeshLambertMaterial({ color: 0x94a3b8 })
-    );
-    post.position.set(x, 0.8, -8);
-    g.add(post);
   });
 
   return g;
@@ -190,8 +155,21 @@ export default function GameQCM({ subject }) {
   const [idx, setIdx] = useState(0);
   const [lives, setLives] = useState(3);
   const [score, setScore] = useState(0);
-  // Feedback overlay (shown briefly without state change)
+  const [km, setKm] = useState(0);
   const [feedback, setFeedback] = useState(null); // null | "correct" | "wrong"
+  const kmRef = useRef(0);
+  const kmIntervalRef = useRef(null);
+
+  // ── Km counter ──
+  useEffect(() => {
+    if (uiState === STATE.GAMEOVER || uiState === STATE.WIN) return;
+    if (paused) { clearInterval(kmIntervalRef.current); return; }
+    kmIntervalRef.current = setInterval(() => {
+      kmRef.current += 0.1;
+      setKm(Math.round(kmRef.current * 10) / 10);
+    }, 300);
+    return () => clearInterval(kmIntervalRef.current);
+  }, [uiState, paused]);
 
   // ── Load questions ──
   useEffect(() => {
@@ -213,14 +191,13 @@ export default function GameQCM({ subject }) {
   }, [subject]);
 
   // ── Helper: spawn next split section ahead of car ──
-  const spawnSplit = useCallback((qIdx) => {
+  const spawnSplit = useCallback(() => {
     const scene = sceneRef.current;
     if (!scene) return;
     if (splitRef.current) scene.remove(splitRef.current);
-    const q = questionsRef.current[qIdx];
     const worldZ = carZRef.current - SPLIT_AHEAD;
     splitWorldZRef.current = worldZ;
-    const sec = makeSplitSection(q.options.slice(0, 3));
+    const sec = makeSplitSection();
     sec.position.z = worldZ;
     scene.add(sec);
     splitRef.current = sec;
@@ -257,7 +234,7 @@ export default function GameQCM({ subject }) {
         return;
       }
       // Respawn split for same question further ahead
-      spawnSplit(idxRef.current);
+      spawnSplit();
       stateRef.current = STATE.DRIVING;
       setUiState(STATE.DRIVING);
     }, 2000);
@@ -282,7 +259,7 @@ export default function GameQCM({ subject }) {
       }
       idxRef.current = nextIdx;
       setIdx(nextIdx);
-      spawnSplit(nextIdx);
+      spawnSplit();
       // state stays DRIVING — no interruption!
     }, 1800);
   }, [spawnSplit]);
@@ -361,7 +338,23 @@ export default function GameQCM({ subject }) {
     carRef.current = car;
 
     // Spawn first split
-    spawnSplit(0);
+    spawnSplit();
+
+    // Keyboard arrow controls
+    const onKey = (e) => {
+      if (["ArrowLeft", "ArrowRight", "ArrowUp"].includes(e.key)) {
+        e.preventDefault();
+        if (e.key === "ArrowLeft") chooseLane(0);
+        else if (e.key === "ArrowUp") chooseLane(1);
+        else if (e.key === "ArrowRight") chooseLane(2);
+      }
+      if (e.key === "Escape" || e.key === " ") {
+        e.preventDefault();
+        pausedRef.current = !pausedRef.current;
+        setPaused(pausedRef.current);
+      }
+    };
+    window.addEventListener("keydown", onKey);
 
     // ── Animation loop ──
     function animate() {
@@ -437,13 +430,14 @@ export default function GameQCM({ subject }) {
 
     return () => {
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("keydown", onKey);
       cancelAnimationFrame(animRef.current);
       renderer.dispose();
       if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
         mountRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [loading, questions.length, spawnSplit, triggerFail]);
+  }, [loading, questions.length, spawnSplit, triggerFail, chooseLane]);
 
   // ── Choose lane ──
   const chooseLane = useCallback((laneIdx) => {
@@ -481,10 +475,11 @@ export default function GameQCM({ subject }) {
     targetXRef.current = 0; choosingRef.current = false;
     pausedRef.current = false;
 
-    setIdx(0); setLives(3); setScore(0); setFeedback(null);
+    kmRef.current = 0;
+    setKm(0); setIdx(0); setLives(3); setScore(0); setFeedback(null);
     setPaused(false); setQuestions(shuffled);
 
-    spawnSplit(0);
+    spawnSplit();
     stateRef.current = STATE.DRIVING;
     setUiState(STATE.DRIVING);
   }, [spawnSplit]);
@@ -511,7 +506,7 @@ export default function GameQCM({ subject }) {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-yellow-300">🏆 {score} pts</div>
+          <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
           {isPlaying && (
             <button
               onClick={togglePause}

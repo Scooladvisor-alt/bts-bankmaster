@@ -11,6 +11,7 @@ import AdminPopups from "@/components/admin/AdminPopups";
 import AdminCourses from "@/components/admin/AdminCourses";
 import AdminResources from "@/components/admin/AdminResources";
 import AdminAssistant from "@/components/admin/AdminAssistant";
+import AdminTeachers from "@/components/admin/AdminTeachers";
 
 const TABS = [
   { key: "questions", label: "QCM", Comp: AdminQuestions },
@@ -20,6 +21,7 @@ const TABS = [
   { key: "courses", label: "Cours", Comp: AdminCourses },
   { key: "resources", label: "Ressources", Comp: AdminResources },
   { key: "assistant", label: "Assistant", Comp: AdminAssistant },
+  { key: "teachers", label: "👩‍🏫 Professeurs", Comp: AdminTeachers },
 ];
 
 export default function Admin() {
@@ -71,7 +73,7 @@ export default function Admin() {
           <Link to="/" className="flex items-center gap-1 text-sm font-bold text-stone-600">
             <ChevronLeft className="w-4 h-4" /> Accueil
           </Link>
-          <div className="font-display text-xl font-bold">Espace Professeur</div>
+          <div className="font-display text-xl font-bold">Espace Administrateur</div>
           <button
             onClick={() => base44.auth.logout("/")}
             className="text-sm font-bold text-stone-500 hover:text-stone-800 flex items-center gap-1"
