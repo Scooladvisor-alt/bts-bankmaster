@@ -17,10 +17,15 @@
         "CESBF"
       ],
       "description": "Mati\u00e8re assign\u00e9e"
+    },
+    "password": {
+      "type": "string",
+      "description": "Mot de passe du professeur"
     }
   },
   "required": [
     "email",
-    "subject"
+    "subject",
+    "password"
   ]
 }

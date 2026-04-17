@@ -35,6 +35,12 @@ export default function RoleModal({ onClose }) {
         return;
       }
       const t = teachers[0];
+      // Verify password
+      if (t.password && t.password !== password) {
+        setError("Mot de passe incorrect.");
+        setLoading(false);
+        return;
+      }
       onClose();
       navigate(`/teacher/${t.subject.toLowerCase()}`);
     } catch {
@@ -122,18 +128,33 @@ export default function RoleModal({ onClose }) {
 
         {step === "teacher-login" && (
           <div className="space-y-3">
-            <button onClick={() => { setStep("choose"); setError(""); setEmail(""); }} className="text-xs text-stone-500 hover:underline mb-2">← Retour</button>
-            <p className="text-sm text-stone-500">Entre l'email avec lequel tu as été enregistré comme professeur.</p>
+            <button onClick={() => { setStep("choose"); setError(""); setEmail(""); setPassword(""); }} className="text-xs text-stone-500 hover:underline mb-2">← Retour</button>
+            <p className="text-sm text-stone-500">Entre tes identifiants professeur.</p>
             <div>
               <label className="text-xs font-bold text-stone-600 block mb-1">Ton email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleTeacherLogin()}
                 placeholder="prof@exemple.com"
                 className="w-full border-2 border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
               />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-stone-600 block mb-1">Mot de passe</label>
+              <div className="relative">
+                <input
+                  type={showPwd ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleTeacherLogin()}
+                  placeholder="••••••••"
+                  className="w-full border-2 border-stone-200 rounded-xl px-3 py-2 pr-9 text-sm focus:outline-none focus:border-blue-400"
+                />
+                <button type="button" onClick={() => setShowPwd(s => !s)} className="absolute right-2 top-2 text-stone-400">
+                  {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
             {error && <p className="text-red-500 text-xs">{error}</p>}
             <button

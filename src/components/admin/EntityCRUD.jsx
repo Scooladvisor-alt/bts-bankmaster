@@ -11,7 +11,7 @@ import DuoButton from "@/components/ui-duo/DuoButton";
  *   displayColumns: [fieldKey]
  *   defaults: {}
  */
-export default function EntityCRUD({ entityName, fields, displayColumns, defaults = {} }) {
+export default function EntityCRUD({ entityName, fields, displayColumns, defaults = {}, subjectFilter = null }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // object or null
@@ -19,14 +19,24 @@ export default function EntityCRUD({ entityName, fields, displayColumns, default
 
   const load = async () => {
     setLoading(true);
-    const list = await base44.entities[entityName].list("-created_date", 500);
+    let list;
+    if (subjectFilter) {
+      list = await base44.entities[entityName].filter({ subject: subjectFilter }, "-created_date", 500);
+    } else {
+      list = await base44.entities[entityName].list("-created_date", 500);
+    }
     setItems(list);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [entityName]);
+  useEffect(() => { load(); }, [entityName, subjectFilter]);
 
-  const startNew = () => { setEditing({ ...defaults }); setIsNew(true); };
+  const startNew = () => {
+    const init = { ...defaults };
+    if (subjectFilter) init.subject = subjectFilter;
+    setEditing(init);
+    setIsNew(true);
+  };
   const startEdit = (item) => { setEditing({ ...item }); setIsNew(false); };
   const cancel = () => { setEditing(null); setIsNew(false); };
 
@@ -99,7 +109,14 @@ export default function EntityCRUD({ entityName, fields, displayColumns, default
             </div>
             <div className="space-y-3">
               {fields.map((f) => (
-                <FieldEditor key={f.key} field={f} value={editing[f.key]} onChange={(v) => update(f.key, v)} full={editing} />
+                <FieldEditor
+                  key={f.key}
+                  field={f}
+                  value={editing[f.key]}
+                  onChange={(v) => update(f.key, v)}
+                  full={editing}
+                  locked={f.key === "subject" && !!subjectFilter}
+                />
               ))}
             </div>
             <div className="flex justify-end gap-2 mt-5">
@@ -120,7 +137,7 @@ function formatCell(v) {
   return String(v);
 }
 
-function FieldEditor({ field, value, onChange, full }) {
+function FieldEditor({ field, value, onChange, full, locked = false }) {
   const base = "w-full rounded-xl border border-stone-200 px-3 py-2 focus:outline-none focus:border-primary";
   if (field.type === "textarea") {
     return (
@@ -131,6 +148,14 @@ function FieldEditor({ field, value, onChange, full }) {
     );
   }
   if (field.type === "select") {
+    if (locked) {
+      return (
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider text-stone-500">{field.label}</label>
+          <div className="w-full rounded-xl border border-stone-200 bg-stone-100 px-3 py-2 text-stone-500 text-sm">{value} <span className="text-xs">(verrouillé)</span></div>
+        </div>
+      );
+    }
     return (
       <div>
         <label className="text-xs font-bold uppercase tracking-wider text-stone-500">{field.label}</label>
