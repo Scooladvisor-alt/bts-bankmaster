@@ -41,7 +41,7 @@ export default function Landing() {
           </h1>
           <p className="mt-6 text-lg text-stone-600 max-w-xl mx-auto">
             Plateforme de révision pour la classe de Antonin. 
-            Choisis ta matière et commence en 1 clic.
+                             Choisis ta matière et commence en 1 clic.
           </p>
         </motion.div>
 
