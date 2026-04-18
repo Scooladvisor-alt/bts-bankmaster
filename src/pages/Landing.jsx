@@ -32,15 +32,15 @@ export default function Landing() {
           className="text-center mb-12"
         >
           <div className="inline-flex items-center gap-2 bg-yellow-200 text-yellow-900 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
-            <Sparkles className="w-4 h-4" /> BTS Banque — Révisions éclair
+            <Sparkles className="w-4 h-4" /> BTS Banque !
           </div>
           <h1 className="font-display text-5xl md:text-7xl font-bold text-stone-900 leading-tight">
-            Mémorise vite.
+            Révise vite.
             <br />
             <span className="text-primary">Réussis fort.</span>
           </h1>
           <p className="mt-6 text-lg text-stone-600 max-w-xl mx-auto">
-            Plateforme de révision ludique, basée sur les neurosciences. 
+            Plateforme de révision pour la classe de Antonin. 
             Choisis ta matière et commence en 1 clic.
           </p>
         </motion.div>
@@ -50,7 +50,7 @@ export default function Landing() {
             to="/voges"
             label="VOGES"
             emoji="📊"
-            tagline="Veille, organisation, gestion, études"
+            tagline="Veille, organisationnelle, juridique et sectorielle"
             gradient="from-purple-500 via-purple-600 to-indigo-600"
             delay={0.1}
           />
@@ -58,7 +58,7 @@ export default function Landing() {
             to="/cesbf"
             label="CESBF"
             emoji="🏦"
-            tagline="Crédit, conseil, économie bancaire"
+            tagline="Conseil et Expertise en Solution Bancaire et Financière"
             gradient="from-orange-400 via-orange-500 to-red-500"
             delay={0.2}
           />
