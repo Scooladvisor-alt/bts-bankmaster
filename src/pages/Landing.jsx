@@ -57,7 +57,7 @@ export default function Landing() {
             to="/cesbf"
             label="CESBF"
             emoji="🏦"
-            tagline="Conseil/Expertise en Solution Bancaire et Financière"
+            tagline="Conseil/Expertise en Solution Bancaire & Financière"
             gradient="from-orange-400 via-orange-500 to-red-500"
             delay={0.2}
           />
