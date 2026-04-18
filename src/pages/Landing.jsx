@@ -49,7 +49,7 @@ export default function Landing() {
             to="/voges"
             label="VOGES"
             emoji="📊"
-            tagline="Veille, organisationnelle, juridique et sectorielle"
+            tagline="Veille, organisationnelle, juridique et sectorielle        "
             gradient="from-purple-500 via-purple-600 to-indigo-600"
             delay={0.1}
           />
