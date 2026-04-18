@@ -49,7 +49,7 @@ export default function Landing() {
             to="/voges"
             label="VOGES"
             emoji="📊"
-            tagline="Veille, organisationnelle, juridique et sectorielle        "
+            tagline="Veille, organisationnelle, juridique et sectorielle"
             gradient="from-purple-500 via-purple-600 to-indigo-600"
             delay={0.1}
           />
@@ -57,7 +57,7 @@ export default function Landing() {
             to="/cesbf"
             label="CESBF"
             emoji="🏦"
-            tagline="Conseil et Expertise en Solution Bancaire et Financière"
+            tagline="Conseil/Expertise en Solution Bancaire et Financière"
             gradient="from-orange-400 via-orange-500 to-red-500"
             delay={0.2}
           />
