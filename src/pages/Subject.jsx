@@ -17,9 +17,9 @@ import {
 
 const SUBJECT_CONFIG = {
   voges: {
-    name: "VOGES",
+    name: "VOJES",
     emoji: "📊",
-    tagline: "Veille, organisation, gestion, études",
+    tagline: "Veille, Organisationnel, Juridique et Sectorielle",
     color: "voges",
     bg: "from-purple-50 to-indigo-50",
     btnClass: "bg-voges",
@@ -27,7 +27,7 @@ const SUBJECT_CONFIG = {
   cesbf: {
     name: "CESBF",
     emoji: "🏦",
-    tagline: "Crédit & économie bancaire",
+    tagline: "Conseil et Expertise en Solution Bancaire et Financière",
     color: "cesbf",
     bg: "from-orange-50 to-red-50",
     btnClass: "bg-cesbf",
