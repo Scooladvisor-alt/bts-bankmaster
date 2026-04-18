@@ -40,8 +40,7 @@ export default function Landing() {
             <span className="text-primary">Réussis fort.</span>
           </h1>
           <p className="mt-6 text-lg text-stone-600 max-w-xl mx-auto">
-            Plateforme de révision pour la classe de Antonin. 
-                             Choisis ta matière et commence en 1 clic.
+            Plateforme de révision pour la classe de Antonin 🐐. 
           </p>
         </motion.div>
 
