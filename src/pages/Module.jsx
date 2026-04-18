@@ -39,6 +39,12 @@ export default function Module() {
   }
 
   const Comp = config.Comp;
+
+  // ParetoQCM gère son propre layout plein écran
+  if (method === "pareto") {
+    return <Comp subject={subjectLabel} />;
+  }
+
   return (
     <ModuleShell subject={subjectLabel} title={config.title} emoji={config.emoji} bgClass={config.bg}>
       <Comp subject={subjectLabel} />
