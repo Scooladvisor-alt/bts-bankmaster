@@ -5,74 +5,73 @@ import { motion, AnimatePresence } from "framer-motion";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { useNavigate } from "react-router-dom";
 
-// Ordre officiel des chapitres CESBF
-const CESBF_ORDER = [
-  "MODULE 1",
-  "MODULE 2",
-  "MODULE 3",
-  "MODULE 4",
-  "MODULE 5",
-  "MODULE 6",
-  "MODULE 7",
+// Structure officielle CESBF : groupes avec titre + chapitres dans l'ordre
+const CESBF_GROUPS = [
+  {
+    title: "OUVERTURE DE COMPTE",
+    prefixes: ["MODULE 1 — Chap 1", "MODULE 1 — Chap 2"],
+  },
+  {
+    title: "SUIVI DES COMPTES BANCAIRES",
+    prefixes: [
+      "MODULE 2 — Chap 1",
+      "MODULE 2 — Chap 2",
+      "MODULE 2 — Chap 3",
+      "MODULE 2 — Chap 4",
+      "MODULE 2 — Chap 5",
+    ],
+  },
+  {
+    title: "MISE À DISPOSITION DES MOYENS DE PAIEMENT",
+    prefixes: ["MODULE 3 — Chap 1", "MODULE 3 — Chap 2", "MODULE 3 — Chap 3"],
+  },
+  {
+    title: "ÉLABORATION D'UNE SOLUTION D'ÉPARGNE",
+    prefixes: [
+      "MODULE 4 — Chap 1",
+      "MODULE 4 — Chap 2",
+      "MODULE 4 — Chap 3",
+      "MODULE 4 — Chap 4",
+      "MODULE 4 — Chap 5",
+      "MODULE 4 — Chap 6",
+    ],
+  },
+  {
+    title: "ÉLABORATION D'UNE SOLUTION D'ASSURANCE",
+    prefixes: ["MODULE 5 — Chap 1", "MODULE 5 — Chap 2", "MODULE 5 — Chap 3"],
+  },
+  {
+    title: "ÉLABORATION D'UNE SOLUTION DE FINANCEMENT",
+    prefixes: ["MODULE 6 — Chap 1", "MODULE 6 — Chap 2", "MODULE 6 — Chap 3"],
+  },
+  {
+    title: "FISCALITÉ",
+    prefixes: ["MODULE 7 — Chap 1", "MODULE 7 — Chap 2", "MODULE 7 — Chap 3"],
+  },
 ];
 
-// Ordre détaillé par chapitre dans chaque module CESBF
-const CESBF_CHAPTER_ORDER = [
-  // MODULE 1 — Ouverture de compte
-  "MODULE 1 — Chap 1",
-  "MODULE 1 — Chap 2",
-  // MODULE 2 — Suivi des comptes
-  "MODULE 2 — Chap 1",
-  "MODULE 2 — Chap 2",
-  "MODULE 2 — Chap 3",
-  "MODULE 2 — Chap 4",
-  "MODULE 2 — Chap 5",
-  // MODULE 3 — Moyens de paiement
-  "MODULE 3 — Chap 1",
-  "MODULE 3 — Chap 2",
-  "MODULE 3 — Chap 3",
-  // MODULE 4 — Épargne (chap 1, 2 d'abord, puis 3, 4, 5, 6)
-  "MODULE 4 — Chap 1",
-  "MODULE 4 — Chap 2",
-  "MODULE 4 — Chap 3",
-  "MODULE 4 — Chap 4",
-  "MODULE 4 — Chap 5",
-  "MODULE 4 — Chap 6",
-  // MODULE 5 — Assurance
-  "MODULE 5 — Chap 1",
-  "MODULE 5 — Chap 2",
-  "MODULE 5 — Chap 3",
-  // MODULE 6 — Financement
-  "MODULE 6 — Chap 1",
-  "MODULE 6 — Chap 2",
-  "MODULE 6 — Chap 3",
-  // MODULE 7 — Fiscalité
-  "MODULE 7 — Chap 1",
-  "MODULE 7 — Chap 2",
-  "MODULE 7 — Chap 3",
-];
-
-function sortChapters(chapters, subject) {
-  if (subject === "CESBF") {
-    return [...chapters].sort((a, b) => {
-      const ia = CESBF_CHAPTER_ORDER.findIndex(prefix => a.startsWith(prefix));
-      const ib = CESBF_CHAPTER_ORDER.findIndex(prefix => b.startsWith(prefix));
-      const ra = ia === -1 ? 999 : ia;
-      const rb = ib === -1 ? 999 : ib;
-      if (ra !== rb) return ra - rb;
-      return a.localeCompare(b, "fr");
-    });
-  }
-  // VOGES : tri numérique
+function sortChaptersVOJES(chapters) {
   const getNum = (ch) => {
     const m = ch.match(/chapitre\s+(\d+)/i);
     return m ? parseInt(m[1]) : Infinity;
   };
-  return [...chapters].sort((a, b) => {
-    const na = getNum(a), nb = getNum(b);
-    if (na !== nb) return na - nb;
-    return a.localeCompare(b, "fr");
-  });
+  return [...chapters]
+    .filter(ch => !ch.toLowerCase().includes("méthodologie") && !ch.toLowerCase().includes("cas pratique"))
+    .sort((a, b) => {
+      const na = getNum(a), nb = getNum(b);
+      if (na !== nb) return na - nb;
+      return a.localeCompare(b, "fr");
+    });
+}
+
+// Retourne les groupes CESBF avec les chapitres disponibles dans l'ordre
+function buildCESBFGroups(chapters) {
+  return CESBF_GROUPS.map(group => ({
+    title: group.title,
+    chapters: group.prefixes
+      .map(prefix => chapters.find(ch => ch.startsWith(prefix)))
+      .filter(Boolean),
+  })).filter(g => g.chapters.length > 0);
 }
 
 export default function ParetoQCM({ subject }) {
@@ -93,7 +92,11 @@ export default function ParetoQCM({ subject }) {
       const all = await base44.entities.Question.filter({ subject, mode: "pareto" }, "chapter", 500);
       setAllQuestions(all);
       const raw = [...new Set(all.map(q => q.chapter).filter(Boolean))];
-      setChapters(sortChapters(raw, subject));
+      if (subject === "CESBF") {
+        setChapters(buildCESBFGroups(raw));
+      } else {
+        setChapters(sortChaptersVOJES(raw));
+      }
       setLoading(false);
     })();
   }, [subject]);
@@ -183,10 +186,36 @@ export default function ParetoQCM({ subject }) {
             <div className="flex items-center gap-2 text-stone-400 p-4 text-sm">
               <Loader2 className="w-4 h-4 animate-spin" /> Chargement…
             </div>
+          ) : subject === "CESBF" ? (
+            // Groupes CESBF avec titres
+            chapters.map((group) => (
+              <div key={group.title} className="mb-3">
+                <div className="px-2 py-1.5 text-[9px] font-extrabold uppercase tracking-widest text-stone-400 border-b border-stone-100 mb-1">
+                  {group.title}
+                </div>
+                {group.chapters.map((ch) => {
+                  const isActive = selectedChapter === ch;
+                  // Extraire juste le label après "Chap X : "
+                  const label = ch.replace(/^MODULE\s+\d+\s*[—\-]\s*Chap\s+\d+\s*:\s*/i, "");
+                  return (
+                    <button
+                      key={ch}
+                      onClick={() => selectChapter(ch)}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all leading-snug mb-0.5
+                        ${isActive
+                          ? "bg-yellow-400 text-yellow-900 font-bold shadow-sm"
+                          : "text-stone-600 font-medium hover:bg-yellow-50 hover:text-yellow-900"}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            ))
           ) : (
+            // VOJES : liste plate
             chapters.map((ch) => {
               const isActive = selectedChapter === ch;
-              const label = ch.replace(/^MODULE\s+\d+\s*[—\-]\s*/i, "");
               return (
                 <button
                   key={ch}
@@ -196,7 +225,7 @@ export default function ParetoQCM({ subject }) {
                       ? "bg-yellow-400 text-yellow-900 font-bold shadow-sm"
                       : "text-stone-600 font-medium hover:bg-yellow-50 hover:text-yellow-900"}`}
                 >
-                  {label}
+                  {ch}
                 </button>
               );
             })
