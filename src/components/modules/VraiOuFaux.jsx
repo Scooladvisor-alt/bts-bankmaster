@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, Check, X, RotateCcw, Zap, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const CHAPTER_TO_CATEGORY = {
+// ── CESBF : mapping chapitre → catégorie ──
+const CESBF_CHAPTER_TO_CATEGORY = {
   "Ouverture de compte — Droit au compte & Inclusion bancaire": "Ouverture de compte",
   "Ouverture de compte — Convention, médiation & mobilité": "Ouverture de compte",
   "Suivi des comptes — Agios débiteurs": "Suivi des comptes",
@@ -26,7 +27,7 @@ const CHAPTER_TO_CATEGORY = {
   "Fiscalité patrimoniale — Succession, donation & IFI": "Fiscalité",
 };
 
-const CATEGORIES = [
+const CESBF_CATEGORIES = [
   { key: "all", label: "Tout" },
   { key: "Ouverture de compte", label: "Ouverture" },
   { key: "Suivi des comptes", label: "Suivi" },
@@ -35,6 +36,54 @@ const CATEGORIES = [
   { key: "Assurance", label: "Assurance" },
   { key: "Crédit", label: "Crédit" },
   { key: "Fiscalité", label: "Fiscalité" },
+];
+
+// ── VOJES : mapping chapitre → catégorie ──
+const VOJES_CHAPTER_TO_CATEGORY = {
+  "Chapitre 1 — Circuit et agents économiques": "Économie générale",
+  "Chapitre 2 — Le financement de l'économie": "Économie générale",
+  "Chapitre 3 — Les fonctions de la monnaie et la création monétaire": "Économie générale",
+  "Chapitre 4 — Les marchés de capitaux": "Économie générale",
+  "Chapitre 5 — La banque centrale et la politique monétaire": "Économie générale",
+  "Chapitre 6 — Le système bancaire français et européen": "Système bancaire",
+  "Chapitre 7 — La réglementation bancaire prudentielle": "Système bancaire",
+  "Chapitre 8 — Les produits et services bancaires": "Système bancaire",
+  "Chapitre 9 — La relation client en banque": "Système bancaire",
+  "Chapitre 10 — Le crédit aux particuliers": "Crédit & financement",
+  "Chapitre 11 — Le crédit aux entreprises": "Crédit & financement",
+  "Chapitre 12 — L'épargne et les placements": "Épargne & assurance",
+  "Chapitre 13 — L'assurance": "Épargne & assurance",
+  "Chapitre 14 — La monnaie et les paiements": "Paiements",
+  "Chapitre 15 — La lutte contre le blanchiment (LCB-FT)": "Droit & réglementation",
+  "Chapitre 16 — La démarche qualité": "Gestion & stratégie",
+  "Chapitre 17 — L'analyse de l'environnement": "Gestion & stratégie",
+  "Chapitre 18 — La politique commerciale de la banque": "Gestion & stratégie",
+  "Chapitre 19 — L'environnement économique et les indicateurs": "Économie générale",
+  "Chapitre 20 — Le contrat de consommation": "Droit & réglementation",
+  "Chapitre 21 — Le droit des contrats": "Droit & réglementation",
+  "Chapitre 22 — La responsabilité civile et pénale": "Droit & réglementation",
+  "Chapitre 23 — Le droit du travail": "Droit & réglementation",
+  "Chapitre 24 — Les formes juridiques des entreprises": "Droit & réglementation",
+  "Chapitre 25 — La fiscalité des entreprises et des particuliers": "Droit & réglementation",
+  "Chapitre 26 — La protection sociale": "Social & emploi",
+  "Chapitre 27 — Le marché du travail et l'emploi": "Social & emploi",
+  "Chapitre 28 — La mondialisation et les échanges internationaux": "Économie générale",
+  "Chapitre 29 — L'intégration européenne": "Économie générale",
+  "Chapitre 30 — Le développement durable et la RSE": "Gestion & stratégie",
+  "Chapitre 31 — La transformation numérique de la banque": "Numérique & innovation",
+};
+
+const VOJES_CATEGORIES = [
+  { key: "all", label: "Tout" },
+  { key: "Économie générale", label: "Économie" },
+  { key: "Système bancaire", label: "Banque" },
+  { key: "Crédit & financement", label: "Crédit" },
+  { key: "Épargne & assurance", label: "Épargne" },
+  { key: "Paiements", label: "Paiements" },
+  { key: "Droit & réglementation", label: "Droit" },
+  { key: "Gestion & stratégie", label: "Gestion" },
+  { key: "Social & emploi", label: "Social" },
+  { key: "Numérique & innovation", label: "Numérique" },
 ];
 
 // Composant carte isolé avec son propre motionValue pour éviter le bug de x partagé
@@ -92,6 +141,10 @@ function Card({ card, onAnswer, showExplanation, onNext, flash }) {
 }
 
 export default function VraiOuFaux({ subject }) {
+  const isVojes = subject === "VOJES";
+  const CHAPTER_TO_CATEGORY = isVojes ? VOJES_CHAPTER_TO_CATEGORY : CESBF_CHAPTER_TO_CATEGORY;
+  const CATEGORIES = isVojes ? VOJES_CATEGORIES : CESBF_CATEGORIES;
+
   const [allCards, setAllCards] = useState([]);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
