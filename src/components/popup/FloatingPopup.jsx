@@ -73,27 +73,27 @@ export default function FloatingPopup({ subject = "ALL" }) {
             transition={{ type: "spring", stiffness: 280, damping: 22 }}
             className="pointer-events-auto"
           >
-            {/* Conteneur doré sobre */}
-            <div className="relative max-w-[280px] overflow-hidden rounded-2xl shadow-lg"
+            {/* Liquid glass — fond or translucide, bordure brillante or */}
+            <div className="relative max-w-[270px] overflow-hidden rounded-3xl"
               style={{
-                background: "linear-gradient(135deg, #fef9ec 0%, #fdf3d0 60%, #faefc0 100%)",
-                border: "1.5px solid #e8d48a",
+                background: "rgba(255, 215, 80, 0.18)",
+                backdropFilter: "blur(24px) saturate(180%)",
+                WebkitBackdropFilter: "blur(24px) saturate(180%)",
+                border: "1.5px solid rgba(255, 215, 50, 0.8)",
+                boxShadow: "0 8px 32px rgba(180,130,0,0.12), inset 0 1px 0 rgba(255,250,180,0.8)",
               }}
             >
-              {/* Bande dorée fine en haut */}
-              <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, #d4a017, #f0c940, #d4a017)" }} />
-
               {/* Shimmer overlay */}
               <AnimatePresence>
                 {shimmer && (
                   <motion.div
-                    initial={{ x: "-100%", opacity: 0.7 }}
+                    initial={{ x: "-100%", opacity: 0.6 }}
                     animate={{ x: "200%", opacity: 0 }}
                     exit={{}}
-                    transition={{ duration: 0.9, ease: "easeOut" }}
+                    transition={{ duration: 1.0, ease: "easeOut" }}
                     className="absolute inset-0 z-10 pointer-events-none"
                     style={{
-                      background: "linear-gradient(105deg, transparent 30%, rgba(255,245,180,0.7) 50%, transparent 70%)",
+                      background: "linear-gradient(105deg, transparent 30%, rgba(255,250,180,0.7) 50%, transparent 70%)",
                     }}
                   />
                 )}
@@ -102,12 +102,12 @@ export default function FloatingPopup({ subject = "ALL" }) {
               {/* Bouton fermer */}
               <button
                 onClick={handleClose}
-                className="absolute top-2 right-2 z-20 rounded-full p-0.5 hover:bg-amber-100 transition-colors"
+                className="absolute top-2.5 right-2.5 z-20 rounded-full p-0.5 hover:bg-yellow-200/40 transition-colors"
               >
                 <X className="w-3 h-3 text-amber-700" />
               </button>
 
-              <div className="px-4 pt-3 pb-3.5">
+              <div className="px-4 pt-3.5 pb-4">
                 <div className="text-[9px] uppercase tracking-widest font-bold mb-1.5" style={{ color: "#b8860b" }}>
                   Le savais-tu ?
                 </div>
