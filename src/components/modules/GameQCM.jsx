@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, Heart, RotateCcw, Pause, Play } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
+import { saveGameKmRecord, getGameKmRecord } from "@/lib/scoreStorage";
 import * as THREE from "three";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -156,9 +157,14 @@ export default function GameQCM({ subject }) {
   const [lives, setLives] = useState(3);
   const [score, setScore] = useState(0);
   const [km, setKm] = useState(0);
+  const [kmRecord, setKmRecord] = useState(0);
   const [feedback, setFeedback] = useState(null); // null | "correct" | "wrong"
   const kmRef = useRef(0);
   const kmIntervalRef = useRef(null);
+
+  useEffect(() => {
+    setKmRecord(getGameKmRecord(subject));
+  }, [subject]);
 
   // ── Km counter ──
   useEffect(() => {
@@ -166,10 +172,12 @@ export default function GameQCM({ subject }) {
     if (paused) { clearInterval(kmIntervalRef.current); return; }
     kmIntervalRef.current = setInterval(() => {
       kmRef.current += 0.1;
-      setKm(Math.round(kmRef.current * 10) / 10);
+      const newKm = Math.round(kmRef.current * 10) / 10;
+      setKm(newKm);
+      if (newKm > kmRecord) setKmRecord(newKm);
     }, 300);
     return () => clearInterval(kmIntervalRef.current);
-  }, [uiState, paused]);
+  }, [uiState, paused, kmRecord]);
 
   // ── Load questions ──
   useEffect(() => {
@@ -487,6 +495,13 @@ export default function GameQCM({ subject }) {
     setUiState(STATE.DRIVING);
   }, [spawnSplit]);
 
+  // Save km record on game over/win
+  useEffect(() => {
+    if (uiState === STATE.GAMEOVER || uiState === STATE.WIN) {
+      if (km > 0) saveGameKmRecord(subject, km);
+    }
+  }, [uiState, km, subject]);
+
   // ─── Render ───────────────────────────────────────────────────────────────
   if (loading) return <div className="flex items-center gap-2 text-stone-500 p-10"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
   if (questions.length === 0) return <div className="bg-white rounded-2xl p-8 text-center text-stone-600">Pas encore de questions en mode jeu.</div>;
@@ -517,24 +532,31 @@ export default function GameQCM({ subject }) {
         )}
 
         {/* HUD sous la question */}
-        <div className="absolute left-0 right-0 z-10 flex items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 72px)" : "4px" }}>
-          <div className="flex gap-1">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
-            {isPlaying && (
-              <button
-                onClick={togglePause}
-                className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors"
-              >
-                {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-              </button>
-            )}
-          </div>
-        </div>
+         <div className="absolute left-0 right-0 z-10 flex items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 72px)" : "4px" }}>
+           <div className="flex gap-1">
+             {Array.from({ length: 3 }).map((_, i) => (
+               <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
+             ))}
+           </div>
+           <div className="flex items-center gap-2">
+             <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
+             {isPlaying && (
+               <button
+                 onClick={togglePause}
+                 className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors"
+               >
+                 {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+               </button>
+             )}
+           </div>
+         </div>
+
+         {/* Record discret en haut à droite */}
+         {kmRecord > 0 && (
+           <div className="absolute top-2 right-3 z-10 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-bold text-yellow-300">
+             🏆 record : {kmRecord} km
+           </div>
+         )}
 
         {/* Feedback overlays */}
         {feedback === "correct" && current && (

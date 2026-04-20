@@ -4,6 +4,7 @@ import { Loader2, RotateCcw, CheckCircle2, XCircle, Menu, X, ChevronLeft } from 
 import { motion, AnimatePresence } from "framer-motion";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { useNavigate } from "react-router-dom";
+import { saveParetoScore, getParetoScore, getScoreColor, getScoreBgColor } from "@/lib/scoreStorage";
 
 // Structure officielle CESBF : groupes avec titre + chapitres dans l'ordre
 const CESBF_GROUPS = [
@@ -194,41 +195,52 @@ export default function ParetoQCM({ subject }) {
                   {group.title}
                 </div>
                 {group.chapters.map((ch) => {
-                  const isActive = selectedChapter === ch;
-                  // Extraire juste le label après "Chap X : "
-                  const label = ch.replace(/^MODULE\s+\d+\s*[—\-]\s*Chap\s+\d+\s*:\s*/i, "");
-                  return (
-                    <button
-                      key={ch}
-                      onClick={() => selectChapter(ch)}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all leading-snug mb-0.5
-                        ${isActive
-                          ? "bg-yellow-400 text-yellow-900 font-bold shadow-sm"
-                          : "text-stone-600 font-medium hover:bg-yellow-50 hover:text-yellow-900"}`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
+                   const isActive = selectedChapter === ch;
+                   const label = ch.replace(/^MODULE\s+\d+\s*[—\-]\s*Chap\s+\d+\s*:\s*/i, "");
+                   const score = getParetoScore(subject, ch);
+                   return (
+                     <button
+                       key={ch}
+                       onClick={() => selectChapter(ch)}
+                       className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all leading-snug mb-0.5 flex items-center justify-between gap-2
+                         ${isActive
+                           ? "bg-yellow-400 text-yellow-900 font-bold shadow-sm"
+                           : "text-stone-600 font-medium hover:bg-yellow-50 hover:text-yellow-900"}`}
+                     >
+                       <span>{label}</span>
+                       {score !== null && (
+                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${getScoreBgColor(score)} ${getScoreColor(score)}`}>
+                           {score}%
+                         </span>
+                       )}
+                     </button>
+                   );
+                 })}
               </div>
             ))
           ) : (
             // VOJES : liste plate
             chapters.map((ch) => {
-              const isActive = selectedChapter === ch;
-              return (
-                <button
-                  key={ch}
-                  onClick={() => selectChapter(ch)}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all leading-snug mb-0.5
-                    ${isActive
-                      ? "bg-yellow-400 text-yellow-900 font-bold shadow-sm"
-                      : "text-stone-600 font-medium hover:bg-yellow-50 hover:text-yellow-900"}`}
-                >
-                  {ch}
-                </button>
-              );
-            })
+               const isActive = selectedChapter === ch;
+               const score = getParetoScore(subject, ch);
+               return (
+                 <button
+                   key={ch}
+                   onClick={() => selectChapter(ch)}
+                   className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all leading-snug mb-0.5 flex items-center justify-between gap-2
+                     ${isActive
+                       ? "bg-yellow-400 text-yellow-900 font-bold shadow-sm"
+                       : "text-stone-600 font-medium hover:bg-yellow-50 hover:text-yellow-900"}`}
+                 >
+                   <span>{ch}</span>
+                   {score !== null && (
+                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${getScoreBgColor(score)} ${getScoreColor(score)}`}>
+                       {score}%
+                     </span>
+                   )}
+                 </button>
+               );
+             })
           )}
         </nav>
       </aside>
@@ -335,18 +347,22 @@ export default function ParetoQCM({ subject }) {
             )}
 
             {/* Results */}
-            {done && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-10">
-                <div className="text-6xl mb-4">{score === questions.length ? "🏆" : score >= 4 ? "👍" : score >= 3 ? "💪" : "📚"}</div>
-                <h2 className="font-display text-2xl font-bold mb-1 text-stone-900">{selectedChapter}</h2>
-                <div className="text-stone-500 mb-1">Score : <span className="text-stone-900 font-bold text-3xl">{score}</span> / {questions.length}</div>
-                <div className="text-sm text-stone-400 mb-8">{score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= 4 ? "Très bien !" : score >= 3 ? "Bien, continue !" : "Révise encore ce chapitre."}</div>
-                <div className="flex gap-3 justify-center flex-wrap">
-                  <DuoButton variant="ghost" onClick={restart}><RotateCcw className="w-4 h-4 inline mr-1" /> Recommencer</DuoButton>
-                  <DuoButton variant="primary" onClick={() => { setSelectedChapter(null); setDone(false); }}>Autre chapitre</DuoButton>
-                </div>
-              </motion.div>
-            )}
+            {done && (() => {
+              const percentage = Math.round((score / questions.length) * 100);
+              saveParetoScore(subject, selectedChapter, percentage);
+              return (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-10">
+                  <div className="text-6xl mb-4">{score === questions.length ? "🏆" : score >= 4 ? "👍" : score >= 3 ? "💪" : "📚"}</div>
+                  <h2 className="font-display text-2xl font-bold mb-1 text-stone-900">{selectedChapter}</h2>
+                  <div className="text-stone-500 mb-1">Score : <span className="text-stone-900 font-bold text-3xl">{score}</span> / {questions.length} ({percentage}%)</div>
+                  <div className="text-sm text-stone-400 mb-8">{score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= 4 ? "Très bien !" : score >= 3 ? "Bien, continue !" : "Révise encore ce chapitre."}</div>
+                  <div className="flex gap-3 justify-center flex-wrap">
+                    <DuoButton variant="ghost" onClick={restart}><RotateCcw className="w-4 h-4 inline mr-1" /> Recommencer</DuoButton>
+                    <DuoButton variant="primary" onClick={() => { setSelectedChapter(null); setDone(false); }}>Autre chapitre</DuoButton>
+                  </div>
+                </motion.div>
+              );
+            })()}
           </div>
         </div>
       </div>

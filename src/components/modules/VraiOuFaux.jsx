@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, Check, X, RotateCcw, Zap, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { saveVraiOuFauxCategoryScore, getVraiOuFauxCategoryScore, getScoreColor, getScoreBgColor } from "@/lib/scoreStorage";
 
 // ── CESBF : mapping chapitre → catégorie ──
 const CESBF_CHAPTER_TO_CATEGORY = {
@@ -276,21 +277,29 @@ export default function VraiOuFaux({ subject }) {
     <div className="flex items-center gap-2 mb-0 flex-shrink-0">
       {/* Filtres scrollables */}
       <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-        <div className="flex gap-1.5 w-max">
-          {CATEGORIES.map(cat => (
+      <div className="flex gap-1.5 w-max">
+        {CATEGORIES.map(cat => {
+          const score = cat.key !== "all" ? getVraiOuFauxCategoryScore(subject, cat.key) : null;
+          return (
             <button
               key={cat.key}
               onClick={() => applyCategory(cat.key)}
-              className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 selectedCategory === cat.key
                   ? "bg-rose-500 text-white shadow-sm"
                   : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
               }`}
             >
-              {cat.label}
+              <span>{cat.label}</span>
+              {score !== null && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${getScoreBgColor(score)} ${getScoreColor(score)}`}>
+                  {score}%
+                </span>
+              )}
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
       </div>
 
       {/* Bouton mode rapide */}
@@ -322,61 +331,67 @@ export default function VraiOuFaux({ subject }) {
   );
 
   // ── ÉCRAN DE FIN ──
-  if (done) return (
-    <div className="flex flex-col gap-4">
-      {TopBar}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center py-10 gap-5"
-      >
-        <div className="text-6xl">{score.good >= score.bad ? "🏆" : "💪"}</div>
-        <div className="text-center">
-          <h2 className="font-display text-3xl font-bold text-stone-900">Session terminée !</h2>
-          <p className="text-stone-400 text-sm mt-1">{cards.length} cartes · {selectedCategory === "all" ? "Tout" : selectedCategory}</p>
-        </div>
-        <div className="flex gap-4">
-          <div className="bg-green-50 border-2 border-green-200 rounded-2xl px-8 py-4 text-center">
-            <div className="text-4xl font-bold text-green-600">{score.good}</div>
-            <div className="text-xs font-bold text-green-400 mt-1">VRAIS</div>
+  if (done) {
+    const percentage = Math.round((score.good / cards.length) * 100);
+    if (selectedCategory !== "all") {
+      saveVraiOuFauxCategoryScore(subject, selectedCategory, percentage);
+    }
+    return (
+      <div className="flex flex-col gap-4">
+        {TopBar}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center py-10 gap-5"
+        >
+          <div className="text-6xl">{score.good >= score.bad ? "🏆" : "💪"}</div>
+          <div className="text-center">
+            <h2 className="font-display text-3xl font-bold text-stone-900">Session terminée !</h2>
+            <p className="text-stone-400 text-sm mt-1">{cards.length} cartes · {selectedCategory === "all" ? "Tout" : selectedCategory}</p>
           </div>
-          <div className="bg-red-50 border-2 border-red-200 rounded-2xl px-8 py-4 text-center">
-            <div className="text-4xl font-bold text-red-500">{score.bad}</div>
-            <div className="text-xs font-bold text-red-400 mt-1">FAUX</div>
-          </div>
-        </div>
-        <div className="font-display font-bold text-2xl text-stone-600">
-          {Math.round((score.good / cards.length) * 100)} %
-        </div>
-
-        {fastMode && wrongAnswers.length > 0 && (
-          <div className="w-full max-w-lg mt-2">
-            <div className="flex items-center gap-2 mb-3">
-              <BookOpen className="w-4 h-4 text-red-400" />
-              <span className="font-bold text-sm text-stone-700">Tes {wrongAnswers.length} erreur{wrongAnswers.length > 1 ? "s" : ""}</span>
+          <div className="flex gap-4">
+            <div className="bg-green-50 border-2 border-green-200 rounded-2xl px-8 py-4 text-center">
+              <div className="text-4xl font-bold text-green-600">{score.good}</div>
+              <div className="text-xs font-bold text-green-400 mt-1">VRAIS</div>
             </div>
-            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-              {wrongAnswers.map((card, i) => (
-                <div key={i} className="bg-red-50 border border-red-100 rounded-2xl p-4">
-                  <p className="font-semibold text-stone-800 text-sm leading-snug mb-2">{card.statement}</p>
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-xs font-bold text-red-500 mt-0.5 flex-shrink-0">
-                      {card.isTrue ? "✅ VRAI" : "❌ FAUX"}
-                    </span>
-                    <p className="text-xs text-stone-600 leading-relaxed">— {card.explanation}</p>
+            <div className="bg-red-50 border-2 border-red-200 rounded-2xl px-8 py-4 text-center">
+              <div className="text-4xl font-bold text-red-500">{score.bad}</div>
+              <div className="text-xs font-bold text-red-400 mt-1">FAUX</div>
+            </div>
+          </div>
+          <div className="font-display font-bold text-2xl text-stone-600">
+            {percentage} %
+          </div>
+
+          {fastMode && wrongAnswers.length > 0 && (
+            <div className="w-full max-w-lg mt-2">
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen className="w-4 h-4 text-red-400" />
+                <span className="font-bold text-sm text-stone-700">Tes {wrongAnswers.length} erreur{wrongAnswers.length > 1 ? "s" : ""}</span>
+              </div>
+              <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                {wrongAnswers.map((card, i) => (
+                  <div key={i} className="bg-red-50 border border-red-100 rounded-2xl p-4">
+                    <p className="font-semibold text-stone-800 text-sm leading-snug mb-2">{card.statement}</p>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-xs font-bold text-red-500 mt-0.5 flex-shrink-0">
+                        {card.isTrue ? "✅ VRAI" : "❌ FAUX"}
+                      </span>
+                      <p className="text-xs text-stone-600 leading-relaxed">— {card.explanation}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <button onClick={restart} className="flex items-center gap-2 bg-rose-500 text-white font-display font-bold px-6 py-3.5 rounded-2xl border-b-4 border-rose-700 hover:bg-rose-400 active:translate-y-1 active:border-b-0 transition-all mt-1">
-          <RotateCcw className="w-4 h-4" /> Rejouer
-        </button>
-      </motion.div>
-    </div>
-  );
+          <button onClick={restart} className="flex items-center gap-2 bg-rose-500 text-white font-display font-bold px-6 py-3.5 rounded-2xl border-b-4 border-rose-700 hover:bg-rose-400 active:translate-y-1 active:border-b-0 transition-all mt-1">
+            <RotateCcw className="w-4 h-4" /> Rejouer
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col select-none" style={{ minHeight: "calc(100vh - 120px)" }}>

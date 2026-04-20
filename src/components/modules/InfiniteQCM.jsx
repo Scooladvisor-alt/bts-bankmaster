@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, Flame, X, Check } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
-import { saveBestInfini, getProgress } from "@/lib/localProgress";
+import { saveInfiniRecord, getInfiniRecord } from "@/lib/scoreStorage";
 
 export default function InfiniteQCM({ subject }) {
   const [pool, setPool] = useState([]);
@@ -29,7 +29,7 @@ export default function InfiniteQCM({ subject }) {
       });
       setPool(merged);
       if (merged.length) setCurrent(merged[Math.floor(Math.random() * merged.length)]);
-      setBest(getProgress(subject).bestInfini || 0);
+      setBest(getInfiniRecord(subject));
       setLoading(false);
     })();
   }, [subject]);
@@ -48,13 +48,14 @@ export default function InfiniteQCM({ subject }) {
       setStreak((s) => s + 1);
       setTimeout(next, 700);
     } else {
-      saveBestInfini(subject, score);
+      const newRecord = saveInfiniRecord(subject, score);
+      setBest(newRecord);
       setTimeout(() => setOver(true), 1200);
     }
   };
 
   const restart = () => {
-    setScore(0); setStreak(0); setOver(false); setBest(getProgress(subject).bestInfini || 0); next();
+    setScore(0); setStreak(0); setOver(false); setBest(getInfiniRecord(subject)); next();
   };
 
   if (loading) return <div className="flex items-center gap-2 text-stone-500"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>;
@@ -87,7 +88,7 @@ export default function InfiniteQCM({ subject }) {
         <div className="flex items-center gap-3 text-sm font-bold text-stone-600">
           <span>Score : <span className="text-red-500 text-lg">{score}</span></span>
           <span className="text-stone-300">|</span>
-          <span>Record : <span className="text-stone-800">{best}</span></span>
+          <span>🏆 Record : <span className={`text-lg font-bold ${best > 0 ? "text-amber-600" : "text-stone-400"}`}>{best}</span></span>
         </div>
       </div>
 
