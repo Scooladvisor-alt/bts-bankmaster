@@ -199,7 +199,7 @@ export default function VraiOuFaux({ subject }) {
         </button>
       </div>
 
-      <p className="text-xs text-stone-400 font-bold">👈 Swipe gauche = FAUX &nbsp;|&nbsp; Swipe droite = VRAI 👉</p>
+      <p className="text-xs text-stone-400 font-bold">👈 Glisse à gauche = FAUX &nbsp;|&nbsp; Glisse à droite = VRAI 👉</p>
     </div>
   );
 }

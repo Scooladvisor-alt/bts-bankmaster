@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
 import RoleModal from "@/components/landing/RoleModal";
-import { Sparkles, Zap, Brain, Settings } from "lucide-react";
+import { Sparkles, Settings } from "lucide-react";
 
 export default function Landing() {
   const [showRoleModal, setShowRoleModal] = useState(false);
@@ -44,7 +44,7 @@ export default function Landing() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mt-4">
           <SubjectCard
             to="/voges"
             label="VOGES"
@@ -63,16 +63,7 @@ export default function Landing() {
           />
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="mt-16 grid grid-cols-3 gap-3 max-w-2xl mx-auto text-center"
-        >
-          <Feature icon={Zap} label="Rapide" desc="Pareto : 20% = 80%" />
-          <Feature icon={Brain} label="Efficace" desc="Neurosciences" />
-          <Feature icon={Sparkles} label="Ludique" desc="Mode jeu" />
-        </motion.div>
+
       </div>
     </div>
   );
@@ -86,7 +77,7 @@ const SubjectCard = ({ to, label, emoji, tagline, gradient, delay }) => (
   >
     <Link to={to}>
       <div
-        className={`group relative bg-gradient-to-br ${gradient} rounded-3xl p-8 shadow-duo-lg border-b-[6px] border-black/20 hover:-translate-y-1 transition-transform cursor-pointer h-52 flex flex-col justify-between`}
+        className={`group relative bg-gradient-to-br ${gradient} rounded-3xl p-8 shadow-duo-lg border-b-[6px] border-black/20 hover:-translate-y-1 transition-transform cursor-pointer h-64 flex flex-col justify-between`}
       >
         <div>
           <div className="text-6xl mb-3">{emoji}</div>
@@ -104,12 +95,4 @@ const SubjectCard = ({ to, label, emoji, tagline, gradient, delay }) => (
       </div>
     </Link>
   </motion.div>
-);
-
-const Feature = ({ icon: Icon, label, desc }) => (
-  <div className="bg-white rounded-2xl p-4 shadow-duo border border-stone-100">
-    <Icon className="w-5 h-5 mx-auto text-primary mb-1" />
-    <div className="font-bold text-sm">{label}</div>
-    <div className="text-xs text-stone-500">{desc}</div>
-  </div>
 );
