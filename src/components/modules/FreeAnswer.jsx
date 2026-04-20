@@ -74,23 +74,25 @@ export default function FreeAnswer({ subject }) {
     const nextQuestion = nextQ ? nextQ.question : null;
 
     const feedback = await base44.integrations.Core.InvokeLLM({
-      prompt: `Tu es un professeur de BTS Banque ultra-pédagogique, bienveillant et dynamique. Tu parles directement à l'étudiant (tutoiement).
+      prompt: `Tu es un professeur de BTS Banque. Tu évalues la réponse d'un étudiant de façon directe, honnête et concise. Tu tutoies l'étudiant.
 
-Cours de référence (matière ${subject}) — "${course.title}".
+Matière : ${subject} — Chapitre : "${course.title}"
 
-Historique de la conversation :
+Historique :
 ${history}
 
 Réponse de l'étudiant : "${userMsg}"
 
-Ta mission :
-1. Évalue si la réponse est correcte, partielle ou incorrecte.
-2. Donne un feedback pédagogique (2-3 paragraphes max).
-3. Complète ce qui manque si la réponse est partielle.
-4. Encourage et motive (mais sois honnête).
-${nextQuestion ? `5. Termine avec la ligne "---" puis pose exactement cette question de révision : "${nextQuestion}"` : "5. Dis à l'étudiant qu'il a couvert toutes les questions de ce chapitre."}
-
-Format : feedback, puis "---", puis la question.`,
+RÈGLES ABSOLUES :
+- Sois DIRECT et BREF. Maximum 4-5 lignes de feedback.
+- Commence immédiatement par le verdict : "✅ Correct.", "⚠️ Partiel." ou "❌ Incorrect."
+- Si partiel : liste en 1-2 points courts ce qui manque. Ex : "Tu as mentionné X, mais il manque Y et Z."
+- Si incorrect : donne la bonne réponse en 1-2 phrases factuelles.
+- Si correct : confirme en une phrase et éventuellement ajoute UN élément clé à retenir.
+- PAS de phrases comme "c'est bien d'essayer", "bonne réflexion", "en effet". Sois factuel.
+- Tu peux utiliser une métaphore courte et utile si elle aide vraiment à comprendre.
+- NE RAJOUTE PAS de commentaires motivationnels inutiles.
+${nextQuestion ? `- Termine avec "---" puis pose cette question : "${nextQuestion}"` : "- Dis que toutes les questions du chapitre sont couvertes."}`,
     });
 
     setMessages((m) => [...m, { role: "assistant", content: feedback }]);
@@ -154,7 +156,7 @@ Format : feedback, puis "---", puis la question.`,
 
   // Interface conversation
   return (
-    <div className="flex flex-col h-[calc(100vh-220px)] min-h-[400px]">
+    <div className="flex flex-col h-[calc(100vh-160px)] min-h-[500px]">
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="text-xs font-bold uppercase tracking-widest text-teal-600">Révision interactive</div>

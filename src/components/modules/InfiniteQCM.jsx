@@ -16,9 +16,19 @@ export default function InfiniteQCM({ subject }) {
 
   useEffect(() => {
     (async () => {
-      const list = await base44.entities.Question.filter({ subject, mode: "infini" });
-      setPool(list);
-      if (list.length) setCurrent(list[Math.floor(Math.random() * list.length)]);
+      const [infini, pareto] = await Promise.all([
+        base44.entities.Question.filter({ subject, mode: "infini" }),
+        base44.entities.Question.filter({ subject, mode: "pareto" }),
+      ]);
+      // Dédoublonner par question text
+      const seen = new Set();
+      const merged = [...infini, ...pareto].filter(q => {
+        if (seen.has(q.question)) return false;
+        seen.add(q.question);
+        return true;
+      });
+      setPool(merged);
+      if (merged.length) setCurrent(merged[Math.floor(Math.random() * merged.length)]);
       setBest(getProgress(subject).bestInfini || 0);
       setLoading(false);
     })();
@@ -48,7 +58,7 @@ export default function InfiniteQCM({ subject }) {
   };
 
   if (loading) return <div className="flex items-center gap-2 text-stone-500"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>;
-  if (pool.length === 0) return <div className="bg-white rounded-2xl p-6 text-center text-stone-600">Aucune question en mode infini pour cette matière.</div>;
+  if (pool.length === 0) return <div className="bg-white rounded-2xl p-6 text-center text-stone-600">Aucune question disponible pour cette matière.</div>;
 
   if (over) {
     return (
