@@ -12,6 +12,7 @@ import AdminCourses from "@/components/admin/AdminCourses";
 import AdminResources from "@/components/admin/AdminResources";
 import AdminAssistant from "@/components/admin/AdminAssistant";
 import AdminTeachers from "@/components/admin/AdminTeachers";
+import AdminUsers from "@/components/admin/AdminUsers";
 
 const TABS = [
   { key: "pareto",     label: "🎯 QCM Pareto",         Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
@@ -24,6 +25,7 @@ const TABS = [
   { key: "popups",     label: "💬 Pop-ups",              Comp: AdminPopups },
   { key: "assistant",  label: "🤖 Assistant",            Comp: AdminAssistant },
   { key: "teachers",   label: "👩‍🏫 Professeurs",         Comp: AdminTeachers },
+  { key: "users",      label: "👥 Utilisateurs",          Comp: AdminUsers },
 ];
 
 const SUBJECTS = ["VOJES", "CESBF"];
@@ -72,7 +74,7 @@ export default function Admin() {
   const tabConfig = TABS.find((t) => t.key === tab);
   const Current = tabConfig?.Comp;
   // Teachers tab has no subject filter
-  const needsSubject = tab !== "teachers" && tab !== "popups";
+  const needsSubject = tab !== "teachers" && tab !== "popups" && tab !== "users";
 
   return (
     <div className="min-h-screen bg-stone-50">

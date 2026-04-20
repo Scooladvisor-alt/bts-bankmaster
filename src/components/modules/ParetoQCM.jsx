@@ -291,7 +291,7 @@ export default function ParetoQCM({ subject }) {
                             </div>
                             {q.explanation
                              ? <div className="text-xs text-stone-700 leading-relaxed"><span className="font-semibold">Pourquoi ?</span> {q.explanation}</div>
-                             : <div className="text-xs text-stone-700 leading-relaxed">La bonne réponse est <span className="font-bold text-green-700">"{q.options[q.correct_index]}"</span>. Relis bien ce point pour bien comprendre la distinction.</div>
+                             : <div className="text-xs text-stone-700 leading-relaxed">La bonne réponse est <span className="font-bold text-green-700">"{q.options[q.correct_index]}"</span>. Tu as répondu <span className="font-semibold text-red-600">"{q.options[selected]}"</span> — ces deux notions sont souvent confondues. Concentre-toi sur la distinction clé entre les deux propositions pour ne plus te tromper.</div>
                             }
                           </div>
                         )}
