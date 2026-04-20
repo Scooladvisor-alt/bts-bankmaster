@@ -166,7 +166,7 @@ export default function VraiOuFaux({ subject }) {
         onClick={() => navigate(`/${subjectPath}`)}
         className="flex items-center gap-1 text-stone-500 hover:text-stone-800 font-bold text-sm bg-white/80 backdrop-blur px-3 py-2 rounded-xl border border-stone-200 whitespace-nowrap flex-shrink-0"
       >
-        <ChevronLeft className="w-4 h-4" />
+        Retour
       </button>
 
       {/* Filtres scrollables */}
@@ -299,10 +299,11 @@ export default function VraiOuFaux({ subject }) {
             </div>
           </div>
 
-          {/* Card zone */}
-          <div className="flex-1 relative flex items-center justify-center py-3">
+          {/* Card zone — hauteur fixe pour que absolute inset-0 fonctionne */}
+          <div className="relative w-full" style={{ height: 340 }}>
+            {/* Ghost card derrière */}
             {cards[index + 1] && (
-              <div className="absolute inset-x-2 top-5 bottom-5 bg-white rounded-3xl border border-stone-100 shadow-sm opacity-60 scale-[0.96]" />
+              <div className="absolute inset-x-2 top-3 bottom-3 bg-white rounded-3xl border border-stone-100 shadow-sm opacity-60" style={{ transform: "scale(0.96)" }} />
             )}
 
             <AnimatePresence mode="wait">
@@ -319,7 +320,11 @@ export default function VraiOuFaux({ subject }) {
                     scale: 1,
                     opacity: 1,
                     y: 0,
-                    backgroundColor: flash === "wrong" ? ["#ffffff", "#fef2f2", "#ffffff"] : flash === "correct" ? ["#ffffff", "#f0fdf4", "#ffffff"] : "#ffffff",
+                    backgroundColor: flash === "wrong"
+                      ? ["#ffffff", "#fef2f2", "#ffffff"]
+                      : flash === "correct"
+                        ? ["#ffffff", "#f0fdf4", "#ffffff"]
+                        : "#ffffff",
                   }}
                   transition={{ type: "spring", stiffness: 220, damping: 24, backgroundColor: { duration: 0.4 } }}
                   exit={{ scale: 0.8, opacity: 0 }}
@@ -328,46 +333,51 @@ export default function VraiOuFaux({ subject }) {
                     borderColor: flash === "wrong" ? "#fca5a5" : flash === "correct" ? "#86efac" : "#f1f5f9",
                   }}
                 >
-                  <motion.div style={{ opacity: opacityTrue }} className="absolute top-6 right-6 bg-green-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow rotate-6">
+                  {/* Indicateurs swipe */}
+                  <motion.div style={{ opacity: opacityTrue }} className="absolute top-5 right-5 bg-green-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow rotate-6 z-20">
                     ✅ VRAI
                   </motion.div>
-                  <motion.div style={{ opacity: opacityFalse }} className="absolute top-6 left-6 bg-red-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow -rotate-6">
+                  <motion.div style={{ opacity: opacityFalse }} className="absolute top-5 left-5 bg-red-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow -rotate-6 z-20">
                     ❌ FAUX
                   </motion.div>
 
-                  {/* Question + explication (mode normal, mauvaise réponse) */}
-                  <div className="flex-1 flex flex-col items-center justify-center px-7 py-8">
-                    {current.chapter && !showExplanation && (
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-rose-400 mb-4 text-center">
-                        {current.chapter}
-                      </div>
-                    )}
-
-                    {!showExplanation ? (
-                      <p className="text-center font-semibold text-stone-800 text-lg leading-relaxed">
-                        {current.statement}
-                      </p>
-                    ) : (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-col items-center gap-4 w-full"
-                      >
-                        <div className="bg-red-100 rounded-2xl px-4 py-2 text-red-600 font-bold text-sm text-center">
-                          ❌ La bonne réponse était : {current.isTrue ? "VRAI" : "FAUX"}
+                  {!showExplanation ? (
+                    /* ── VUE QUESTION ── */
+                    <div className="flex flex-col h-full">
+                      {/* Chapitre en haut de la carte */}
+                      {current.chapter && (
+                        <div className="px-6 pt-5 pb-0 text-[10px] font-bold uppercase tracking-widest text-rose-400 text-center">
+                          {current.chapter}
                         </div>
-                        <p className="text-center text-stone-600 text-sm leading-relaxed px-2">
-                          {current.explanation}
+                      )}
+                      {/* Question centrée verticalement dans l'espace restant */}
+                      <div className="flex-1 flex items-center justify-center px-7 py-4">
+                        <p className="text-center font-semibold text-stone-800 text-lg leading-relaxed">
+                          {current.statement}
                         </p>
-                        <button
-                          onClick={nextCard}
-                          className="mt-2 flex items-center gap-2 bg-stone-800 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-stone-900 active:border-b-0 active:translate-y-0.5 transition-all text-sm"
-                        >
-                          Continuer →
-                        </button>
-                      </motion.div>
-                    )}
-                  </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* ── VUE EXPLICATION ── */
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col items-center justify-center h-full gap-4 px-7 py-6"
+                    >
+                      <div className="bg-red-100 rounded-2xl px-4 py-2 text-red-600 font-bold text-sm text-center">
+                        ❌ Bonne réponse : {current.isTrue ? "VRAI" : "FAUX"}
+                      </div>
+                      <p className="text-center text-stone-600 text-sm leading-relaxed">
+                        {current.explanation}
+                      </p>
+                      <button
+                        onClick={nextCard}
+                        className="mt-1 bg-stone-800 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-stone-900 active:border-b-0 active:translate-y-0.5 transition-all text-sm"
+                      >
+                        Continuer →
+                      </button>
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
