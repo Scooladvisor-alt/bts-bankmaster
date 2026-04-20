@@ -102,18 +102,20 @@ export default function ParetoQCM({ subject }) {
 
       <aside className={`
         fixed md:relative inset-y-0 left-0 z-40 md:z-auto
-        w-72 md:w-64 lg:w-72
+        w-72 md:w-72 lg:w-80
         bg-white border-r border-stone-200 shadow-lg
         flex flex-col
         transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}>
-        {/* Sidebar header */}
-        <div className="px-4 py-4 border-b border-stone-100 bg-yellow-400 flex items-center justify-between shrink-0">
-          <div>
-            <div className="font-display font-bold text-yellow-900 text-lg leading-tight">QCM Pareto</div>
-            <div className="text-yellow-800 text-xs font-bold">{subject} — Chapitres</div>
-          </div>
+        {/* Bouton retour en haut */}
+        <div className="px-4 py-3 border-b border-stone-100 bg-yellow-400 flex items-center justify-between shrink-0">
+          <button
+            onClick={() => navigate(`/${subject.toLowerCase()}`)}
+            className="flex items-center gap-1.5 font-bold text-yellow-900 hover:text-yellow-700 transition-colors text-sm"
+          >
+            <ChevronLeft className="w-4 h-4" /> Retour à {subject}
+          </button>
           <button className="md:hidden p-1.5 rounded-lg bg-yellow-300 text-yellow-900" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />
           </button>
@@ -128,6 +130,7 @@ export default function ParetoQCM({ subject }) {
           ) : (
             chapters.map((ch) => {
               const isActive = selectedChapter === ch;
+              const label = ch.replace(/^MODULE\s+\d+\s*[—\-]\s*/i, "");
               return (
                 <button
                   key={ch}
@@ -138,22 +141,12 @@ export default function ParetoQCM({ subject }) {
                       : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
                 >
                   <ChevronRight className={`w-3 h-3 shrink-0 mt-0.5 transition-transform ${isActive ? "rotate-90 text-yellow-800" : "text-stone-400"}`} />
-                  <span>{ch}</span>
+                  <span>{label}</span>
                 </button>
               );
             })
           )}
         </nav>
-
-        {/* Back button at bottom */}
-        <div className="p-3 border-t border-stone-100 shrink-0">
-          <button
-            onClick={() => navigate(`/${subject.toLowerCase()}`)}
-            className="flex items-center gap-1.5 text-sm font-bold text-stone-500 hover:text-stone-800 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" /> Retour à {subject}
-          </button>
-        </div>
       </aside>
 
       {/* ── MAIN CONTENT ── */}
@@ -172,17 +165,8 @@ export default function ParetoQCM({ subject }) {
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto flex flex-col items-center justify-start px-4 py-8">
-          <div className="w-full max-w-xl">
-
-            {/* Header (desktop) */}
-            <div className="hidden md:flex items-center gap-3 mb-8">
-              <div className="text-3xl">🎯</div>
-              <div>
-                <div className="text-xs font-bold uppercase tracking-widest text-stone-400">{subject}</div>
-                <h1 className="font-display text-2xl font-bold text-stone-900">QCM Pareto</h1>
-              </div>
-            </div>
+        <div className="flex-1 overflow-y-auto flex flex-col items-center justify-start px-6 py-8">
+          <div className="w-full max-w-2xl">
 
             {/* Empty state */}
             {!selectedChapter && (
