@@ -43,7 +43,7 @@ const METHODS = [
 
   { slug: "cours",      label: "Cours",                desc: "Méthodo & théorie",        icon: BookOpen,     color: "bg-emerald-400", text: "text-emerald-900" },
   { slug: "ressources", label: "Ressources",           desc: "Vidéos, podcasts…",        icon: LinkIcon,     color: "bg-indigo-400",  text: "text-indigo-900" },
-  { slug: "vraiouFaux", label: "Vrai ou Faux",         desc: "Swipe comme Tinder 🔥",    icon: Flame,        color: "bg-rose-500",    text: "text-white" },
+  { slug: "vraiouFaux", label: "Vrai ou Faux",         desc: "Révise efficacement",    icon: Flame,        color: "bg-rose-500",    text: "text-white" },
 ];
 
 export default function Subject() {
