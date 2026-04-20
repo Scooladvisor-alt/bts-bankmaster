@@ -506,8 +506,18 @@ export default function GameQCM({ subject }) {
       <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "4/3" }}>
         <div ref={mountRef} className="absolute inset-0 w-full h-full" />
 
-        {/* HUD top */}
-        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-3 pb-1 bg-gradient-to-b from-black/35 to-transparent">
+        {/* Question banner — tout en haut */}
+        {isPlaying && current && (
+          <div className="absolute top-2 left-3 right-3 z-10">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg text-center border-b-4 border-pink-300">
+              {current.chapter && <div className="text-[10px] font-bold uppercase tracking-widest text-pink-500 mb-0.5">{current.chapter}</div>}
+              <div className="font-display font-bold text-base leading-snug">{current.question}</div>
+            </div>
+          </div>
+        )}
+
+        {/* HUD sous la question */}
+        <div className="absolute left-0 right-0 z-10 flex items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 72px)" : "4px" }}>
           <div className="flex gap-1">
             {Array.from({ length: 3 }).map((_, i) => (
               <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
@@ -525,16 +535,6 @@ export default function GameQCM({ subject }) {
             )}
           </div>
         </div>
-
-        {/* Question banner */}
-        {isPlaying && current && (
-          <div className="absolute top-12 left-3 right-3 z-10">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg text-center border-b-4 border-pink-300">
-              {current.chapter && <div className="text-[10px] font-bold uppercase tracking-widest text-pink-500 mb-0.5">{current.chapter}</div>}
-              <div className="font-display font-bold text-base leading-snug">{current.question}</div>
-            </div>
-          </div>
-        )}
 
         {/* Feedback overlays */}
         {feedback === "correct" && current && (

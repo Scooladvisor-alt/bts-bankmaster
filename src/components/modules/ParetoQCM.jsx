@@ -148,7 +148,7 @@ export default function ParetoQCM({ subject }) {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden fixed inset-0 bg-white">
+    <div className="flex h-screen w-full overflow-hidden fixed inset-0" style={{ background: "#fefce8" }}>
 
       {/* ── SIDEBAR ── */}
       {/* Mobile overlay */}

@@ -110,7 +110,7 @@ function Card({ card, onAnswer, showExplanation, onNext, flash }) {
             </div>
           )}
           <div className="flex-1 flex items-center justify-center px-7 py-4">
-            <p className="text-center font-semibold text-stone-800 text-lg leading-relaxed">
+            <p className="text-center font-semibold text-stone-800 text-2xl leading-relaxed">
               {card.statement}
             </p>
           </div>
@@ -403,7 +403,7 @@ export default function VraiOuFaux({ subject }) {
           </div>
 
           {/* Zone carte — hauteur fixe */}
-          <div className="relative w-full" style={{ height: 320 }}>
+          <div className="relative w-full" style={{ height: 400 }}>
             {/* Ghost card derrière */}
             {cards[index + 1] && (
               <div

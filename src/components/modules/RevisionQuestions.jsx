@@ -11,9 +11,15 @@ export default function RevisionQuestions({ subject }) {
   useEffect(() => {
     (async () => {
       const list = await base44.entities.RevisionQuestion.filter({ subject, type: "mentale" });
-      // fallback : récupère aussi toutes si rien
       const all = list.length ? list : await base44.entities.RevisionQuestion.filter({ subject });
-      setItems(all);
+      // Tri par numéro de chapitre extrait du champ chapter
+      const getChapterNum = (ch) => {
+        if (!ch) return Infinity;
+        const m = ch.match(/chapitre\s+(\d+)/i);
+        return m ? parseInt(m[1]) : Infinity;
+      };
+      const sorted = [...all].sort((a, b) => getChapterNum(a.chapter) - getChapterNum(b.chapter));
+      setItems(sorted);
       setLoading(false);
     })();
   }, [subject]);
