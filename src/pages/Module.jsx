@@ -6,7 +6,6 @@ import GameQCM from "@/components/modules/GameQCM";
 import InfiniteQCM from "@/components/modules/InfiniteQCM";
 import RevisionQuestions from "@/components/modules/RevisionQuestions";
 import FreeAnswer from "@/components/modules/FreeAnswer";
-import Flashcards from "@/components/modules/Flashcards";
 import Courses from "@/components/modules/Courses";
 import Resources from "@/components/modules/Resources";
 import AssistantLauncher from "@/components/modules/AssistantLauncher";
@@ -20,7 +19,6 @@ const MODULES = {
   infini:     { title: "QCM Infini",         emoji: "🔥", bg: "bg-gradient-to-b from-stone-100 to-red-50",     Comp: InfiniteQCM },
   questions:  { title: "Questions révision", emoji: "📝", bg: "bg-gradient-to-b from-blue-50 to-white",        Comp: RevisionQuestions },
   libre:      { title: "Réponse libre",      emoji: "✍️", bg: "bg-gradient-to-b from-teal-50 to-white",        Comp: FreeAnswer },
-  flashcards: { title: "Flashcards",         emoji: "🎴", bg: "bg-gradient-to-b from-purple-50 to-white",      Comp: Flashcards },
   cours:      { title: "Cours",              emoji: "📚", bg: "bg-gradient-to-b from-emerald-50 to-white",     Comp: Courses },
   ressources: { title: "Ressources",         emoji: "🔗", bg: "bg-gradient-to-b from-indigo-50 to-white",      Comp: Resources },
   assistant:  { title: "Assistant",          emoji: "🤖", bg: "bg-gradient-to-b from-stone-100 to-stone-200",  Comp: AssistantLauncher },

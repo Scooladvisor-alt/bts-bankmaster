@@ -8,7 +8,6 @@ import {
   Infinity as InfinityIcon,
   ListChecks,
   PenLine,
-  Layers,
   BookOpen,
   Link as LinkIcon,
   Bot,
@@ -41,7 +40,7 @@ const METHODS = [
   { slug: "infini",     label: "QCM Infini",           desc: "Mode hardcore",            icon: InfinityIcon, color: "bg-red-400",     text: "text-red-900" },
   { slug: "questions",  label: "Questions révision",   desc: "Réfléchis puis révèle",    icon: ListChecks,   color: "bg-blue-400",    text: "text-blue-900" },
   { slug: "libre",      label: "Réponse libre",        desc: "Écris, compare",           icon: PenLine,      color: "bg-teal-400",    text: "text-teal-900" },
-  { slug: "flashcards", label: "Flashcards",           desc: "Recto / verso",            icon: Layers,       color: "bg-purple-400",  text: "text-purple-900" },
+
   { slug: "cours",      label: "Cours",                desc: "Méthodo & théorie",        icon: BookOpen,     color: "bg-emerald-400", text: "text-emerald-900" },
   { slug: "ressources", label: "Ressources",           desc: "Vidéos, podcasts…",        icon: LinkIcon,     color: "bg-indigo-400",  text: "text-indigo-900" },
   { slug: "vraiouFaux", label: "Vrai ou Faux",         desc: "Swipe comme Tinder 🔥",    icon: Flame,        color: "bg-rose-500",    text: "text-white" },
