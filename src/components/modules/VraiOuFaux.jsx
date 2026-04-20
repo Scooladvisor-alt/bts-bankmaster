@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, Check, X, RotateCcw, Zap, BookOpen } from "lucide-react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const CHAPTER_TO_CATEGORY = {
   "Ouverture de compte — Droit au compte & Inclusion bancaire": "Ouverture de compte",
@@ -39,40 +39,18 @@ const CATEGORIES = [
 
 // Composant carte isolé avec son propre motionValue pour éviter le bug de x partagé
 function Card({ card, onAnswer, showExplanation, onNext, flash }) {
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-12, 12]);
-  const opacityTrue = useTransform(x, [30, 100], [0, 1]);
-  const opacityFalse = useTransform(x, [-100, -30], [1, 0]);
-
-  const handleDragEnd = (_, info) => {
-    if (info.offset.x > 90) onAnswer(true);
-    else if (info.offset.x < -90) onAnswer(false);
-    else x.set(0);
-  };
-
   const bgColor = flash === "wrong" ? "#fef2f2" : flash === "correct" ? "#f0fdf4" : "#ffffff";
   const borderColor = flash === "wrong" ? "#fca5a5" : flash === "correct" ? "#86efac" : "#f1f5f9";
 
   return (
     <motion.div
-      style={{ x, rotate, zIndex: 10, backgroundColor: bgColor, borderColor }}
-      drag={!showExplanation ? "x" : false}
-      dragConstraints={{ left: -300, right: 300 }}
-      dragElastic={0.7}
-      onDragEnd={handleDragEnd}
+      style={{ zIndex: 10, backgroundColor: bgColor, borderColor }}
       initial={{ scale: 0.88, opacity: 0, y: 20 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ scale: 0.85, opacity: 0, transition: { duration: 0.15 } }}
       transition={{ type: "spring", stiffness: 220, damping: 24 }}
-      className="absolute inset-0 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] border flex flex-col cursor-grab active:cursor-grabbing overflow-hidden"
+      className="absolute inset-0 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] border flex flex-col overflow-hidden"
     >
-      {/* Indicateurs swipe */}
-      <motion.div style={{ opacity: opacityTrue }} className="absolute top-5 right-5 bg-green-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow rotate-6 z-20 pointer-events-none">
-        ✅ VRAI
-      </motion.div>
-      <motion.div style={{ opacity: opacityFalse }} className="absolute top-5 left-5 bg-red-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow -rotate-6 z-20 pointer-events-none">
-        ❌ FAUX
-      </motion.div>
 
       {!showExplanation ? (
         // Vue question
@@ -182,16 +160,17 @@ export default function VraiOuFaux({ subject }) {
   };
 
   const goToNext = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     const nextIndex = indexRef.current + 1;
+    answeredRef.current = false;
+    setAnswered(false);
+    setFlash(null);
+    setShowExplanation(false);
     if (nextIndex >= cardsRef.current.length) {
       setDone(true);
     } else {
       indexRef.current = nextIndex;
       setIndex(nextIndex);
-      setFlash(null);
-      setShowExplanation(false);
-      setAnswered(false);
-      answeredRef.current = false;
     }
   }, []);
 
@@ -383,10 +362,10 @@ export default function VraiOuFaux({ subject }) {
             <AnimatePresence mode="wait">
               {current && (
                 <Card
-                  key={index}
+                  key={`card-${index}`}
                   card={current}
                   onAnswer={answer}
-                  showExplanation={showExplanation}
+                  showExplanation={showExplanation && answered}
                   onNext={nextCard}
                   flash={flash}
                 />
