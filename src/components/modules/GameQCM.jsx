@@ -595,17 +595,17 @@ export default function GameQCM({ subject }) {
         )}
       </div>
 
-      {/* ── Boutons de réponse — hors canvas, sobres ── */}
+      {/* ── Boutons de réponse — hors canvas ── */}
       {uiState === STATE.DRIVING && !paused && current && (
         <div className="grid grid-cols-3 gap-3">
           {current.options.slice(0, 3).map((opt, i) => (
             <button
               key={i}
               onClick={() => chooseLane(i)}
-              className="bg-white border-2 border-stone-200 hover:border-stone-400 rounded-2xl px-3 py-3 text-left transition-all shadow-sm hover:shadow-md active:scale-95 group"
+              className="bg-white border-2 border-stone-200 hover:border-stone-400 rounded-2xl px-3 py-4 text-left transition-all shadow-sm hover:shadow-md active:scale-95 group"
             >
-              <div className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1 group-hover:text-stone-600">{laneLabels[i]}</div>
-              <div className="font-semibold text-sm text-stone-800 leading-snug">{opt}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 group-hover:text-stone-600">{laneLabels[i]}</div>
+              <div className="font-fredoka text-base text-stone-800 leading-snug">{opt}</div>
             </button>
           ))}
         </div>

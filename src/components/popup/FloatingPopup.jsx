@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { X, Sparkles } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function FloatingPopup({ subject = "ALL" }) {
   const [popups, setPopups] = useState([]);
@@ -45,22 +45,19 @@ export default function FloatingPopup({ subject = "ALL" }) {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="pointer-events-auto"
           >
-            <div className="relative max-w-xs bg-gradient-to-br from-yellow-300 via-yellow-400 to-orange-400 rounded-2xl p-4 shadow-duo-lg border-2 border-yellow-500">
+            <div className="relative max-w-xs bg-stone-800 rounded-2xl p-4 shadow-xl border border-stone-700">
               <button
                 onClick={() => setVisible(false)}
-                className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md"
+                className="absolute -top-2 -right-2 bg-stone-700 rounded-full p-1 shadow-md hover:bg-stone-600 transition-colors"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3 h-3 text-stone-300" />
               </button>
-              <div className="flex items-start gap-2">
-                <div className="text-2xl">{current.emoji || "💡"}</div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-orange-800 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Le savais-tu ?
-                  </div>
-                  <div className="font-bold text-sm text-stone-900 mt-0.5 leading-snug">
-                    {current.content}
-                  </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-amber-500 mb-1.5">
+                  Le savais-tu ?
+                </div>
+                <div className="text-sm text-stone-100 leading-snug font-medium">
+                  {current.content}
                 </div>
               </div>
             </div>

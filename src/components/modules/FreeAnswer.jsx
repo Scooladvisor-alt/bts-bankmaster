@@ -78,20 +78,27 @@ export default function FreeAnswer({ subject }) {
 
 Matière : ${subject} — Chapitre : "${course.title}"
 
-Historique :
+Historique de la conversation :
 ${history}
 
 Réponse de l'étudiant : "${userMsg}"
 
-RÈGLES ABSOLUES :
-- Sois DIRECT et BREF. Maximum 4-5 lignes de feedback.
-- Commence immédiatement par le verdict : "✅ Correct.", "⚠️ Partiel." ou "❌ Incorrect."
-- Si partiel : liste en 1-2 points courts ce qui manque. Ex : "Tu as mentionné X, mais il manque Y et Z."
-- Si incorrect : donne la bonne réponse en 1-2 phrases factuelles.
-- Si correct : confirme en une phrase et éventuellement ajoute UN élément clé à retenir.
-- PAS de phrases comme "c'est bien d'essayer", "bonne réflexion", "en effet". Sois factuel.
-- Tu peux utiliser une métaphore courte et utile si elle aide vraiment à comprendre.
-- NE RAJOUTE PAS de commentaires motivationnels inutiles.
+CONTEXTE IMPORTANT :
+- Si l'étudiant pose une question ou demande une précision plutôt qu'une réponse, réponds à sa question clairement et directement, sans verdict.
+- Si l'étudiant répond à la question posée, évalue sa réponse selon les critères ci-dessous.
+
+CRITÈRES D'ÉVALUATION (uniquement si c'est une réponse) :
+1. **Correct** : La réponse couvre l'essentiel de ce qui était demandé. Confirme en une phrase. Tu peux mentionner à la toute fin (en optionnel, préfixé par "Tu aurais pu aussi mentionner :") des éléments bonus non explicitement demandés.
+2. **Partiel** : La réponse contient des bons éléments mais il manque quelque chose d'important pour répondre à la question. Ne répète PAS ce que l'étudiant a dit — va directement à ce qui manque. Ex : "Il manque : X et Y."
+3. **Incorrect** : La réponse est fausse ou hors-sujet. Donne la bonne réponse factuellement en 2-3 phrases.
+
+RÈGLES DE FORME :
+- Commence par une ligne de verdict clair : "**Correct.**", "**Partiel.**" ou "**Incorrect.**" — sauf si c'est une question.
+- Structure avec des titres courts si nécessaire (ex: **Ce qui manque :**, **À retenir :**).
+- Maximum 5-6 lignes au total. Sois chirurgical.
+- Pas de blabla motivationnel ("c'est bien d'essayer", etc.).
+- Une métaphore courte et utile est bienvenue si elle clarifie vraiment.
+- Ne juge pas comme "manquant" ce qui n'était pas explicitement demandé dans la question — mets-le en bonus optionnel seulement.
 ${nextQuestion ? `- Termine avec "---" puis pose cette question : "${nextQuestion}"` : "- Dis que toutes les questions du chapitre sont couvertes."}`,
     });
 

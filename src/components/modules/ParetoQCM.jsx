@@ -257,7 +257,7 @@ export default function ParetoQCM({ subject }) {
                   <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                     {/* Question card */}
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-yellow-300 mb-4">
-                      <div className="font-display font-bold text-lg leading-snug text-stone-900">{q.question}</div>
+                      <div className="font-fredoka text-xl leading-snug text-stone-900">{q.question}</div>
                     </div>
 
                     {/* Options */}
@@ -271,7 +271,7 @@ export default function ParetoQCM({ subject }) {
                               : "border-stone-200 text-stone-300"}`}>
                             {String.fromCharCode(65 + i)}
                           </span>
-                          <span className="flex-1">{opt}</span>
+                          <span className="flex-1 font-fredoka text-base">{opt}</span>
                           {selected !== null && i === q.correct_index && <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />}
                           {selected !== null && i === selected && i !== q.correct_index && <XCircle className="w-5 h-5 text-orange-400 shrink-0" />}
                         </button>

@@ -87,7 +87,7 @@ export default function InfiniteQCM({ subject }) {
             {current.chapter}
           </div>
         )}
-        <h2 className="font-display text-xl md:text-2xl font-bold leading-snug">
+        <h2 className="font-fredoka text-xl md:text-2xl leading-snug font-medium">
           {current.question}
         </h2>
         <div className="grid gap-2 mt-5">
@@ -100,7 +100,7 @@ export default function InfiniteQCM({ subject }) {
                 key={i}
                 onClick={() => handle(i)}
                 disabled={selected !== null}
-                className={`text-left rounded-2xl px-4 py-3 font-semibold bg-stone-700 border-b-4 border-black/40 flex items-center justify-between
+                className={`text-left rounded-2xl px-4 py-3 font-fredoka text-base bg-stone-700 border-b-4 border-black/40 flex items-center justify-between
                   ${show && isCorrect ? "bg-green-600 border-green-800" : ""}
                   ${show && isSelected && !isCorrect ? "bg-red-600 border-red-800" : ""}
                 `}
