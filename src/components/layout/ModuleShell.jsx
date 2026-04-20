@@ -12,17 +12,17 @@ export default function ModuleShell({ subject, title, emoji, bgClass = "bg-gradi
           
           <ChevronLeft className="w-4 h-4" /> Retour
         </button>
-        <div className="flex items-center gap-3 mb-6 hidden">
-          <div className="text-3xl">{emoji}</div>
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-widest text-stone-500">
-              {subject}
-            </div>
-            <h1 className="font-display text-3xl font-bold text-stone-900">
-              {title}
-            </h1>
-          </div>
-        </div>
+        
+
+
+
+
+
+
+
+
+
+        
         {children}
       </div>
     </div>);
