@@ -208,7 +208,7 @@ export default function ParetoQCM({ subject }) {
                 </div>
                 {group.chapters.map((ch) => {
                    const isActive = selectedChapter === ch;
-                   const label = ch.replace(/^MODULE\s+\d+\s*[—\-]\s*Chap\s+\d+\s*:\s*/i, "");
+                   const label = ch.replace(/^MODULE\s+\d+\s*[—\-]\s*/i, "");
                    const score = getParetoScore(subject, ch);
                    return (
                      <button

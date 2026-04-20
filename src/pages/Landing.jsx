@@ -62,7 +62,7 @@ export default function Landing() {
             <Sparkles className="w-4 h-4" /> Spécial BTS Banque
           </div>
           <h1 className="font-display text-5xl md:text-7xl font-bold text-stone-900 leading-tight">
-            {userName ? `Salut ${userName} !` : "Révise vite."}
+            Revise vite !
             <br />
             <span className="text-primary">Réussis fort.</span>
           </h1>
