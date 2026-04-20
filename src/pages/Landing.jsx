@@ -46,8 +46,8 @@ export default function Landing() {
 
         <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mt-4">
           <SubjectCard
-            to="/voges"
-            label="VOGES"
+            to="/vojes"
+            label="VOJES"
             emoji="📊"
             tagline="Veille, organisationnelle, juridique & sectorielle"
             gradient="from-purple-500 via-purple-600 to-indigo-600"
