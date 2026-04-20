@@ -74,7 +74,7 @@ export default function FreeAnswer({ subject }) {
     const nextQuestion = nextQ ? nextQ.question : null;
 
     const feedback = await base44.integrations.Core.InvokeLLM({
-      prompt: `T'es le meilleur pote de l'étudiant, mais t'es aussi un crack en BTS Banque. Tu parles comme un ami proche — naturel, direct, sans chichis. Tu tutoies, tu parles vrai, t'es pas coincé. Matière : ${subject} — Chapitre : "${course.title}"
+      prompt: `T'es le meilleur pote de l'étudiant, et t'es un crack en BTS Banque. Tu parles EXACTEMENT comme un pote IRL — naturel, familier, direct, sans chichis ni langue de bois. Tu tutoies toujours. Matière : ${subject} — Chapitre : "${course.title}"
 
 Historique :
 ${history}
@@ -85,23 +85,24 @@ Ce que l'étudiant vient de dire : "${userMsg}"
 
 DÉTECTE D'ABORD ce que c'est :
 
-A) Il t'insulte ou manque de respect → Recadre-le cash, sans te laisser marcher dessus. Parle-lui franchement comme un pote qui le remet à sa place — pas de violence gratuite mais ferme et direct. Ex : "Eh, on se calme. Je suis là pour t'aider, si t'as pas envie on arrête, c'est simple."
+A) INSULTE / IRRESPECT → Recadre-le cash comme un vrai pote qui se défend, proportionnellement. Ferme, direct, pas de violence gratuite mais pas de faiblesse non plus.
 
-B) Il pose une question ou demande une précision → Réponds-lui directement comme si tu lui expliquais à la cafét. Pas de verdict, juste la réponse claire.
+B) QUESTION / PRÉCISION → Réponds direct, comme si t'expliquais à la cafét. Pas de verdict, juste la réponse claire et humaine.
 
-C) Il répond à la question posée → Évalue sa réponse :
-  - **Correct** : Sa réponse couvre l'essentiel. Confirme en une phrase naturelle. Si y'a des trucs bonus qu'il n'a pas mentionnés mais qui n'étaient pas demandés → mets-les à la FIN, en optionnel, préfixé par "Tu aurais pu aussi glisser :". NE PAS mettre ça dans les manques.
-  - **Partiel** : Y'a du bon mais il manque un truc clé pour répondre à la question. Va DIRECT à ce qui manque, répète pas ce qu'il a dit. Ex : "Ouais t'as le fond, mais t'as oublié X."
-  - **Incorrect** : C'est à côté. Donne la bonne réponse en 2-3 phrases factuelles.
+C) RÉPONSE À LA QUESTION POSÉE → Évalue :
+  - Correct : sa réponse couvre l'essentiel → confirme en une phrase naturelle. Si y'a des trucs bonus pas demandés → à la toute fin, préfixé de "**Tu aurais pu aussi glisser :**". JAMAIS dans les manques.
+  - Partiel : y'a du bon mais il manque un truc clé → va DIRECT à ce qui manque, répète pas ce qu'il a dit.
+  - Incorrect : c'est à côté → donne la bonne réponse en 2-3 phrases factuelles.
 
-RÈGLES DE FORME :
-- Parle NATURELLEMENT. Pas de langue de bois, pas de formules génériques.
-- Commence par le verdict si c'est une réponse : "Ouais c'est bon ✅", "Presque, mais..." ou "Nan là c'est pas ça ❌"
-- Utilise des titres courts en gras si besoin (**Ce qui manque :** etc.)
-- Max 5-6 lignes. Tranche.
-- Zéro commentaire du genre "bien essayé", "bonne réflexion" — c'est nul.
-- Une vraie métaphore de pote si ça aide à comprendre.
-${nextQuestion ? `- Termine avec "---" puis pose cette question : "${nextQuestion}"` : "- Dis-lui qu'on a fait le tour du chapitre."}`,
+RÈGLES DE FORME ABSOLUES :
+- Commence par le verdict naturel : "Ouais c'est bon ✅", "Presque —", "Nan là c'est pas ça ❌", etc.
+- Structure ta réponse avec des **titres courts en gras** quand c'est nécessaire (ex: **Ce qui manque :**, **À retenir :**, **La réponse :**). C'est obligatoire pour que ce soit lisible.
+- Utilise des listes à puces (- item) pour les énumérations.
+- Max 6 lignes de contenu. Tranche. Sois chirurgical.
+- Zéro blabla motivationnel, zéro "bien essayé". Parle VRAI.
+- NE DEMANDE JAMAIS à l'étudiant d'écrire une méthode, un plan ou une structure — tu es dans une révision par questions/réponses, pas dans un exercice de rédaction.
+- Une métaphore de pote si ça aide vraiment à comprendre.
+${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "${nextQuestion}"` : "- Dis-lui qu'on a fait le tour du chapitre, façon pote."}`,
     });
 
     setMessages((m) => [...m, { role: "assistant", content: feedback }]);
@@ -140,7 +141,11 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question : "${nextQuestio
           <p className="text-stone-500 text-sm mt-1">L'IA te posera une question sur le cours et évaluera ta réponse.</p>
         </div>
         <div className="grid gap-3">
-          {courses.map((c, i) => (
+          {[
+            ...courses.filter(c => c.title?.toLowerCase().includes("méthodologie pratique")),
+            ...courses.filter(c => c.title?.toLowerCase().includes("méthodologie") && !c.title?.toLowerCase().includes("méthodologie pratique")),
+            ...courses.filter(c => !c.title?.toLowerCase().includes("méthodologie")),
+          ].filter((c, idx, arr) => arr.findIndex(x => x.id === c.id) === idx).map((c, i) => (
             <motion.button
               key={c.id}
               initial={{ opacity: 0, y: 15 }}
@@ -201,12 +206,30 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question : "${nextQuestio
                     : "bg-white border border-stone-200 shadow-sm text-stone-800 rounded-tl-sm"
                 }`}
               >
-                {msg.content.split("---").map((part, pi) => (
-                  <div key={pi}>
-                    {pi === 1 && <div className="border-t border-stone-200 my-3" />}
-                    <div className="whitespace-pre-wrap">{part.trim()}</div>
-                  </div>
-                ))}
+                {msg.role === "user" ? (
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                ) : (
+                  msg.content.split("---").map((part, pi) => (
+                    <div key={pi}>
+                      {pi === 1 && <div className="border-t border-stone-200 my-3" />}
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {part.trim().split("\n").map((line, li) => {
+                          // Titre en gras **texte**
+                          if (/^\*\*.+\*\*/.test(line.trim())) {
+                            return <div key={li} className="font-bold text-stone-900 mt-2 mb-0.5">{line.replace(/\*\*/g, "")}</div>;
+                          }
+                          // Puce
+                          if (/^[-•]\s/.test(line.trim())) {
+                            return <div key={li} className="flex gap-1.5 ml-1"><span className="text-stone-400 mt-0.5">·</span><span>{line.replace(/^[-•]\s/, "")}</span></div>;
+                          }
+                          // Ligne vide
+                          if (line.trim() === "") return <div key={li} className="h-1.5" />;
+                          return <div key={li}>{line}</div>;
+                        })}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </motion.div>
           ))}

@@ -242,19 +242,19 @@ export default function ParetoQCM({ subject }) {
               <div>
                 {/* Progress */}
                 <div className="mb-5">
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-stone-400 mb-1.5">{selectedChapter}</div>
-                  <div className="flex gap-1.5 mb-2">
-                    {questions.map((_, i) => (
-                      <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i < current ? "bg-stone-800" : i === current ? "bg-stone-400" : "bg-stone-200"}`} />
-                    ))}
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-stone-400 mb-2">{selectedChapter}</div>
+                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-stone-800 rounded-full transition-all duration-500"
+                      style={{ width: `${((current) / questions.length) * 100}%` }}
+                    />
                   </div>
-                  <div className="text-xs text-stone-400 font-bold">Question {current + 1} / {questions.length}</div>
                 </div>
 
                 <AnimatePresence mode="wait">
                   <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                     {/* Question card */}
-                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-yellow-300 mb-4">
+                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-stone-300 mb-4">
                       <div className="font-fredoka text-xl leading-snug text-stone-900">{q.question}</div>
                     </div>
 

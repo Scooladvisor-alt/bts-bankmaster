@@ -11,7 +11,7 @@ import Resources from "@/components/modules/Resources";
 import AssistantLauncher from "@/components/modules/AssistantLauncher";
 import VraiOuFaux from "@/components/modules/VraiOuFaux";
 
-const SUBJECT_LABEL = { voges: "VOGES", cesbf: "CESBF" };
+const SUBJECT_LABEL = { voges: "VOJES", cesbf: "CESBF" };
 
 const MODULES = {
   pareto:     { title: "QCM Pareto",         emoji: "🎯", bg: "bg-gradient-to-b from-yellow-50 to-orange-50",  Comp: ParetoQCM },
