@@ -28,12 +28,11 @@ export default function EntityCRUD({ entityName, fields, displayColumns, default
       } else {
         list = await base44.entities[entityName].list(null, 500);
       }
-      console.log(`[${entityName}] Loaded ${list.length} items`);
-      // Si aucun résultat et on a des filtres, retry sans subject (garder extraFilter)
+      console.log(`[${entityName}] Loaded ${list.length} items`, list);
       if (list.length === 0 && subjectFilter && Object.keys(extraFilter).length > 0) {
         console.warn(`[${entityName}] No results with subject=${subjectFilter}, retrying with extraFilter only`);
         list = await base44.entities[entityName].filter(extraFilter, null, 500);
-        console.log(`[${entityName}] Retry loaded ${list.length} items`);
+        console.log(`[${entityName}] Retry loaded ${list.length} items`, list);
       }
     } catch (e) {
       console.error(`[${entityName}] Load error:`, e);

@@ -14,7 +14,6 @@ import AdminAssistant from "@/components/admin/AdminAssistant";
 import AdminTeachers from "@/components/admin/AdminTeachers";
 import AdminUsers from "@/components/admin/AdminUsers";
 import DebugDataCheck from "@/components/admin/DebugDataCheck";
-import CreateTestData from "@/components/admin/CreateTestData";
 
 const TABS = [
   { key: "pareto",     label: "🎯 QCM Pareto",         Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
@@ -22,6 +21,7 @@ const TABS = [
   { key: "infini",     label: "🔥 QCM Infini",          Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
   { key: "revision",   label: "📝 Questions révision",  Comp: AdminRevision },
   { key: "vraiofaux",  label: "✅ Vrai ou Faux",         Comp: AdminVraiOuFaux },
+  { key: "voiefranche", label: "📖 Réponse libre",        Comp: AdminRevision },
   { key: "cours",      label: "📚 Cours",                Comp: AdminCourses },
   { key: "ressources", label: "🔗 Ressources",           Comp: AdminResources },
   { key: "popups",     label: "💬 Pop-ups",              Comp: AdminPopups },
@@ -110,7 +110,6 @@ export default function Admin() {
 
       <div className="max-w-6xl mx-auto p-4 md:p-6">
         <DebugDataCheck />
-        <CreateTestData />
         {needsSubject && (
           <div className="flex items-center gap-2 mb-4">
             <span className="text-sm font-bold text-stone-500">Matière :</span>
