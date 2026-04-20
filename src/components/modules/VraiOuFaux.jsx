@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, Check, X, RotateCcw, Zap, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect as useEffectHook } from "react";
 import { saveVraiOuFauxCategoryScore, getVraiOuFauxCategoryScore, getScoreColor, getScoreBgColor } from "@/lib/scoreStorage";
 
 // ── CESBF : mapping chapitre → catégorie ──
@@ -261,6 +262,22 @@ export default function VraiOuFaux({ subject }) {
     goToNext();
   }, [goToNext]);
 
+  // Écouter Entrée pour continuer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (showExplanation && answered) {
+          nextCard();
+        } else if (!answered && !done) {
+          // Optionnel : permettre d'avancer avec Entrée en mode jeu
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showExplanation, answered, done, nextCard]);
+
   const restart = () => {
     const filtered = selectedCategory === "all"
       ? [...allCards]
@@ -274,50 +291,49 @@ export default function VraiOuFaux({ subject }) {
 
   // ── TOP BAR ──
   const TopBar = (
-    <div className="flex items-center gap-2 mb-0 flex-shrink-0">
-      {/* Filtres scrollables */}
-      <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-      <div className="flex gap-1.5 w-max">
-        {CATEGORIES.map(cat => {
-          const score = cat.key !== "all" ? getVraiOuFauxCategoryScore(subject, cat.key) : null;
-          return (
-            <button
-              key={cat.key}
-              onClick={() => applyCategory(cat.key)}
-              className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                selectedCategory === cat.key
-                  ? "bg-rose-500 text-white shadow-sm"
-                  : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
-              }`}
-            >
-              <span>{cat.label}</span>
-              {score !== null && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${getScoreBgColor(score)} ${getScoreColor(score)}`}>
-                  {score}%
-                </span>
-              )}
-            </button>
-          );
-        })}
+    <div className="flex flex-col gap-2 mb-0 flex-shrink-0">
+      {/* Filtres scrollables — full-width */}
+      <div className="w-full overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="flex gap-1.5 w-max px-0">
+          {CATEGORIES.map(cat => {
+            const score = cat.key !== "all" ? getVraiOuFauxCategoryScore(subject, cat.key) : null;
+            return (
+              <button
+                key={cat.key}
+                onClick={() => applyCategory(cat.key)}
+                className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                  selectedCategory === cat.key
+                    ? "bg-rose-500 text-white shadow-sm"
+                    : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
+                }`}
+              >
+                <span>{cat.label}</span>
+                {score !== null && (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${getScoreBgColor(score)} ${getScoreColor(score)}`}>
+                    {score}%
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          {/* Bouton mode rapide à droite */}
+          <button
+            onClick={() => {
+              const next = !fastMode;
+              setFastMode(next);
+              resetSession();
+            }}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all border ${
+              fastMode
+                ? "bg-amber-400 text-amber-900 border-amber-400"
+                : "bg-white text-stone-400 border-stone-200 hover:bg-stone-50"
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5" />
+            Rapide
+          </button>
+        </div>
       </div>
-      </div>
-
-      {/* Bouton mode rapide */}
-      <button
-        onClick={() => {
-          const next = !fastMode;
-          setFastMode(next);
-          resetSession();
-        }}
-        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all border ${
-          fastMode
-            ? "bg-amber-400 text-amber-900 border-amber-400"
-            : "bg-white text-stone-400 border-stone-200 hover:bg-stone-50"
-        }`}
-      >
-        <Zap className="w-3.5 h-3.5" />
-        Rapide
-      </button>
     </div>
   );
 

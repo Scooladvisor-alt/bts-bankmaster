@@ -135,6 +135,18 @@ export default function ParetoQCM({ subject }) {
     setDone(false);
   };
 
+  // Écouter Entrée pour continuer à la question suivante
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter" && selected !== null && !done) {
+        e.preventDefault();
+        next();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selected, done]);
+
   const q = questions[current];
 
   const getOptionClass = (i) => {

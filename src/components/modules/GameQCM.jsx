@@ -516,6 +516,14 @@ export default function GameQCM({ subject }) {
 
   return (
     <div className="w-full select-none flex flex-col gap-3">
+      {/* Widget record en haut — hors du canvas */}
+      {kmRecord > 0 && (
+        <div className="w-full text-right">
+          <div className="inline-block bg-stone-800 text-yellow-300 font-bold text-sm px-4 py-2 rounded-full">
+            🏆 record : {kmRecord} km
+          </div>
+        </div>
+      )}
 
       {/* ── Canvas ── */}
       <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "4/3" }}>
@@ -550,13 +558,6 @@ export default function GameQCM({ subject }) {
              )}
            </div>
          </div>
-
-         {/* Record discret en haut à droite */}
-         {kmRecord > 0 && (
-           <div className="absolute top-2 right-3 z-10 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-bold text-yellow-300">
-             🏆 record : {kmRecord} km
-           </div>
-         )}
 
         {/* Feedback overlays */}
         {feedback === "correct" && current && (
