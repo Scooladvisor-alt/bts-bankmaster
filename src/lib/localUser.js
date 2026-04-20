@@ -57,7 +57,20 @@ export function registerUserForAdmin(name) {
     const users = raw ? JSON.parse(raw) : [];
     const existing = users.find(u => u.name === name);
     if (!existing) {
-      users.push({ name, firstSeen: new Date().toISOString(), totalSeconds: 0 });
+      users.push({ name, firstSeen: new Date().toISOString(), lastTool: null });
+      localStorage.setItem(ADMIN_KEY, JSON.stringify(users));
+    }
+  } catch {}
+}
+
+export function updateUserLastTool(name, tool) {
+  try {
+    const ADMIN_KEY = "bts_admin_users";
+    const raw = localStorage.getItem(ADMIN_KEY);
+    const users = raw ? JSON.parse(raw) : [];
+    const idx = users.findIndex(u => u.name === name);
+    if (idx >= 0) {
+      users[idx].lastTool = tool;
       localStorage.setItem(ADMIN_KEY, JSON.stringify(users));
     }
   } catch {}
@@ -70,7 +83,6 @@ export function updateAdminUserTime(name, totalSeconds) {
     const users = raw ? JSON.parse(raw) : [];
     const idx = users.findIndex(u => u.name === name);
     if (idx >= 0) {
-      users[idx].totalSeconds = totalSeconds;
       users[idx].lastSeen = new Date().toISOString();
       localStorage.setItem(ADMIN_KEY, JSON.stringify(users));
     }

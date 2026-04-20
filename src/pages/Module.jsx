@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Bot } from "lucide-react";
+import { getLocalUser } from "@/lib/localUser";
+import { updateUserLastTool } from "@/lib/localUser";
 import ModuleShell from "@/components/layout/ModuleShell";
 import ParetoQCM from "@/components/modules/ParetoQCM";
 import GameQCM from "@/components/modules/GameQCM";
@@ -30,6 +32,13 @@ export default function Module() {
   const { subject, method } = useParams();
   const subjectLabel = SUBJECT_LABEL[subject];
   const config = MODULES[method];
+
+  useEffect(() => {
+    const user = getLocalUser();
+    if (user?.name && method) {
+      updateUserLastTool(user.name, method);
+    }
+  }, [method]);
 
   if (!subjectLabel || !config) {
     return (

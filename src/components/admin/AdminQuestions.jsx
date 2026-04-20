@@ -8,18 +8,16 @@ export default function AdminQuestions({ subjectFilter, modeFilter }) {
       entityName="Question"
       subjectFilter={subjectFilter}
       extraFilter={extraFilter}
-      defaults={{ subject: subjectFilter || "VOJES", mode: modeFilter || "pareto", options: ["", "", "", ""], correct_index: 0, difficulty: "moyen" }}
+      defaults={{ subject: subjectFilter || "VOJES", mode: modeFilter || "pareto", options: ["", "", "", ""], correct_index: 0 }}
       fields={[
         { key: "subject", label: "Matière", type: "select", options: ["VOJES", "CESBF"] },
         { key: "mode", label: "Mode QCM", type: "select", options: ["pareto", "infini", "jeu"], locked: !!modeFilter },
-        { key: "chapter", label: "Chapitre", type: "text" },
         { key: "question", label: "Question", type: "textarea" },
         { key: "options", label: "Options (A/B/C/D)", type: "array-options" },
         { key: "correct_index", label: "Index correct (0 = A, 1 = B, 2 = C, 3 = D)", type: "number" },
         { key: "explanation", label: "Explication (optionnel)", type: "textarea" },
-        { key: "difficulty", label: "Difficulté", type: "select", options: ["facile", "moyen", "difficile"] },
       ]}
-      displayColumns={["chapter", "question", "difficulty"]}
+      displayColumns={["question"]}
     />
   );
 }
