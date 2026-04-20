@@ -55,13 +55,13 @@ function sortChaptersVOJES(chapters) {
     const m = ch.match(/chapitre\s+(\d+)/i);
     return m ? parseInt(m[1]) : Infinity;
   };
-  return [...chapters]
-    .filter(ch => !ch.toLowerCase().includes("méthodologie") && !ch.toLowerCase().includes("cas pratique"))
-    .sort((a, b) => {
-      const na = getNum(a), nb = getNum(b);
-      if (na !== nb) return na - nb;
-      return a.localeCompare(b, "fr");
-    });
+  // Grouper par nom unique (supprimer doublons), puis trier
+  const unique = [...new Set(chapters)];
+  return unique.sort((a, b) => {
+    const na = getNum(a), nb = getNum(b);
+    if (na !== nb) return na - nb;
+    return a.localeCompare(b, "fr");
+  });
 }
 
 // Retourne les groupes CESBF avec les chapitres disponibles dans l'ordre

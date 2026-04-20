@@ -13,12 +13,7 @@ export default function Courses({ subject }) {
     (async () => {
       const list = await base44.entities.Course.filter({ subject }, "order");
       // Méthodologie en premier, puis le reste
-      const sorted = [
-        ...list.filter(c => c.title?.toLowerCase().includes("méthodologie")),
-        ...list.filter(c => !c.title?.toLowerCase().includes("méthodologie")),
-      ];
-      setCourses(sorted);
-      if (sorted[0]) setOpenId(sorted[0].id);
+      setCourses(list);
       setLoading(false);
     })();
   }, [subject]);
