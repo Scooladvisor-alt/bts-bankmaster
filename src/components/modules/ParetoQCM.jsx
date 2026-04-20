@@ -193,8 +193,8 @@ export default function ParetoQCM({ subject }) {
                   onClick={() => selectChapter(ch)}
                   className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all leading-snug mb-0.5
                     ${isActive
-                      ? "bg-stone-900 text-white font-bold shadow-sm"
-                      : "text-stone-600 font-medium hover:bg-stone-100 hover:text-stone-900"}`}
+                      ? "bg-yellow-400 text-yellow-900 font-bold shadow-sm"
+                      : "text-stone-600 font-medium hover:bg-yellow-50 hover:text-yellow-900"}`}
                 >
                   {label}
                 </button>
@@ -242,10 +242,10 @@ export default function ParetoQCM({ subject }) {
               <div>
                 {/* Progress */}
                 <div className="mb-5">
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-stone-400 mb-2">{selectedChapter}</div>
-                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-yellow-600 mb-2">{selectedChapter}</div>
+                  <div className="h-2 bg-yellow-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-stone-800 rounded-full transition-all duration-500"
+                      className="h-full bg-yellow-400 rounded-full transition-all duration-500"
                       style={{ width: `${((current) / questions.length) * 100}%` }}
                     />
                   </div>
@@ -290,12 +290,12 @@ export default function ParetoQCM({ subject }) {
                               ❌ Pas tout à fait — la bonne réponse était : <span className="text-green-700">{q.options[q.correct_index]}</span>
                             </div>
                             {q.explanation
-                              ? <div className="text-xs text-stone-700 leading-relaxed"><span className="font-semibold">Pourquoi ?</span> {q.explanation}</div>
-                              : <div className="text-xs text-stone-500 italic">Retiens bien cette réponse pour la prochaine fois.</div>
+                             ? <div className="text-xs text-stone-700 leading-relaxed"><span className="font-semibold">Pourquoi ?</span> {q.explanation}</div>
+                             : <div className="text-xs text-stone-700 leading-relaxed">La bonne réponse est <span className="font-bold text-green-700">"{q.options[q.correct_index]}"</span>. Relis bien ce point pour bien comprendre la distinction.</div>
                             }
                           </div>
                         )}
-                        <DuoButton variant="primary" onClick={next} className="w-full">
+                        <DuoButton variant="secondary" onClick={next} className="w-full">
                           {current + 1 < questions.length ? "Question suivante →" : "Voir le résultat"}
                         </DuoButton>
                       </motion.div>

@@ -62,56 +62,71 @@ export default function InfiniteQCM({ subject }) {
 
   if (over) {
     return (
-      <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white rounded-3xl p-8 text-center shadow-duo-lg">
-        <div className="text-6xl mb-2">💀</div>
-        <h2 className="font-display text-3xl font-bold">Hardcore terminé</h2>
-        <div className="mt-2">Score : <span className="font-bold text-2xl">{score}</span></div>
-        <div className="text-sm opacity-90 mt-1">Record : {Math.max(best, score)}</div>
-        <DuoButton variant="secondary" className="mt-6" onClick={restart}>Réessayer</DuoButton>
+      <div className="bg-white border-2 border-red-200 rounded-3xl p-10 text-center shadow-sm" style={{ fontFamily: "Arial, sans-serif" }}>
+        <div className="text-6xl mb-3">💀</div>
+        <h2 className="text-3xl font-bold text-stone-800">Session terminée</h2>
+        <div className="mt-3 text-stone-600">Score final : <span className="font-bold text-2xl text-red-500">{score}</span></div>
+        <div className="text-sm text-stone-400 mt-1">Meilleur record : <span className="font-bold text-stone-600">{Math.max(best, score)}</span></div>
+        <button
+          onClick={restart}
+          className="mt-6 bg-red-500 text-white font-bold px-8 py-3 rounded-2xl border-b-4 border-red-700 hover:bg-red-400 active:translate-y-1 active:border-b-0 transition-all"
+        >
+          Réessayer
+        </button>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <div className="bg-red-500 text-white rounded-full px-4 py-1 text-sm font-bold flex items-center gap-1">
+    <div style={{ fontFamily: "Arial, sans-serif" }}>
+      {/* Stats bar */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-4 py-2 text-sm font-bold text-red-600">
           <Flame className="w-4 h-4" /> Série {streak}
         </div>
-        <div className="text-sm font-bold"><span className="text-red-500">{score}</span> / record {best}</div>
+        <div className="flex items-center gap-3 text-sm font-bold text-stone-600">
+          <span>Score : <span className="text-red-500 text-lg">{score}</span></span>
+          <span className="text-stone-300">|</span>
+          <span>Record : <span className="text-stone-800">{best}</span></span>
+        </div>
       </div>
 
-      <div className="bg-gradient-to-br from-stone-900 to-stone-800 text-white rounded-3xl p-6 shadow-duo-lg border-b-4 border-black">
+      {/* Question card */}
+      <div className="bg-white border-2 border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm mb-4">
         {current.chapter && (
-          <div className="inline-block bg-red-500 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest mb-3">
+          <div className="inline-block bg-red-100 text-red-600 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest mb-4">
             {current.chapter}
           </div>
         )}
-        <h2 className="font-fredoka text-xl md:text-2xl leading-snug font-medium">
+        <h2 className="text-xl md:text-2xl font-bold text-stone-900 leading-snug">
           {current.question}
         </h2>
-        <div className="grid gap-2 mt-5">
-          {current.options.map((opt, i) => {
-            const show = selected !== null;
-            const isCorrect = i === current.correct_index;
-            const isSelected = i === selected;
-            return (
-              <button
-                key={i}
-                onClick={() => handle(i)}
-                disabled={selected !== null}
-                className={`text-left rounded-2xl px-4 py-3 font-fredoka text-base bg-stone-700 border-b-4 border-black/40 flex items-center justify-between
-                  ${show && isCorrect ? "bg-green-600 border-green-800" : ""}
-                  ${show && isSelected && !isCorrect ? "bg-red-600 border-red-800" : ""}
-                `}
-              >
-                <span>{opt}</span>
-                {show && isCorrect && <Check className="w-5 h-5" />}
-                {show && isSelected && !isCorrect && <X className="w-5 h-5" />}
-              </button>
-            );
-          })}
-        </div>
+      </div>
+
+      {/* Options */}
+      <div className="grid gap-3">
+        {current.options.map((opt, i) => {
+          const show = selected !== null;
+          const isCorrect = i === current.correct_index;
+          const isSelected = i === selected;
+          return (
+            <button
+              key={i}
+              onClick={() => handle(i)}
+              disabled={selected !== null}
+              className={`w-full text-left rounded-2xl px-5 py-4 text-base font-medium border-2 transition-all flex items-center justify-between gap-3
+                ${!show ? "bg-white border-stone-200 hover:border-stone-400 hover:bg-stone-50 cursor-pointer" : ""}
+                ${show && isCorrect ? "bg-green-50 border-green-400 text-green-900" : ""}
+                ${show && isSelected && !isCorrect ? "bg-red-50 border-red-400 text-red-900" : ""}
+                ${show && !isSelected && !isCorrect ? "bg-white border-stone-100 opacity-40" : ""}
+              `}
+            >
+              <span>{opt}</span>
+              {show && isCorrect && <Check className="w-5 h-5 text-green-600 shrink-0" />}
+              {show && isSelected && !isCorrect && <X className="w-5 h-5 text-red-500 shrink-0" />}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

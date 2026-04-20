@@ -492,14 +492,18 @@ export default function GameQCM({ subject }) {
   if (questions.length === 0) return <div className="bg-white rounded-2xl p-8 text-center text-stone-600">Pas encore de questions en mode jeu.</div>;
 
   const current = questions[idx];
-  const laneLabels = ["← Gauche", "↑ Centre", "Droite →"];
+  const laneColors = [
+    "border-purple-200 bg-purple-50/50 hover:border-purple-300",
+    "border-sky-200 bg-sky-50/50 hover:border-sky-300",
+    "border-orange-200 bg-orange-50/50 hover:border-orange-300",
+  ];
   const isPlaying = uiState === STATE.DRIVING || uiState === STATE.EXPLODE;
 
   return (
     <div className="w-full select-none flex flex-col gap-3">
 
-      {/* ── Canvas (format 16:9 horizontal) ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "16/9" }}>
+      {/* ── Canvas ── */}
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "4/3" }}>
         <div ref={mountRef} className="absolute inset-0 w-full h-full" />
 
         {/* HUD top */}
@@ -602,9 +606,8 @@ export default function GameQCM({ subject }) {
             <button
               key={i}
               onClick={() => chooseLane(i)}
-              className="bg-white border-2 border-stone-200 hover:border-stone-400 rounded-2xl px-3 py-4 text-left transition-all shadow-sm hover:shadow-md active:scale-95 group"
+              className={`rounded-2xl px-3 py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
             >
-              <div className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 group-hover:text-stone-600">{laneLabels[i]}</div>
               <div className="font-fredoka text-base text-stone-800 leading-snug">{opt}</div>
             </button>
           ))}
