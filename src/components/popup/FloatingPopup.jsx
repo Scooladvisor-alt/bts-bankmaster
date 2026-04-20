@@ -1,62 +1,117 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { X } from "lucide-react";
+
+// Directions d'entrée aléatoires pour varier à chaque apparition
+const DIRECTIONS = [
+  { initial: { opacity: 0, x: 80, y: -20, scale: 0.85 }, label: "right-top" },
+  { initial: { opacity: 0, x: -80, y: -20, scale: 0.85 }, label: "left-top" },
+  { initial: { opacity: 0, x: 0, y: -50, scale: 0.85 }, label: "top" },
+  { initial: { opacity: 0, x: 60, y: 30, scale: 0.85 }, label: "right-bottom" },
+];
 
 export default function FloatingPopup({ subject = "ALL" }) {
   const [popups, setPopups] = useState([]);
   const [current, setCurrent] = useState(null);
   const [visible, setVisible] = useState(false);
+  const [direction, setDirection] = useState(DIRECTIONS[0]);
+  const [shimmer, setShimmer] = useState(false);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     (async () => {
       const list = await base44.entities.Popup.list();
-      const filtered = list.filter(
-        (p) => p.subject === "ALL" || p.subject === subject
-      );
+      // Sur la page d'accueil (subject="ALL") : tous les popups
+      // Sur une page matière : seulement ALL + ceux de cette matière exacte
+      const filtered = subject === "ALL"
+        ? list
+        : list.filter(p => p.subject === "ALL" || p.subject === subject);
       setPopups(filtered);
     })();
   }, [subject]);
 
   useEffect(() => {
     if (popups.length === 0) return;
+
     const show = () => {
       const random = popups[Math.floor(Math.random() * popups.length)];
+      const dir = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
       setCurrent(random);
+      setDirection(dir);
       setVisible(true);
-      setTimeout(() => setVisible(false), 7000);
+      setShimmer(false);
+      // Déclenche l'animation de brillance après l'apparition
+      setTimeout(() => setShimmer(true), 400);
+      setTimeout(() => setShimmer(false), 1600);
+      timerRef.current = setTimeout(() => setVisible(false), 7000);
     };
+
     const first = setTimeout(show, 5000);
     const interval = setInterval(show, 30000);
     return () => {
       clearTimeout(first);
       clearInterval(interval);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [popups]);
+
+  const handleClose = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setVisible(false);
+  };
 
   return (
     <div className="fixed top-4 right-4 z-50 pointer-events-none">
       <AnimatePresence>
         {visible && current && (
           <motion.div
-            initial={{ opacity: 0, y: -30, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            key={current.id + direction.label}
+            initial={direction.initial}
+            animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 280, damping: 22 }}
             className="pointer-events-auto"
           >
-            <div className="relative max-w-xs bg-stone-800 rounded-2xl p-4 shadow-xl border border-stone-700">
+            {/* Conteneur doré sobre */}
+            <div className="relative max-w-[280px] overflow-hidden rounded-2xl shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #fef9ec 0%, #fdf3d0 60%, #faefc0 100%)",
+                border: "1.5px solid #e8d48a",
+              }}
+            >
+              {/* Bande dorée fine en haut */}
+              <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, #d4a017, #f0c940, #d4a017)" }} />
+
+              {/* Shimmer overlay */}
+              <AnimatePresence>
+                {shimmer && (
+                  <motion.div
+                    initial={{ x: "-100%", opacity: 0.7 }}
+                    animate={{ x: "200%", opacity: 0 }}
+                    exit={{}}
+                    transition={{ duration: 0.9, ease: "easeOut" }}
+                    className="absolute inset-0 z-10 pointer-events-none"
+                    style={{
+                      background: "linear-gradient(105deg, transparent 30%, rgba(255,245,180,0.7) 50%, transparent 70%)",
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+
+              {/* Bouton fermer */}
               <button
-                onClick={() => setVisible(false)}
-                className="absolute -top-2 -right-2 bg-stone-700 rounded-full p-1 shadow-md hover:bg-stone-600 transition-colors"
+                onClick={handleClose}
+                className="absolute top-2 right-2 z-20 rounded-full p-0.5 hover:bg-amber-100 transition-colors"
               >
-                <X className="w-3 h-3 text-stone-300" />
+                <X className="w-3 h-3 text-amber-700" />
               </button>
-              <div>
-                <div className="text-[10px] uppercase tracking-widest font-bold text-amber-500 mb-1.5">
+
+              <div className="px-4 pt-3 pb-3.5">
+                <div className="text-[9px] uppercase tracking-widest font-bold mb-1.5" style={{ color: "#b8860b" }}>
                   Le savais-tu ?
                 </div>
-                <div className="text-sm text-stone-100 leading-snug font-medium">
+                <div className="text-sm leading-snug font-semibold text-stone-800">
                   {current.content}
                 </div>
               </div>
