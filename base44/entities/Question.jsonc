@@ -5,7 +5,7 @@
     "subject": {
       "type": "string",
       "enum": [
-        "VOGES",
+        "VOJES",
         "CESBF"
       ],
       "description": "Mati\u00e8re concern\u00e9e"

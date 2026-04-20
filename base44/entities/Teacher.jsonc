@@ -13,7 +13,7 @@
     "subject": {
       "type": "string",
       "enum": [
-        "VOGES",
+        "VOJES",
         "CESBF"
       ],
       "description": "Mati\u00e8re assign\u00e9e"

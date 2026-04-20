@@ -5,7 +5,7 @@
     "subject": {
       "type": "string",
       "enum": [
-        "VOGES",
+        "VOJES",
         "CESBF",
         "ALL"
       ],
@@ -14,10 +14,6 @@
     "content": {
       "type": "string",
       "description": "Texte court (fait m\u00e9mo)"
-    },
-    "emoji": {
-      "type": "string",
-      "description": "Emoji pour visuel"
     }
   },
   "required": [

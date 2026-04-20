@@ -26,10 +26,13 @@ const TABS = [
   { key: "teachers",   label: "👩‍🏫 Professeurs",         Comp: AdminTeachers },
 ];
 
+const SUBJECTS = ["VOJES", "CESBF"];
+
 export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [tab, setTab] = useState("questions");
+  const [tab, setTab] = useState("pareto");
+  const [subjectFilter, setSubjectFilter] = useState("VOJES");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,7 +69,10 @@ export default function Admin() {
     );
   }
 
-  const Current = TABS.find((t) => t.key === tab)?.Comp;
+  const tabConfig = TABS.find((t) => t.key === tab);
+  const Current = tabConfig?.Comp;
+  // Teachers tab has no subject filter
+  const needsSubject = tab !== "teachers" && tab !== "popups";
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -99,7 +105,25 @@ export default function Admin() {
       </div>
 
       <div className="max-w-6xl mx-auto p-4 md:p-6">
-        {Current && <Current />}
+        {needsSubject && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm font-bold text-stone-500">Matière :</span>
+            {SUBJECTS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setSubjectFilter(s)}
+                className={`px-4 py-1.5 rounded-full text-sm font-bold border-2 transition-all ${
+                  subjectFilter === s
+                    ? s === "VOJES" ? "bg-purple-600 text-white border-purple-600" : "bg-orange-500 text-white border-orange-500"
+                    : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        {Current && <Current subjectFilter={needsSubject ? subjectFilter : undefined} />}
       </div>
     </div>
   );

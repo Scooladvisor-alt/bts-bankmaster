@@ -5,7 +5,7 @@
     "subject": {
       "type": "string",
       "enum": [
-        "VOGES",
+        "VOJES",
         "CESBF"
       ]
     },

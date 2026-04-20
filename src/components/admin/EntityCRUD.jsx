@@ -22,9 +22,9 @@ export default function EntityCRUD({ entityName, fields, displayColumns, default
     let list;
     const filter = { ...(subjectFilter ? { subject: subjectFilter } : {}), ...extraFilter };
     if (Object.keys(filter).length > 0) {
-      list = await base44.entities[entityName].filter(filter, "-created_date", 500);
+      list = await base44.entities[entityName].filter(filter, "chapter", 500);
     } else {
-      list = await base44.entities[entityName].list("-created_date", 500);
+      list = await base44.entities[entityName].list("chapter", 500);
     }
     setItems(list);
     setLoading(false);

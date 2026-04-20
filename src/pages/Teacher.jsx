@@ -27,7 +27,7 @@ const SUBJECT_LABELS = { vojes: "VOJES", cesbf: "CESBF" };
 export default function Teacher() {
   const { subject } = useParams();
   const subjectLabel = SUBJECT_LABELS[subject?.toLowerCase()];
-  const [tab, setTab] = useState("questions");
+  const [tab, setTab] = useState("pareto");
 
   if (!subjectLabel) {
     return (
