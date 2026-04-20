@@ -86,16 +86,18 @@ const SubjectCard = ({ to, label, emoji, tagline, gradient, delay }) => (
   >
     <Link to={to}>
       <div
-        className={`group relative bg-gradient-to-br ${gradient} rounded-3xl p-8 shadow-duo-lg border-b-[6px] border-black/20 hover:-translate-y-1 transition-transform cursor-pointer`}
+        className={`group relative bg-gradient-to-br ${gradient} rounded-3xl p-8 shadow-duo-lg border-b-[6px] border-black/20 hover:-translate-y-1 transition-transform cursor-pointer h-52 flex flex-col justify-between`}
       >
-        <div className="text-6xl mb-3">{emoji}</div>
-        <div className="text-white/80 text-xs font-bold uppercase tracking-widest">
-          Réviser
+        <div>
+          <div className="text-6xl mb-3">{emoji}</div>
+          <div className="text-white/80 text-xs font-bold uppercase tracking-widest">
+            Réviser
+          </div>
+          <div className="font-display text-white text-4xl font-bold mt-1">
+            {label}
+          </div>
+          <div className="text-white/90 text-sm mt-3 font-medium">{tagline}</div>
         </div>
-        <div className="font-display text-white text-4xl font-bold mt-1">
-          {label}
-        </div>
-        <div className="text-white/90 text-sm mt-3 font-medium">{tagline}</div>
         <div className="absolute top-4 right-4 bg-white/20 backdrop-blur rounded-full px-3 py-1 text-white text-xs font-bold">
           GO →
         </div>

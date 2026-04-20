@@ -5,8 +5,65 @@ import { motion, AnimatePresence } from "framer-motion";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { useNavigate } from "react-router-dom";
 
-// Trie les chapitres : Chapitre 1..31 d'abord (ordre numérique), puis Méthodologie à la fin
-function sortChapters(chapters) {
+// Ordre officiel des chapitres CESBF
+const CESBF_ORDER = [
+  "MODULE 1",
+  "MODULE 2",
+  "MODULE 3",
+  "MODULE 4",
+  "MODULE 5",
+  "MODULE 6",
+  "MODULE 7",
+];
+
+// Ordre détaillé par chapitre dans chaque module CESBF
+const CESBF_CHAPTER_ORDER = [
+  // MODULE 1 — Ouverture de compte
+  "MODULE 1 — Chap 1",
+  "MODULE 1 — Chap 2",
+  // MODULE 2 — Suivi des comptes
+  "MODULE 2 — Chap 1",
+  "MODULE 2 — Chap 2",
+  "MODULE 2 — Chap 3",
+  "MODULE 2 — Chap 4",
+  "MODULE 2 — Chap 5",
+  // MODULE 3 — Moyens de paiement
+  "MODULE 3 — Chap 1",
+  "MODULE 3 — Chap 2",
+  "MODULE 3 — Chap 3",
+  // MODULE 4 — Épargne (chap 1, 2 d'abord, puis 3, 4, 5, 6)
+  "MODULE 4 — Chap 1",
+  "MODULE 4 — Chap 2",
+  "MODULE 4 — Chap 3",
+  "MODULE 4 — Chap 4",
+  "MODULE 4 — Chap 5",
+  "MODULE 4 — Chap 6",
+  // MODULE 5 — Assurance
+  "MODULE 5 — Chap 1",
+  "MODULE 5 — Chap 2",
+  "MODULE 5 — Chap 3",
+  // MODULE 6 — Financement
+  "MODULE 6 — Chap 1",
+  "MODULE 6 — Chap 2",
+  "MODULE 6 — Chap 3",
+  // MODULE 7 — Fiscalité
+  "MODULE 7 — Chap 1",
+  "MODULE 7 — Chap 2",
+  "MODULE 7 — Chap 3",
+];
+
+function sortChapters(chapters, subject) {
+  if (subject === "CESBF") {
+    return [...chapters].sort((a, b) => {
+      const ia = CESBF_CHAPTER_ORDER.findIndex(prefix => a.startsWith(prefix));
+      const ib = CESBF_CHAPTER_ORDER.findIndex(prefix => b.startsWith(prefix));
+      const ra = ia === -1 ? 999 : ia;
+      const rb = ib === -1 ? 999 : ib;
+      if (ra !== rb) return ra - rb;
+      return a.localeCompare(b, "fr");
+    });
+  }
+  // VOGES : tri numérique
   const getNum = (ch) => {
     const m = ch.match(/chapitre\s+(\d+)/i);
     return m ? parseInt(m[1]) : Infinity;
@@ -36,7 +93,7 @@ export default function ParetoQCM({ subject }) {
       const all = await base44.entities.Question.filter({ subject, mode: "pareto" }, "chapter", 500);
       setAllQuestions(all);
       const raw = [...new Set(all.map(q => q.chapter).filter(Boolean))];
-      setChapters(sortChapters(raw));
+      setChapters(sortChapters(raw, subject));
       setLoading(false);
     })();
   }, [subject]);

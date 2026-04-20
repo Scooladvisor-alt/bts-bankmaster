@@ -10,6 +10,7 @@ import Flashcards from "@/components/modules/Flashcards";
 import Courses from "@/components/modules/Courses";
 import Resources from "@/components/modules/Resources";
 import AssistantLauncher from "@/components/modules/AssistantLauncher";
+import VraiOuFaux from "@/components/modules/VraiOuFaux";
 
 const SUBJECT_LABEL = { voges: "VOGES", cesbf: "CESBF" };
 
@@ -23,6 +24,7 @@ const MODULES = {
   cours:      { title: "Cours",              emoji: "📚", bg: "bg-gradient-to-b from-emerald-50 to-white",     Comp: Courses },
   ressources: { title: "Ressources",         emoji: "🔗", bg: "bg-gradient-to-b from-indigo-50 to-white",      Comp: Resources },
   assistant:  { title: "Assistant",          emoji: "🤖", bg: "bg-gradient-to-b from-stone-100 to-stone-200",  Comp: AssistantLauncher },
+  vraiouFaux: { title: "Vrai ou Faux",       emoji: "🔥", bg: "bg-gradient-to-b from-rose-50 to-orange-50",    Comp: VraiOuFaux },
 };
 
 export default function Module() {

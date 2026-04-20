@@ -13,6 +13,7 @@ import {
   Link as LinkIcon,
   Bot,
   ChevronLeft,
+  Flame,
 } from "lucide-react";
 
 const SUBJECT_CONFIG = {
@@ -35,15 +36,15 @@ const SUBJECT_CONFIG = {
 };
 
 const METHODS = [
-  { slug: "pareto", label: "QCM Pareto", desc: "L'essentiel 20/80", icon: Target, color: "bg-yellow-400", text: "text-yellow-900" },
-  { slug: "jeu", label: "QCM Mode Jeu", desc: "Cours, choisis, mémorise", icon: Gamepad2, color: "bg-pink-400", text: "text-pink-900" },
-  { slug: "infini", label: "QCM Infini", desc: "Mode hardcore", icon: InfinityIcon, color: "bg-red-400", text: "text-red-900" },
-  { slug: "questions", label: "Questions révision", desc: "Réfléchis puis révèle", icon: ListChecks, color: "bg-blue-400", text: "text-blue-900" },
-  { slug: "libre", label: "Réponse libre", desc: "Écris, compare", icon: PenLine, color: "bg-teal-400", text: "text-teal-900" },
-  { slug: "flashcards", label: "Flashcards", desc: "Recto / verso", icon: Layers, color: "bg-purple-400", text: "text-purple-900" },
-  { slug: "cours", label: "Cours", desc: "Méthodo & théorie", icon: BookOpen, color: "bg-emerald-400", text: "text-emerald-900" },
-  { slug: "ressources", label: "Ressources", desc: "Vidéos, podcasts…", icon: LinkIcon, color: "bg-indigo-400", text: "text-indigo-900" },
-  { slug: "assistant", label: "Assistant", desc: "Pose tes questions", icon: Bot, color: "bg-stone-800", text: "text-white" },
+  { slug: "pareto",     label: "QCM Pareto",          desc: "L'essentiel 20/80",       icon: Target,       color: "bg-yellow-400",  text: "text-yellow-900" },
+  { slug: "jeu",        label: "QCM Mode Jeu",         desc: "Cours, choisis, mémorise", icon: Gamepad2,     color: "bg-pink-400",    text: "text-pink-900" },
+  { slug: "infini",     label: "QCM Infini",           desc: "Mode hardcore",            icon: InfinityIcon, color: "bg-red-400",     text: "text-red-900" },
+  { slug: "questions",  label: "Questions révision",   desc: "Réfléchis puis révèle",    icon: ListChecks,   color: "bg-blue-400",    text: "text-blue-900" },
+  { slug: "libre",      label: "Réponse libre",        desc: "Écris, compare",           icon: PenLine,      color: "bg-teal-400",    text: "text-teal-900" },
+  { slug: "flashcards", label: "Flashcards",           desc: "Recto / verso",            icon: Layers,       color: "bg-purple-400",  text: "text-purple-900" },
+  { slug: "cours",      label: "Cours",                desc: "Méthodo & théorie",        icon: BookOpen,     color: "bg-emerald-400", text: "text-emerald-900" },
+  { slug: "ressources", label: "Ressources",           desc: "Vidéos, podcasts…",        icon: LinkIcon,     color: "bg-indigo-400",  text: "text-indigo-900" },
+  { slug: "vraiouFaux", label: "Vrai ou Faux",         desc: "Swipe comme Tinder 🔥",    icon: Flame,        color: "bg-rose-500",    text: "text-white" },
 ];
 
 export default function Subject() {
@@ -61,7 +62,7 @@ export default function Subject() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b ${config.bg}`}>
+    <div className={`min-h-screen bg-gradient-to-b ${config.bg} relative`}>
       <FloatingPopup subject={config.name} />
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-6 pb-20">
@@ -107,15 +108,21 @@ export default function Subject() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
               >
-                {m.href
-                  ? <Link to={`/${subject}/cours`}>{card}</Link>
-                  : <Link to={`/${subject}/${m.slug}`}>{card}</Link>
-                }
+                <Link to={`/${subject}/${m.slug}`}>{card}</Link>
               </motion.div>
             );
           })}
         </div>
       </div>
+
+      {/* Bouton Assistant flottant en bas à droite */}
+      <Link
+        to={`/${subject}/assistant`}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-stone-800 shadow-lg flex items-center justify-center hover:bg-stone-700 transition-colors border-b-4 border-black/30 active:border-b-0 active:translate-y-1"
+        title="Assistant — Pose tes questions"
+      >
+        <Bot className="w-6 h-6 text-white" />
+      </Link>
     </div>
   );
 }
