@@ -19,14 +19,27 @@ export default function EntityCRUD({ entityName, fields, displayColumns, default
 
   const load = async () => {
     setLoading(true);
-    let list;
-    const filter = { ...(subjectFilter ? { subject: subjectFilter } : {}), ...extraFilter };
-    if (Object.keys(filter).length > 0) {
-      list = await base44.entities[entityName].filter(filter, "chapter", 500);
-    } else {
-      list = await base44.entities[entityName].list("chapter", 500);
+    let list = [];
+    try {
+      const filter = { ...(subjectFilter ? { subject: subjectFilter } : {}), ...extraFilter };
+      console.log(`[${entityName}] Loading with filter:`, filter);
+      if (Object.keys(filter).length > 0) {
+        list = await base44.entities[entityName].filter(filter, null, 500);
+      } else {
+        list = await base44.entities[entityName].list(null, 500);
+      }
+      console.log(`[${entityName}] Loaded ${list.length} items`);
+      // Si aucun résultat et on a des filtres, retry sans subject (garder extraFilter)
+      if (list.length === 0 && subjectFilter && Object.keys(extraFilter).length > 0) {
+        console.warn(`[${entityName}] No results with subject=${subjectFilter}, retrying with extraFilter only`);
+        list = await base44.entities[entityName].filter(extraFilter, null, 500);
+        console.log(`[${entityName}] Retry loaded ${list.length} items`);
+      }
+    } catch (e) {
+      console.error(`[${entityName}] Load error:`, e);
+      list = [];
     }
-    setItems(list);
+    setItems(list || []);
     setLoading(false);
   };
 

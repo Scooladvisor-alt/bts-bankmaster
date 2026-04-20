@@ -13,7 +13,7 @@ export default function AdminVraiOuFaux({ subjectFilter }) {
         { key: "front", label: "Affirmation (question)", type: "textarea" },
         { key: "back", label: "Réponse : commencer par VRAI ou FAUX — explication", type: "textarea" },
       ]}
-      displayColumns={["chapter", "front", "back"]}
+      displayColumns={["subject", "chapter", "front"]}
     />
   );
 }
