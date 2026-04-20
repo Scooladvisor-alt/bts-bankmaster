@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, ChevronRight, RotateCcw, CheckCircle2, XCircle, Menu, X, ChevronLeft } from "lucide-react";
+import { Loader2, RotateCcw, CheckCircle2, XCircle, Menu, X, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { useNavigate } from "react-router-dom";
@@ -133,23 +133,22 @@ export default function ParetoQCM({ subject }) {
 
   const q = questions[current];
 
-  // Option button classes: white by default, green if correct, orange if wrong
   const getOptionClass = (i) => {
-    const base = "w-full text-left px-4 py-3.5 rounded-2xl border-2 font-semibold text-sm transition-all flex items-start gap-3";
+    const base = "w-full text-left px-4 py-3.5 rounded-2xl border-2 transition-all flex items-start gap-3";
     if (selected === null) {
-      return `${base} bg-white border-stone-200 hover:border-stone-400 hover:shadow-sm cursor-pointer`;
+      return `${base} bg-white border-stone-200 hover:border-stone-800 hover:shadow-sm cursor-pointer`;
     }
     if (i === questions[current].correct_index) {
       return `${base} bg-green-50 border-green-500 text-green-900`;
     }
     if (i === selected) {
-      return `${base} bg-orange-50 border-orange-400 text-orange-900`;
+      return `${base} bg-red-50 border-red-400 text-red-900`;
     }
-    return `${base} bg-white border-stone-100 opacity-40`;
+    return `${base} bg-white border-stone-100 opacity-35`;
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden fixed inset-0 bg-gradient-to-b from-yellow-50 to-white">
+    <div className="flex h-screen w-full overflow-hidden fixed inset-0 bg-white">
 
       {/* ── SIDEBAR ── */}
       {/* Mobile overlay */}
@@ -166,14 +165,14 @@ export default function ParetoQCM({ subject }) {
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}>
         {/* Bouton retour en haut */}
-        <div className="px-4 py-3 border-b border-stone-100 bg-yellow-400 flex items-center justify-between shrink-0">
+        <div className="px-4 py-3 border-b border-stone-100 bg-white flex items-center justify-between shrink-0">
           <button
             onClick={() => navigate(`/${subject.toLowerCase()}`)}
-            className="flex items-center gap-1.5 font-bold text-yellow-900 hover:text-yellow-700 transition-colors text-sm"
+            className="flex items-center gap-1.5 font-bold text-stone-600 hover:text-stone-900 transition-colors text-sm"
           >
             <ChevronLeft className="w-4 h-4" /> Retour à {subject}
           </button>
-          <button className="md:hidden p-1.5 rounded-lg bg-yellow-300 text-yellow-900" onClick={() => setSidebarOpen(false)}>
+          <button className="md:hidden p-1.5 rounded-lg bg-stone-100 text-stone-600" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -192,13 +191,12 @@ export default function ParetoQCM({ subject }) {
                 <button
                   key={ch}
                   onClick={() => selectChapter(ch)}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all leading-snug flex items-start gap-2 mb-0.5
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all leading-snug mb-0.5
                     ${isActive
-                      ? "bg-yellow-400 text-yellow-900 shadow-sm"
-                      : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
+                      ? "bg-stone-900 text-white font-bold shadow-sm"
+                      : "text-stone-600 font-medium hover:bg-stone-100 hover:text-stone-900"}`}
                 >
-                  <ChevronRight className={`w-3 h-3 shrink-0 mt-0.5 transition-transform ${isActive ? "rotate-90 text-yellow-800" : "text-stone-400"}`} />
-                  <span>{label}</span>
+                  {label}
                 </button>
               );
             })
@@ -209,7 +207,7 @@ export default function ParetoQCM({ subject }) {
       {/* ── MAIN CONTENT ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar (mobile only) */}
-        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-stone-200 bg-white shrink-0">
+        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-stone-100 bg-white shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
             className="flex items-center gap-2 text-sm font-bold text-stone-700 bg-stone-100 rounded-xl px-3 py-2"
@@ -244,10 +242,10 @@ export default function ParetoQCM({ subject }) {
               <div>
                 {/* Progress */}
                 <div className="mb-5">
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-yellow-600 mb-1.5">{selectedChapter}</div>
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-stone-400 mb-1.5">{selectedChapter}</div>
                   <div className="flex gap-1.5 mb-2">
                     {questions.map((_, i) => (
-                      <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i < current ? "bg-yellow-400" : i === current ? "bg-yellow-300" : "bg-stone-200"}`} />
+                      <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i < current ? "bg-stone-800" : i === current ? "bg-stone-400" : "bg-stone-200"}`} />
                     ))}
                   </div>
                   <div className="text-xs text-stone-400 font-bold">Question {current + 1} / {questions.length}</div>
@@ -267,13 +265,13 @@ export default function ParetoQCM({ subject }) {
                           <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 mt-0.5 font-bold
                             ${selected === null ? "border-stone-300 text-stone-500"
                               : i === q.correct_index ? "border-green-500 bg-green-500 text-white"
-                              : i === selected ? "border-orange-400 bg-orange-400 text-white"
+                              : i === selected ? "border-red-400 bg-red-400 text-white"
                               : "border-stone-200 text-stone-300"}`}>
                             {String.fromCharCode(65 + i)}
                           </span>
                           <span className="flex-1 font-fredoka text-base">{opt}</span>
                           {selected !== null && i === q.correct_index && <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />}
-                          {selected !== null && i === selected && i !== q.correct_index && <XCircle className="w-5 h-5 text-orange-400 shrink-0" />}
+                          {selected !== null && i === selected && i !== q.correct_index && <XCircle className="w-5 h-5 text-red-400 shrink-0" />}
                         </button>
                       ))}
                     </div>
@@ -281,12 +279,22 @@ export default function ParetoQCM({ subject }) {
                     {/* Feedback */}
                     {selected !== null && (
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-5">
-                        <div className={`rounded-2xl p-4 mb-4 border ${selected === q.correct_index ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}`}>
-                          <div className={`font-bold text-sm ${selected === q.correct_index ? "text-green-700" : "text-orange-700"}`}>
-                            {selected === q.correct_index ? "✅ Bonne réponse !" : `❌ Mauvaise réponse — Bonne réponse : ${q.options[q.correct_index]}`}
+                        {selected === q.correct_index ? (
+                          <div className="rounded-2xl p-4 mb-4 border bg-green-50 border-green-200">
+                            <div className="font-bold text-sm text-green-700 mb-1">✅ Bonne réponse !</div>
+                            {q.explanation && <div className="text-xs text-stone-600 leading-relaxed">{q.explanation}</div>}
                           </div>
-                          {q.explanation && <div className="text-xs text-stone-600 mt-1.5">{q.explanation}</div>}
-                        </div>
+                        ) : (
+                          <div className="rounded-2xl p-4 mb-4 border bg-red-50 border-red-200">
+                            <div className="font-bold text-sm text-red-700 mb-1.5">
+                              ❌ Pas tout à fait — la bonne réponse était : <span className="text-green-700">{q.options[q.correct_index]}</span>
+                            </div>
+                            {q.explanation
+                              ? <div className="text-xs text-stone-700 leading-relaxed"><span className="font-semibold">Pourquoi ?</span> {q.explanation}</div>
+                              : <div className="text-xs text-stone-500 italic">Retiens bien cette réponse pour la prochaine fois.</div>
+                            }
+                          </div>
+                        )}
                         <DuoButton variant="primary" onClick={next} className="w-full">
                           {current + 1 < questions.length ? "Question suivante →" : "Voir le résultat"}
                         </DuoButton>
@@ -302,7 +310,7 @@ export default function ParetoQCM({ subject }) {
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-10">
                 <div className="text-6xl mb-4">{score === questions.length ? "🏆" : score >= 4 ? "👍" : score >= 3 ? "💪" : "📚"}</div>
                 <h2 className="font-display text-2xl font-bold mb-1 text-stone-900">{selectedChapter}</h2>
-                <div className="text-stone-500 mb-1">Score : <span className="text-yellow-600 font-bold text-3xl">{score}</span> / {questions.length}</div>
+                <div className="text-stone-500 mb-1">Score : <span className="text-stone-900 font-bold text-3xl">{score}</span> / {questions.length}</div>
                 <div className="text-sm text-stone-400 mb-8">{score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= 4 ? "Très bien !" : score >= 3 ? "Bien, continue !" : "Révise encore ce chapitre."}</div>
                 <div className="flex gap-3 justify-center flex-wrap">
                   <DuoButton variant="ghost" onClick={restart}><RotateCcw className="w-4 h-4 inline mr-1" /> Recommencer</DuoButton>
