@@ -1,13 +1,14 @@
 import React from "react";
 import EntityCRUD from "./EntityCRUD";
 
-export default function AdminResources() {
+export default function AdminResources({ subjectFilter }) {
   return (
     <EntityCRUD
       entityName="Resource"
-      defaults={{ subject: "VOGES", type: "lien" }}
+      subjectFilter={subjectFilter}
+      defaults={{ subject: subjectFilter || "VOJES", type: "lien" }}
       fields={[
-        { key: "subject", label: "Matière", type: "select", options: ["VOGES", "CESBF"] },
+        { key: "subject", label: "Matière", type: "select", options: ["VOJES", "CESBF"] },
         { key: "type", label: "Type", type: "select", options: ["video", "podcast", "diagramme", "lien"] },
         { key: "title", label: "Titre", type: "text" },
         { key: "description", label: "Description", type: "textarea" },

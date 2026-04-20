@@ -1,14 +1,17 @@
 import React from "react";
 import EntityCRUD from "./EntityCRUD";
 
-export default function AdminQuestions() {
+export default function AdminQuestions({ subjectFilter, modeFilter }) {
+  const extraFilter = modeFilter ? { mode: modeFilter } : {};
   return (
     <EntityCRUD
       entityName="Question"
-      defaults={{ subject: "VOGES", mode: "pareto", options: ["", "", "", ""], correct_index: 0, difficulty: "moyen" }}
+      subjectFilter={subjectFilter}
+      extraFilter={extraFilter}
+      defaults={{ subject: subjectFilter || "VOJES", mode: modeFilter || "pareto", options: ["", "", "", ""], correct_index: 0, difficulty: "moyen" }}
       fields={[
-        { key: "subject", label: "Matière", type: "select", options: ["VOGES", "CESBF"] },
-        { key: "mode", label: "Mode QCM", type: "select", options: ["pareto", "infini", "jeu"] },
+        { key: "subject", label: "Matière", type: "select", options: ["VOJES", "CESBF"] },
+        { key: "mode", label: "Mode QCM", type: "select", options: ["pareto", "infini", "jeu"], locked: !!modeFilter },
         { key: "chapter", label: "Chapitre", type: "text" },
         { key: "question", label: "Question", type: "textarea" },
         { key: "options", label: "Options (A/B/C/D)", type: "array-options" },
@@ -16,7 +19,7 @@ export default function AdminQuestions() {
         { key: "explanation", label: "Explication (optionnel)", type: "textarea" },
         { key: "difficulty", label: "Difficulté", type: "select", options: ["facile", "moyen", "difficile"] },
       ]}
-      displayColumns={["subject", "mode", "chapter", "question"]}
+      displayColumns={["chapter", "question", "difficulty"]}
     />
   );
 }

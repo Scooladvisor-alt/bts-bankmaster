@@ -6,7 +6,7 @@ import { Loader2, ChevronLeft, LogOut } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import AdminQuestions from "@/components/admin/AdminQuestions";
 import AdminRevision from "@/components/admin/AdminRevision";
-import AdminFlashcards from "@/components/admin/AdminFlashcards";
+import AdminVraiOuFaux from "@/components/admin/AdminVraiOuFaux";
 import AdminPopups from "@/components/admin/AdminPopups";
 import AdminCourses from "@/components/admin/AdminCourses";
 import AdminResources from "@/components/admin/AdminResources";
@@ -14,14 +14,16 @@ import AdminAssistant from "@/components/admin/AdminAssistant";
 import AdminTeachers from "@/components/admin/AdminTeachers";
 
 const TABS = [
-  { key: "questions", label: "QCM", Comp: AdminQuestions },
-  { key: "revision", label: "Questions révision", Comp: AdminRevision },
-  { key: "flashcards", label: "Flashcards", Comp: AdminFlashcards },
-  { key: "popups", label: "Pop-ups", Comp: AdminPopups },
-  { key: "courses", label: "Cours", Comp: AdminCourses },
-  { key: "resources", label: "Ressources", Comp: AdminResources },
-  { key: "assistant", label: "Assistant", Comp: AdminAssistant },
-  { key: "teachers", label: "👩‍🏫 Professeurs", Comp: AdminTeachers },
+  { key: "pareto",     label: "🎯 QCM Pareto",         Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
+  { key: "jeu",        label: "🎮 QCM Jeu",             Comp: (p) => <AdminQuestions {...p} modeFilter="jeu" /> },
+  { key: "infini",     label: "🔥 QCM Infini",          Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
+  { key: "revision",   label: "📝 Questions révision",  Comp: AdminRevision },
+  { key: "vraiofaux",  label: "✅ Vrai ou Faux",         Comp: AdminVraiOuFaux },
+  { key: "cours",      label: "📚 Cours",                Comp: AdminCourses },
+  { key: "ressources", label: "🔗 Ressources",           Comp: AdminResources },
+  { key: "popups",     label: "💬 Pop-ups",              Comp: AdminPopups },
+  { key: "assistant",  label: "🤖 Assistant",            Comp: AdminAssistant },
+  { key: "teachers",   label: "👩‍🏫 Professeurs",         Comp: AdminTeachers },
 ];
 
 export default function Admin() {

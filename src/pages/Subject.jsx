@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 const SUBJECT_CONFIG = {
-  voges: {
+  vojes: {
     name: "VOJES",
     emoji: "📊",
     tagline: "Veille, Organisationnel, Juridique et Sectorielle",

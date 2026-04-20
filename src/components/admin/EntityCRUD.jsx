@@ -11,7 +11,7 @@ import DuoButton from "@/components/ui-duo/DuoButton";
  *   displayColumns: [fieldKey]
  *   defaults: {}
  */
-export default function EntityCRUD({ entityName, fields, displayColumns, defaults = {}, subjectFilter = null }) {
+export default function EntityCRUD({ entityName, fields, displayColumns, defaults = {}, subjectFilter = null, extraFilter = {} }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // object or null
@@ -20,8 +20,9 @@ export default function EntityCRUD({ entityName, fields, displayColumns, default
   const load = async () => {
     setLoading(true);
     let list;
-    if (subjectFilter) {
-      list = await base44.entities[entityName].filter({ subject: subjectFilter }, "-created_date", 500);
+    const filter = { ...(subjectFilter ? { subject: subjectFilter } : {}), ...extraFilter };
+    if (Object.keys(filter).length > 0) {
+      list = await base44.entities[entityName].filter(filter, "-created_date", 500);
     } else {
       list = await base44.entities[entityName].list("-created_date", 500);
     }
@@ -29,10 +30,10 @@ export default function EntityCRUD({ entityName, fields, displayColumns, default
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [entityName, subjectFilter]);
+  useEffect(() => { load(); }, [entityName, subjectFilter, JSON.stringify(extraFilter)]);
 
   const startNew = () => {
-    const init = { ...defaults };
+    const init = { ...defaults, ...extraFilter };
     if (subjectFilter) init.subject = subjectFilter;
     setEditing(init);
     setIsNew(true);
@@ -115,7 +116,7 @@ export default function EntityCRUD({ entityName, fields, displayColumns, default
                   value={editing[f.key]}
                   onChange={(v) => update(f.key, v)}
                   full={editing}
-                  locked={f.key === "subject" && !!subjectFilter}
+                  locked={(f.key === "subject" && !!subjectFilter) || f.locked}
                 />
               ))}
             </div>

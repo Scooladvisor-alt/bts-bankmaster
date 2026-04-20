@@ -1,13 +1,14 @@
 import React from "react";
 import EntityCRUD from "./EntityCRUD";
 
-export default function AdminRevision() {
+export default function AdminRevision({ subjectFilter }) {
   return (
     <EntityCRUD
       entityName="RevisionQuestion"
-      defaults={{ subject: "VOGES", type: "mentale" }}
+      subjectFilter={subjectFilter}
+      defaults={{ subject: subjectFilter || "VOJES", type: "mentale" }}
       fields={[
-        { key: "subject", label: "Matière", type: "select", options: ["VOGES", "CESBF"] },
+        { key: "subject", label: "Matière", type: "select", options: ["VOJES", "CESBF"] },
         { key: "type", label: "Type", type: "select", options: ["mentale", "libre"] },
         { key: "chapter", label: "Chapitre", type: "text" },
         { key: "question", label: "Question", type: "textarea" },
