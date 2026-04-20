@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Check, X, RotateCcw, ChevronLeft, Zap, BookOpen } from "lucide-react";
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
-import { useNavigate, useParams } from "react-router-dom";
+import { Loader2, Check, X, RotateCcw, Zap, BookOpen } from "lucide-react";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 
 const CHAPTER_TO_CATEGORY = {
   "Ouverture de compte — Droit au compte & Inclusion bancaire": "Ouverture de compte",
@@ -38,10 +37,83 @@ const CATEGORIES = [
   { key: "Fiscalité", label: "Fiscalité" },
 ];
 
-export default function VraiOuFaux({ subject }) {
-  const navigate = useNavigate();
-  const { subject: subjectParam } = useParams();
+// Composant carte isolé avec son propre motionValue pour éviter le bug de x partagé
+function Card({ card, onAnswer, showExplanation, onNext, flash }) {
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-200, 200], [-12, 12]);
+  const opacityTrue = useTransform(x, [30, 100], [0, 1]);
+  const opacityFalse = useTransform(x, [-100, -30], [1, 0]);
 
+  const handleDragEnd = (_, info) => {
+    if (info.offset.x > 90) onAnswer(true);
+    else if (info.offset.x < -90) onAnswer(false);
+    else x.set(0);
+  };
+
+  const bgColor = flash === "wrong" ? "#fef2f2" : flash === "correct" ? "#f0fdf4" : "#ffffff";
+  const borderColor = flash === "wrong" ? "#fca5a5" : flash === "correct" ? "#86efac" : "#f1f5f9";
+
+  return (
+    <motion.div
+      style={{ x, rotate, zIndex: 10, backgroundColor: bgColor, borderColor }}
+      drag={!showExplanation ? "x" : false}
+      dragConstraints={{ left: -300, right: 300 }}
+      dragElastic={0.7}
+      onDragEnd={handleDragEnd}
+      initial={{ scale: 0.88, opacity: 0, y: 20 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      exit={{ scale: 0.85, opacity: 0, transition: { duration: 0.15 } }}
+      transition={{ type: "spring", stiffness: 220, damping: 24 }}
+      className="absolute inset-0 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] border flex flex-col cursor-grab active:cursor-grabbing overflow-hidden"
+    >
+      {/* Indicateurs swipe */}
+      <motion.div style={{ opacity: opacityTrue }} className="absolute top-5 right-5 bg-green-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow rotate-6 z-20 pointer-events-none">
+        ✅ VRAI
+      </motion.div>
+      <motion.div style={{ opacity: opacityFalse }} className="absolute top-5 left-5 bg-red-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow -rotate-6 z-20 pointer-events-none">
+        ❌ FAUX
+      </motion.div>
+
+      {!showExplanation ? (
+        // Vue question
+        <div className="flex flex-col h-full">
+          {card.chapter && (
+            <div className="px-6 pt-5 text-[10px] font-bold uppercase tracking-widest text-rose-400 text-center">
+              {card.chapter}
+            </div>
+          )}
+          <div className="flex-1 flex items-center justify-center px-7 py-4">
+            <p className="text-center font-semibold text-stone-800 text-lg leading-relaxed">
+              {card.statement}
+            </p>
+          </div>
+        </div>
+      ) : (
+        // Vue explication (mode normal, mauvaise réponse)
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center h-full gap-4 px-7 py-6"
+        >
+          <div className="bg-red-100 rounded-2xl px-4 py-2 text-red-600 font-bold text-sm text-center">
+            ❌ Bonne réponse : {card.isTrue ? "VRAI" : "FAUX"}
+          </div>
+          <p className="text-center text-stone-600 text-sm leading-relaxed">
+            {card.explanation}
+          </p>
+          <button
+            onClick={onNext}
+            className="mt-1 bg-stone-800 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-stone-900 active:border-b-0 active:translate-y-0.5 transition-all text-sm"
+          >
+            Continuer →
+          </button>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
+export default function VraiOuFaux({ subject }) {
   const [allCards, setAllCards] = useState([]);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,17 +121,18 @@ export default function VraiOuFaux({ subject }) {
   const [fastMode, setFastMode] = useState(false);
 
   const [index, setIndex] = useState(0);
-  const [flash, setFlash] = useState(null); // null | "correct" | "wrong"
+  const [flash, setFlash] = useState(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [score, setScore] = useState({ good: 0, bad: 0 });
   const [done, setDone] = useState(false);
   const [answered, setAnswered] = useState(false);
-  const [wrongAnswers, setWrongAnswers] = useState([]); // pour résumé mode rapide
+  const [wrongAnswers, setWrongAnswers] = useState([]);
 
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-12, 12]);
-  const opacityTrue = useTransform(x, [30, 100], [0, 1]);
-  const opacityFalse = useTransform(x, [-100, -30], [1, 0]);
+  // Ref pour accéder à l'index courant dans les callbacks sans closure stale
+  const indexRef = useRef(0);
+  const cardsRef = useRef([]);
+  const answeredRef = useRef(false);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -70,27 +143,22 @@ export default function VraiOuFaux({ subject }) {
       const mapped = vof.map(f => ({
         statement: f.front,
         isTrue: f.back.startsWith("VRAI"),
-        explanation: f.back.replace(/^(VRAI ✓|FAUX ✗)\s*[—\-]\s*/i, ""),
+        explanation: f.back.replace(/^(VRAI\s*✓?|FAUX\s*✗?)\s*[—\-]\s*/i, ""),
         chapter: f.chapter || "",
         category: CHAPTER_TO_CATEGORY[f.chapter] || "Autre",
       }));
       const shuffled = mapped.sort(() => Math.random() - 0.5);
       setAllCards(shuffled);
       setCards(shuffled);
+      cardsRef.current = shuffled;
       setLoading(false);
     })();
   }, [subject]);
 
-  const applyCategory = (cat) => {
-    setSelectedCategory(cat);
-    const filtered = cat === "all"
-      ? [...allCards]
-      : allCards.filter(c => c.category === cat);
-    setCards(filtered.sort(() => Math.random() - 0.5));
-    resetSession();
-  };
-
-  const resetSession = () => {
+  const resetSession = useCallback((newCards) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    indexRef.current = 0;
+    answeredRef.current = false;
     setIndex(0);
     setScore({ good: 0, bad: 0 });
     setFlash(null);
@@ -98,79 +166,84 @@ export default function VraiOuFaux({ subject }) {
     setAnswered(false);
     setDone(false);
     setWrongAnswers([]);
-    x.set(0);
+    if (newCards) {
+      cardsRef.current = newCards;
+      setCards(newCards);
+    }
+  }, []);
+
+  const applyCategory = (cat) => {
+    setSelectedCategory(cat);
+    const filtered = cat === "all"
+      ? [...allCards]
+      : allCards.filter(c => c.category === cat);
+    const shuffled = filtered.sort(() => Math.random() - 0.5);
+    resetSession(shuffled);
   };
 
-  const current = cards[index];
+  const goToNext = useCallback(() => {
+    const nextIndex = indexRef.current + 1;
+    if (nextIndex >= cardsRef.current.length) {
+      setDone(true);
+    } else {
+      indexRef.current = nextIndex;
+      setIndex(nextIndex);
+      setFlash(null);
+      setShowExplanation(false);
+      setAnswered(false);
+      answeredRef.current = false;
+    }
+  }, []);
 
-  const answer = (userSaysTrue) => {
-    if (answered) return;
+  const answer = useCallback((userSaysTrue) => {
+    if (answeredRef.current) return;
+    answeredRef.current = true;
     setAnswered(true);
-    const correct = userSaysTrue === current.isTrue;
 
+    const currentCard = cardsRef.current[indexRef.current];
+    if (!currentCard) return;
+
+    const correct = userSaysTrue === currentCard.isTrue;
     setFlash(correct ? "correct" : "wrong");
     setScore(s => correct ? { ...s, good: s.good + 1 } : { ...s, bad: s.bad + 1 });
 
     if (!correct) {
-      setWrongAnswers(prev => [...prev, current]);
+      setWrongAnswers(prev => [...prev, currentCard]);
     }
 
     if (!correct && !fastMode) {
-      // Mode normal : montrer l'explication des mauvaises réponses
-      setTimeout(() => setFlash(null), 400);
+      // Mode normal + mauvaise réponse : montrer explication sur la carte
+      timerRef.current = setTimeout(() => setFlash(null), 400);
       setShowExplanation(true);
+      // answeredRef reste true, on attend que l'utilisateur clique "Continuer"
     } else {
-      // Mode rapide OU bonne réponse : passer rapidement
-      setTimeout(() => {
-        setFlash(null);
-        setShowExplanation(false);
-        setAnswered(false);
-        x.set(0);
-        if (index + 1 >= cards.length) setDone(true);
-        else setIndex(i => i + 1);
+      // Mode rapide OU bonne réponse : passer auto
+      timerRef.current = setTimeout(() => {
+        goToNext();
       }, correct ? 500 : 700);
     }
-  };
+  }, [fastMode, goToNext]);
 
-  const nextCard = () => {
-    setShowExplanation(false);
-    setFlash(null);
-    setAnswered(false);
-    x.set(0);
-    if (index + 1 >= cards.length) setDone(true);
-    else setIndex(i => i + 1);
-  };
-
-  const handleDragEnd = (_, info) => {
-    if (info.offset.x > 90) answer(true);
-    else if (info.offset.x < -90) answer(false);
-    else x.set(0);
-  };
+  const nextCard = useCallback(() => {
+    goToNext();
+  }, [goToNext]);
 
   const restart = () => {
     const filtered = selectedCategory === "all"
       ? [...allCards]
       : allCards.filter(c => c.category === selectedCategory);
-    setCards(filtered.sort(() => Math.random() - 0.5));
-    resetSession();
+    const shuffled = filtered.sort(() => Math.random() - 0.5);
+    resetSession(shuffled);
   };
 
   const progress = cards.length > 0 ? index / cards.length : 0;
-  const subjectPath = subjectParam || subject?.toLowerCase();
+  const current = cards[index];
 
-  // ── TOP BAR (fixe) ──
+  // ── TOP BAR ──
   const TopBar = (
     <div className="flex items-center gap-2 mb-0 flex-shrink-0">
-      {/* Bouton retour */}
-      <button
-        onClick={() => navigate(`/${subjectPath}`)}
-        className="flex items-center gap-1 text-stone-500 hover:text-stone-800 font-bold text-sm bg-white/80 backdrop-blur px-3 py-2 rounded-xl border border-stone-200 whitespace-nowrap flex-shrink-0"
-      >
-        Retour
-      </button>
-
       {/* Filtres scrollables */}
-      <div className="flex-1 overflow-x-auto scrollbar-hide">
+      <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
         <div className="flex gap-1.5 w-max">
           {CATEGORIES.map(cat => (
             <button
@@ -190,16 +263,19 @@ export default function VraiOuFaux({ subject }) {
 
       {/* Bouton mode rapide */}
       <button
-        onClick={() => { setFastMode(f => !f); resetSession(); }}
+        onClick={() => {
+          const next = !fastMode;
+          setFastMode(next);
+          resetSession();
+        }}
         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all border ${
           fastMode
             ? "bg-amber-400 text-amber-900 border-amber-400"
             : "bg-white text-stone-400 border-stone-200 hover:bg-stone-50"
         }`}
-        title={fastMode ? "Mode rapide — passer en mode normal" : "Passer en mode rapide"}
       >
         <Zap className="w-3.5 h-3.5" />
-        {fastMode ? "Rapide" : "Rapide"}
+        Rapide
       </button>
     </div>
   );
@@ -241,7 +317,6 @@ export default function VraiOuFaux({ subject }) {
           {Math.round((score.good / cards.length) * 100)} %
         </div>
 
-        {/* Résumé mode rapide — affiche les erreurs avec explications */}
         {fastMode && wrongAnswers.length > 0 && (
           <div className="w-full max-w-lg mt-2">
             <div className="flex items-center gap-2 mb-3">
@@ -264,19 +339,15 @@ export default function VraiOuFaux({ subject }) {
           </div>
         )}
 
-        <div className="flex gap-3 mt-1">
-          <button onClick={restart} className="flex items-center gap-2 bg-rose-500 text-white font-display font-bold px-6 py-3.5 rounded-2xl border-b-4 border-rose-700 hover:bg-rose-400 active:translate-y-1 active:border-b-0 transition-all">
-            <RotateCcw className="w-4 h-4" /> Rejouer
-          </button>
-        </div>
+        <button onClick={restart} className="flex items-center gap-2 bg-rose-500 text-white font-display font-bold px-6 py-3.5 rounded-2xl border-b-4 border-rose-700 hover:bg-rose-400 active:translate-y-1 active:border-b-0 transition-all mt-1">
+          <RotateCcw className="w-4 h-4" /> Rejouer
+        </button>
       </motion.div>
     </div>
   );
 
   return (
     <div className="flex flex-col select-none" style={{ minHeight: "calc(100vh - 120px)" }}>
-
-      {/* Barre fixe */}
       {TopBar}
 
       {cards.length === 0 ? (
@@ -290,7 +361,7 @@ export default function VraiOuFaux({ subject }) {
               <span>{index + 1} / {cards.length}</span>
               <span className="text-red-400">❌ {score.bad}</span>
             </div>
-            <div className="h-1 bg-stone-200 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-to-r from-rose-400 to-orange-400 rounded-full"
                 animate={{ width: `${progress * 100}%` }}
@@ -299,93 +370,33 @@ export default function VraiOuFaux({ subject }) {
             </div>
           </div>
 
-          {/* Card zone — hauteur fixe pour que absolute inset-0 fonctionne */}
-          <div className="relative w-full" style={{ height: 340 }}>
+          {/* Zone carte — hauteur fixe */}
+          <div className="relative w-full" style={{ height: 320 }}>
             {/* Ghost card derrière */}
             {cards[index + 1] && (
-              <div className="absolute inset-x-2 top-3 bottom-3 bg-white rounded-3xl border border-stone-100 shadow-sm opacity-60" style={{ transform: "scale(0.96)" }} />
+              <div
+                className="absolute inset-x-3 top-3 bottom-1 bg-white rounded-3xl border border-stone-100 shadow-sm"
+                style={{ opacity: 0.5, transform: "scale(0.96)", zIndex: 1 }}
+              />
             )}
 
             <AnimatePresence mode="wait">
               {current && (
-                <motion.div
+                <Card
                   key={index}
-                  style={{ x, rotate, zIndex: 10 }}
-                  drag={!answered ? "x" : false}
-                  dragConstraints={{ left: -300, right: 300 }}
-                  dragElastic={0.7}
-                  onDragEnd={handleDragEnd}
-                  initial={{ scale: 0.88, opacity: 0, y: 20 }}
-                  animate={{
-                    scale: 1,
-                    opacity: 1,
-                    y: 0,
-                    backgroundColor: flash === "wrong"
-                      ? ["#ffffff", "#fef2f2", "#ffffff"]
-                      : flash === "correct"
-                        ? ["#ffffff", "#f0fdf4", "#ffffff"]
-                        : "#ffffff",
-                  }}
-                  transition={{ type: "spring", stiffness: 220, damping: 24, backgroundColor: { duration: 0.4 } }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  className="absolute inset-0 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] border flex flex-col cursor-grab active:cursor-grabbing overflow-hidden"
-                  style={{
-                    borderColor: flash === "wrong" ? "#fca5a5" : flash === "correct" ? "#86efac" : "#f1f5f9",
-                  }}
-                >
-                  {/* Indicateurs swipe */}
-                  <motion.div style={{ opacity: opacityTrue }} className="absolute top-5 right-5 bg-green-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow rotate-6 z-20">
-                    ✅ VRAI
-                  </motion.div>
-                  <motion.div style={{ opacity: opacityFalse }} className="absolute top-5 left-5 bg-red-500 text-white font-display font-bold text-sm px-4 py-1.5 rounded-xl shadow -rotate-6 z-20">
-                    ❌ FAUX
-                  </motion.div>
-
-                  {!showExplanation ? (
-                    /* ── VUE QUESTION ── */
-                    <div className="flex flex-col h-full">
-                      {/* Chapitre en haut de la carte */}
-                      {current.chapter && (
-                        <div className="px-6 pt-5 pb-0 text-[10px] font-bold uppercase tracking-widest text-rose-400 text-center">
-                          {current.chapter}
-                        </div>
-                      )}
-                      {/* Question centrée verticalement dans l'espace restant */}
-                      <div className="flex-1 flex items-center justify-center px-7 py-4">
-                        <p className="text-center font-semibold text-stone-800 text-lg leading-relaxed">
-                          {current.statement}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    /* ── VUE EXPLICATION ── */
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex flex-col items-center justify-center h-full gap-4 px-7 py-6"
-                    >
-                      <div className="bg-red-100 rounded-2xl px-4 py-2 text-red-600 font-bold text-sm text-center">
-                        ❌ Bonne réponse : {current.isTrue ? "VRAI" : "FAUX"}
-                      </div>
-                      <p className="text-center text-stone-600 text-sm leading-relaxed">
-                        {current.explanation}
-                      </p>
-                      <button
-                        onClick={nextCard}
-                        className="mt-1 bg-stone-800 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-stone-900 active:border-b-0 active:translate-y-0.5 transition-all text-sm"
-                      >
-                        Continuer →
-                      </button>
-                    </motion.div>
-                  )}
-                </motion.div>
+                  card={current}
+                  onAnswer={answer}
+                  showExplanation={showExplanation}
+                  onNext={nextCard}
+                  flash={flash}
+                />
               )}
             </AnimatePresence>
           </div>
 
-          {/* Boutons fondus en bas — cachés si explication visible */}
+          {/* Boutons FAUX / VRAI */}
           {!showExplanation && (
-            <div className="flex gap-3 pt-1 pb-2">
+            <div className="flex gap-3 pt-3 pb-2">
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 onClick={() => answer(false)}
@@ -393,7 +404,7 @@ export default function VraiOuFaux({ subject }) {
                 className="flex-1 flex items-center justify-center gap-2 py-5 rounded-2xl font-display font-bold text-lg text-red-600 disabled:opacity-40 transition-all"
                 style={{
                   background: "linear-gradient(135deg, #fff1f2 0%, #fecaca 100%)",
-                  boxShadow: "0 4px 20px rgba(239,68,68,0.18), inset 0 1px 0 rgba(255,255,255,0.8)",
+                  boxShadow: "0 4px 20px rgba(239,68,68,0.18)",
                   border: "1.5px solid rgba(252,165,165,0.6)"
                 }}
               >
@@ -406,7 +417,7 @@ export default function VraiOuFaux({ subject }) {
                 className="flex-1 flex items-center justify-center gap-2 py-5 rounded-2xl font-display font-bold text-lg text-green-600 disabled:opacity-40 transition-all"
                 style={{
                   background: "linear-gradient(135deg, #f0fdf4 0%, #bbf7d0 100%)",
-                  boxShadow: "0 4px 20px rgba(34,197,94,0.18), inset 0 1px 0 rgba(255,255,255,0.8)",
+                  boxShadow: "0 4px 20px rgba(34,197,94,0.18)",
                   border: "1.5px solid rgba(134,239,172,0.6)"
                 }}
               >
