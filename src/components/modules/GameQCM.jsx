@@ -516,9 +516,9 @@ export default function GameQCM({ subject }) {
 
   return (
     <div className="w-full select-none flex flex-col gap-3">
-      {/* Widget record en haut — hors du canvas */}
+      {/* Widget record en haut — visible desktop only */}
       {kmRecord > 0 && (
-        <div className="w-full text-right">
+        <div className="w-full text-right hidden md:block">
           <div className="inline-block bg-stone-800 text-yellow-300 font-bold text-sm px-4 py-2 rounded-full">
             🏆 record : {kmRecord} km
           </div>
@@ -529,9 +529,9 @@ export default function GameQCM({ subject }) {
       <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "4/3" }}>
         <div ref={mountRef} className="absolute inset-0 w-full h-full" />
 
-        {/* Question banner — tout en haut */}
+        {/* Question banner — hidden on mobile */}
         {isPlaying && current && (
-          <div className="absolute top-2 left-3 right-3 z-10">
+          <div className="absolute top-2 left-3 right-3 z-10 hidden md:block">
             <div className="bg-white/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg text-center border-b-4 border-pink-300">
               {current.chapter && <div className="text-[10px] font-bold uppercase tracking-widest text-pink-500 mb-0.5">{current.chapter}</div>}
               <div className="font-display font-bold text-base leading-snug">{current.question}</div>
@@ -539,42 +539,48 @@ export default function GameQCM({ subject }) {
           </div>
         )}
 
-        {/* HUD sous la question */}
-         <div className="absolute left-0 right-0 z-10 flex items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 72px)" : "4px" }}>
-           <div className="flex gap-1">
-             {Array.from({ length: 3 }).map((_, i) => (
-               <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
-             ))}
-           </div>
-           <div className="flex items-center gap-2">
-             <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
-             {isPlaying && (
-               <button
-                 onClick={togglePause}
-                 className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors"
-               >
-                 {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-               </button>
-             )}
-           </div>
-         </div>
+        {/* HUD — compact on mobile, moved to top-right */}
+        <div className="absolute left-0 right-0 z-10 flex items-center justify-between px-4 py-1.5 md:py-2" style={{ top: isPlaying && current && window.innerWidth >= 768 ? "calc(2px + 72px)" : "4px" }}>
+          {/* Lives — desktop only */}
+          <div className="flex-1 hidden md:flex gap-1">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
+            ))}
+          </div>
+
+          {/* Mobile: lives as numbers */}
+          <div className="md:hidden text-white font-bold text-sm">❤️ {lives}</div>
+
+          {/* KM + Pause button */}
+          <div className="flex items-center gap-2">
+            <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-xs md:text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
+            {isPlaying && (
+              <button
+                onClick={togglePause}
+                className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors"
+              >
+                {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Feedback overlays */}
         {feedback === "correct" && current && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <div className="bg-green-500/90 backdrop-blur-sm text-white rounded-3xl px-8 py-5 text-center shadow-2xl">
-              <div className="text-4xl mb-1">✅</div>
-              <div className="font-display text-2xl font-bold">Bonne voie !</div>
-              {current.explanation && <div className="text-sm opacity-90 mt-1 max-w-[280px]">{current.explanation}</div>}
+            <div className="bg-green-500/90 backdrop-blur-sm text-white rounded-3xl px-6 md:px-8 py-4 md:py-5 text-center shadow-2xl mx-4 md:mx-0">
+              <div className="text-3xl md:text-4xl mb-1">✅</div>
+              <div className="font-display text-xl md:text-2xl font-bold">Bonne voie !</div>
+              {current.explanation && <div className="text-xs md:text-sm opacity-90 mt-1">{current.explanation}</div>}
             </div>
           </div>
         )}
         {feedback === "wrong" && current && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <div className="bg-red-600/90 backdrop-blur-sm text-white rounded-3xl px-8 py-5 text-center shadow-2xl">
-              <div className="text-4xl mb-1">💥</div>
-              <div className="font-display text-2xl font-bold">Mauvais chemin !</div>
-              <div className="text-sm mt-1 opacity-90">Réponse : <span className="font-bold">{current.options[current.correct_index]}</span></div>
+            <div className="bg-red-600/90 backdrop-blur-sm text-white rounded-3xl px-6 md:px-8 py-4 md:py-5 text-center shadow-2xl mx-4 md:mx-0">
+              <div className="text-3xl md:text-4xl mb-1">💥</div>
+              <div className="font-display text-xl md:text-2xl font-bold">Mauvais chemin !</div>
+              <div className="text-xs md:text-sm mt-1 opacity-90">Réponse : <span className="font-bold">{current.options[current.correct_index]}</span></div>
             </div>
           </div>
         )}
@@ -582,9 +588,9 @@ export default function GameQCM({ subject }) {
         {/* Pause overlay */}
         {paused && (
           <div className="absolute inset-0 z-25 bg-black/60 flex items-center justify-center">
-            <div className="bg-white rounded-3xl p-8 text-center shadow-2xl">
+            <div className="bg-white rounded-3xl p-6 md:p-8 text-center shadow-2xl mx-4 md:mx-0">
               <div className="text-5xl mb-3">⏸️</div>
-              <h2 className="font-display text-3xl font-bold mb-2">Pause</h2>
+              <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">Pause</h2>
               <p className="text-stone-500 text-sm mb-5">La route t'attend…</p>
               <DuoButton variant="primary" onClick={togglePause}>
                 <Play className="w-4 h-4 inline mr-2" /> Reprendre
@@ -596,10 +602,10 @@ export default function GameQCM({ subject }) {
         {/* Game Over */}
         {uiState === STATE.GAMEOVER && (
           <div className="absolute inset-0 z-30 bg-black/75 flex items-center justify-center">
-            <div className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-sm mx-4">
-              <div className="text-6xl mb-3">💀</div>
-              <h2 className="font-display text-3xl font-bold">Game Over !</h2>
-              <p className="text-stone-600 mt-2">Score : <span className="text-pink-600 font-bold text-2xl">{score}</span></p>
+            <div className="bg-white rounded-3xl p-6 md:p-8 text-center shadow-2xl max-w-sm mx-4">
+              <div className="text-5xl md:text-6xl mb-3">💀</div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold">Game Over !</h2>
+              <p className="text-stone-600 mt-2">Score : <span className="text-pink-600 font-bold text-xl md:text-2xl">{score}</span></p>
               <DuoButton variant="primary" className="mt-5" onClick={restart}>
                 <RotateCcw className="w-4 h-4 inline mr-2" /> Rejouer
               </DuoButton>
@@ -610,10 +616,10 @@ export default function GameQCM({ subject }) {
         {/* Win */}
         {uiState === STATE.WIN && (
           <div className="absolute inset-0 z-30 bg-black/65 flex items-center justify-center">
-            <div className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-sm mx-4">
-              <div className="text-6xl mb-3">🏆</div>
-              <h2 className="font-display text-3xl font-bold">Parcours terminé !</h2>
-              <p className="text-stone-600 mt-2">Score : <span className="text-green-600 font-bold text-2xl">{score} / {questions.length}</span></p>
+            <div className="bg-white rounded-3xl p-6 md:p-8 text-center shadow-2xl max-w-sm mx-4">
+              <div className="text-5xl md:text-6xl mb-3">🏆</div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold">Parcours terminé !</h2>
+              <p className="text-stone-600 mt-2">Score : <span className="text-green-600 font-bold text-xl md:text-2xl">{score} / {questions.length}</span></p>
               <DuoButton variant="primary" className="mt-5" onClick={restart}>
                 <RotateCcw className="w-4 h-4 inline mr-2" /> Rejouer
               </DuoButton>
@@ -622,16 +628,22 @@ export default function GameQCM({ subject }) {
         )}
       </div>
 
-      {/* ── Boutons de réponse — hors canvas ── */}
+      {/* Mobile info bar */}
+      <div className="md:hidden text-center bg-pink-50 rounded-2xl px-3 py-2 border border-pink-200">
+        <div className="text-xs font-bold text-pink-700">{current?.chapter || "Question"}</div>
+        <div className="text-sm font-bold text-stone-800 leading-snug mt-0.5">{current?.question}</div>
+      </div>
+
+      {/* ── Boutons de réponse — responsive ── */}
       {uiState === STATE.DRIVING && !paused && current && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 md:gap-3">
           {current.options.slice(0, 3).map((opt, i) => (
             <button
               key={i}
               onClick={() => chooseLane(i)}
-              className={`rounded-2xl px-3 py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
+              className={`rounded-2xl px-2 md:px-3 py-4 md:py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
             >
-              <div className="font-fredoka text-base text-stone-800 leading-snug">{opt}</div>
+              <div className="font-fredoka text-xs md:text-base text-stone-800 leading-snug">{opt}</div>
             </button>
           ))}
         </div>
