@@ -303,6 +303,8 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
   const [loading, setLoading] = useState(true);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [newChapterName, setNewChapterName] = useState("");
+  // Extra custom chapters créés via le bouton "Nouveau chapitre" (pas encore en BDD)
+  const [extraCustomChapters, setExtraCustomChapters] = useState([]);
 
   const subject = subjectFilter || "VOJES";
 
@@ -313,26 +315,42 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [subjectFilter, modeFilter]);
+  useEffect(() => {
+    setExtraCustomChapters([]); // reset extra chapitres quand on change de matière
+    load();
+  }, [subjectFilter, modeFilter]);
+
+  const handleAddChapter = () => {
+    const name = newChapterName.trim();
+    if (!name) return;
+    const chaptersInDB = new Set(questions.map(q => q.chapter).filter(Boolean));
+    if (!chaptersInDB.has(name) && !extraCustomChapters.includes(name)) {
+      setExtraCustomChapters(prev => [...prev, name]);
+    }
+    setNewChapterName("");
+    setShowAddChapter(false);
+  };
 
   if (loading) return <div className="flex items-center gap-2 text-stone-500"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>;
 
   const totalQ = questions.length;
-
-  // Chapitres présents dans la BDD pour ce sujet/mode
   const chaptersInDB = new Set(questions.map(q => q.chapter).filter(Boolean));
 
-  // ── VOJES : seulement les chapitres qui ont des questions, dans l'ordre 1→31 + custom ──
+  // ── VOJES : tous les chapitres officiels dans l'ordre 1→31 + custom ──
   if (subject === "VOJES") {
-    const officialWithQ = VOJES_CHAPTERS.filter(ch => chaptersInDB.has(ch));
-    const customChapters = [...chaptersInDB].filter(ch => !VOJES_CHAPTERS.includes(ch)).sort();
+    // Chapitres officiels : TOUS les 31, dans l'ordre
+    const officialChapters = VOJES_CHAPTERS;
+    // Custom en BDD (hors référentiel)
+    const customInDB = [...chaptersInDB].filter(ch => !VOJES_CHAPTERS.includes(ch)).sort();
+    // Custom ajoutés via le bouton mais pas encore en BDD
+    const customExtra = extraCustomChapters.filter(ch => !chaptersInDB.has(ch) && !VOJES_CHAPTERS.includes(ch));
 
     return (
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm text-stone-500 font-bold">{totalQ} question(s) — VOJES</div>
           <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
-            <Plus className="w-3.5 h-3.5" /> Nouveau chapitre
+            <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
           </button>
         </div>
 
@@ -343,47 +361,45 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
               placeholder="Nom du nouveau chapitre…"
               value={newChapterName}
               onChange={e => setNewChapterName(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") { setShowAddChapter(false); setNewChapterName(""); } if (e.key === "Escape") setShowAddChapter(false); }}
+              onKeyDown={e => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setShowAddChapter(false); }}
               autoFocus
             />
+            <button onClick={handleAddChapter} className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Créer</button>
             <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
           </div>
         )}
 
-        {officialWithQ.length === 0 && customChapters.length === 0 ? (
-          <div className="text-center py-10 text-stone-400">Aucune question Pareto pour VOJES. Commence par ajouter un chapitre ci-dessus.</div>
-        ) : null}
-
-        {officialWithQ.map(ch => (
+        {/* Tous les chapitres officiels 1→31 */}
+        {officialChapters.map(ch => (
           <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
         ))}
 
-        {customChapters.length > 0 && (
-          <div className="mt-3 mb-1">
+        {/* Chapitres personnalisés */}
+        {(customInDB.length > 0 || customExtra.length > 0) && (
+          <div className="mt-4 mb-1">
             <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
-            {customChapters.map(ch => (
+            {customInDB.map(ch => (
               <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
             ))}
+            {customExtra.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={() => { setExtraCustomChapters(prev => prev.filter(c => c !== ch)); load(); }} isCustom={true} />
+            ))}
           </div>
-        )}
-
-        {/* Nouveau chapitre custom créé depuis le form */}
-        {showAddChapter === false && newChapterName.trim() && !chaptersInDB.has(newChapterName.trim()) && (
-          <ChapterRow chapter={newChapterName.trim()} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
         )}
       </div>
     );
   }
 
-  // ── CESBF : groupes, seulement chapitres avec questions + custom ──
-  const customChaptersCesbf = [...chaptersInDB].filter(ch => !ALL_CESBF_CHAPTERS.includes(ch)).sort();
+  // ── CESBF : tous les groupes/chapitres dans l'ordre officiel + custom ──
+  const customInDBCesbf = [...chaptersInDB].filter(ch => !ALL_CESBF_CHAPTERS.includes(ch)).sort();
+  const customExtraCesbf = extraCustomChapters.filter(ch => !chaptersInDB.has(ch) && !ALL_CESBF_CHAPTERS.includes(ch));
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="text-sm text-stone-500 font-bold">{totalQ} question(s) — CESBF</div>
         <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
-          <Plus className="w-3.5 h-3.5" /> Nouveau chapitre
+          <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
         </button>
       </div>
 
@@ -394,37 +410,35 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
             placeholder="Nom du nouveau chapitre…"
             value={newChapterName}
             onChange={e => setNewChapterName(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter") { setShowAddChapter(false); setNewChapterName(""); } if (e.key === "Escape") setShowAddChapter(false); }}
+            onKeyDown={e => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setShowAddChapter(false); }}
             autoFocus
           />
+          <button onClick={handleAddChapter} className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Créer</button>
           <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
         </div>
       )}
 
-      {CESBF_GROUPS.map(group => {
-        const groupChaptersWithQ = group.chapters.filter(ch => chaptersInDB.has(ch));
-        if (groupChaptersWithQ.length === 0) return null;
-        return (
-          <div key={group.title} className="mb-5">
-            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">{group.title}</div>
-            {groupChaptersWithQ.map(ch => (
-              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
-            ))}
-          </div>
-        );
-      })}
-
-      {customChaptersCesbf.length > 0 && (
-        <div className="mb-5">
-          <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
-          {customChaptersCesbf.map(ch => (
-            <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+      {/* Tous les groupes CESBF dans l'ordre officiel */}
+      {CESBF_GROUPS.map(group => (
+        <div key={group.title} className="mb-5">
+          <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">{group.title}</div>
+          {group.chapters.map(ch => (
+            <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
           ))}
         </div>
-      )}
+      ))}
 
-      {showAddChapter === false && newChapterName.trim() && !chaptersInDB.has(newChapterName.trim()) && (
-        <ChapterRow chapter={newChapterName.trim()} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+      {/* Chapitres personnalisés */}
+      {(customInDBCesbf.length > 0 || customExtraCesbf.length > 0) && (
+        <div className="mb-5">
+          <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
+          {customInDBCesbf.map(ch => (
+            <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+          ))}
+          {customExtraCesbf.map(ch => (
+            <ChapterRow key={ch} chapter={ch} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={() => { setExtraCustomChapters(prev => prev.filter(c => c !== ch)); load(); }} isCustom={true} />
+          ))}
+        </div>
       )}
     </div>
   );
