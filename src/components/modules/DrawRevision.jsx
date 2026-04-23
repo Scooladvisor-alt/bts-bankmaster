@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, CheckCircle2 } from "lucide-react";
+import { RotateCcw, CheckCircle2, Sparkles } from "lucide-react";
 
 const QUESTIONS = {
   VOJES: [
@@ -19,41 +19,44 @@ const QUESTIONS = {
   ],
 };
 
-// Dimensions internes du canvas (résolution fixe)
-const W = 600;
-const H = 180;
+// Dimensions internes du canvas (résolution fixe — grande !)
+const W = 900;
+const H = 320;
 
-// Dessine le texte guide sur un canvas hors-écran, retourne son ImageData
 function buildGuideImageData(text) {
   const offscreen = document.createElement("canvas");
   offscreen.width = W;
   offscreen.height = H;
   const ctx = offscreen.getContext("2d");
-
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
-
-  // Taille de police adaptée à la longueur du texte
-  const fontSize = Math.min(H * 0.72, (W * 0.88) / (text.length * 0.58));
-  ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+  const fontSize = Math.min(H * 0.70, (W * 0.88) / (text.length * 0.52));
+  ctx.font = `900 ${fontSize}px Arial Black, Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-
-  // On remplit avec du noir opaque pour la détection (hors-écran)
   ctx.fillStyle = "#000000";
   ctx.fillText(text, W / 2, H / 2);
-
   return ctx.getImageData(0, 0, W, H);
 }
 
-// Vérifie si le pixel (x,y) est "noir" dans l'ImageData du guide
 function pixelIsGuide(imageData, x, y) {
   const xi = Math.round(x);
   const yi = Math.round(y);
   if (xi < 0 || yi < 0 || xi >= W || yi >= H) return false;
   const i = (yi * W + xi) * 4;
-  // Pixel noir = R faible (fond blanc = R=255)
   return imageData.data[i] < 128;
+}
+
+// Génère des particules d'étoiles pour l'animation de succès
+function generateParticles(count = 30) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 16 + 6,
+    delay: Math.random() * 0.4,
+    color: ["#a855f7", "#f59e0b", "#10b981", "#3b82f6", "#ec4899", "#f97316"][Math.floor(Math.random() * 6)],
+  }));
 }
 
 export default function DrawRevision({ subject }) {
@@ -61,16 +64,14 @@ export default function DrawRevision({ subject }) {
   const [qIndex, setQIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [score, setScore] = useState(0);
-  const [result, setResult] = useState(null); // null | { pct, success }
+  const [result, setResult] = useState(null);
   const [hasDrawn, setHasDrawn] = useState(false);
+  const [showShimmer, setShowShimmer] = useState(false);
+  const [particles, setParticles] = useState([]);
 
-  // Canvas dessin (visible)
   const drawCanvasRef = useRef(null);
-  // Canvas guide (visible, en dessous via position absolute)
   const guideCanvasRef = useRef(null);
-  // ImageData hors-écran pour la détection
   const guideImageDataRef = useRef(null);
-
   const isDrawing = useRef(false);
   const lastPos = useRef(null);
   const onGuideCount = useRef(0);
@@ -78,44 +79,37 @@ export default function DrawRevision({ subject }) {
 
   const q = questions[qIndex];
 
-  // Initialise / réinitialise le canvas guide et le canvas dessin
   const init = () => {
     if (!q) return;
-
-    // Canvas dessin — effacer complètement (transparent)
     const drawCanvas = drawCanvasRef.current;
     if (drawCanvas) {
       const ctx = drawCanvas.getContext("2d");
       ctx.clearRect(0, 0, W, H);
     }
-
-    // Canvas guide — dessiner le texte en transparent
     const guideCanvas = guideCanvasRef.current;
     if (guideCanvas) {
       const ctx = guideCanvas.getContext("2d");
       ctx.clearRect(0, 0, W, H);
-      const fontSize = Math.min(H * 0.72, (W * 0.88) / (q.answer.length * 0.58));
-      ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+      const fontSize = Math.min(H * 0.70, (W * 0.88) / (q.answer.length * 0.52));
+      ctx.font = `900 ${fontSize}px Arial Black, Arial, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = "rgba(139, 92, 246, 0.15)"; // violet très transparent
+      // Texte guide très visible — violet doux
+      ctx.fillStyle = "rgba(139, 92, 246, 0.18)";
       ctx.fillText(q.answer, W / 2, H / 2);
     }
-
-    // ImageData hors-écran pour la détection pixel
     guideImageDataRef.current = buildGuideImageData(q.answer);
-
-    // Reset compteurs
     onGuideCount.current = 0;
     offGuideCount.current = 0;
     setHasDrawn(false);
     setResult(null);
+    setShowShimmer(false);
+    setParticles([]);
     isDrawing.current = false;
     lastPos.current = null;
   };
 
   useEffect(() => {
-    // Petit délai pour que le DOM soit rendu
     const t = setTimeout(init, 60);
     return () => clearTimeout(t);
   }, [qIndex]);
@@ -139,7 +133,7 @@ export default function DrawRevision({ subject }) {
 
   const startDraw = (e) => {
     e.preventDefault();
-    if (result) return; // désactivé après validation
+    if (result) return;
     isDrawing.current = true;
     setHasDrawn(true);
     lastPos.current = getPos(e);
@@ -154,21 +148,17 @@ export default function DrawRevision({ subject }) {
     const prev = lastPos.current;
     if (!prev) { lastPos.current = pos; return; }
 
-    // Vérifier si la position actuelle est sur le guide
     const onGuide = pixelIsGuide(guideImageDataRef.current, pos.x, pos.y);
 
-    // Dessiner le segment
     ctx.beginPath();
     ctx.moveTo(prev.x, prev.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.lineWidth = 10;
+    ctx.lineWidth = 18; // trait épais = facile à tracer
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.strokeStyle = onGuide ? "rgba(109, 40, 217, 0.9)" : "rgba(239, 68, 68, 0.7)";
+    ctx.strokeStyle = onGuide ? "rgba(109, 40, 217, 0.92)" : "rgba(239, 68, 68, 0.65)";
     ctx.stroke();
 
-    // Compter les points pour le score
-    // On échantillonne tous les ~2px le long du segment
     const dx = pos.x - prev.x;
     const dy = pos.y - prev.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -182,7 +172,6 @@ export default function DrawRevision({ subject }) {
         offGuideCount.current++;
       }
     }
-
     lastPos.current = pos;
   };
 
@@ -197,7 +186,12 @@ export default function DrawRevision({ subject }) {
     if (total === 0) return;
     const pct = Math.round((onGuideCount.current / total) * 100);
     const success = pct >= 55;
-    if (success) setScore(s => s + 1);
+    if (success) {
+      setScore(s => s + 1);
+      setShowShimmer(true);
+      setParticles(generateParticles(35));
+      setTimeout(() => setShowShimmer(false), 1800);
+    }
     setResult({ pct, success });
   };
 
@@ -214,50 +208,52 @@ export default function DrawRevision({ subject }) {
     setScore(0);
     setDone(false);
     setResult(null);
+    setShowShimmer(false);
+    setParticles([]);
   };
 
   if (done) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-8">
-        <div className="text-5xl mb-3">{score >= 4 ? "🏆" : score >= 2 ? "💪" : "📚"}</div>
-        <div className="font-display text-3xl font-bold text-stone-900 mb-1">{score} / {questions.length}</div>
-        <div className="text-stone-500 text-sm mb-6">
-          {score === questions.length ? "Parfait !" : score >= 3 ? "Bien joué !" : "Continue à t'entraîner !"}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
+        <div className="text-6xl mb-4">{score >= 4 ? "🏆" : score >= 2 ? "💪" : "📚"}</div>
+        <div className="font-display text-4xl font-bold text-stone-900 mb-1">{score} / {questions.length}</div>
+        <div className="text-stone-500 text-base mb-8">
+          {score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= 3 ? "Bien joué !" : "Continue à t'entraîner !"}
         </div>
         <button onClick={restart}
-          className="inline-flex items-center gap-2 bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all">
-          <RotateCcw className="w-4 h-4" /> Recommencer
+          className="inline-flex items-center gap-2 bg-violet-600 text-white font-display font-bold px-8 py-4 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
+          <RotateCcw className="w-5 h-5" /> Recommencer
         </button>
       </motion.div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Progress */}
-      <div className="flex justify-between text-xs font-bold text-stone-400">
+      <div className="flex justify-between text-sm font-bold text-stone-400">
         <span>Question {qIndex + 1} / {questions.length}</span>
         <span className="text-violet-600">{score} ✅</span>
       </div>
-      <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
+      <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
         <div className="h-full bg-violet-400 rounded-full transition-all" style={{ width: `${(qIndex / questions.length) * 100}%` }} />
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div key={qIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-          className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-stone-300">
+          className="bg-white rounded-3xl p-6 shadow-sm border border-stone-200 border-b-4 border-b-stone-300">
 
           {/* Question */}
-          <p className="font-fredoka text-lg text-stone-800 mb-1 leading-snug">{q.prompt}</p>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400 mb-4">
+          <p className="font-fredoka text-2xl text-stone-800 mb-1 leading-snug">{q.prompt}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-violet-400 mb-5">
             ✏️ Trace par-dessus le modèle — reste dans les contours
           </p>
 
-          {/* Zone de dessin : deux canvas superposés */}
-          <div className="relative w-full rounded-2xl overflow-hidden border-2 border-violet-200"
-            style={{ height: 120, background: "#faf8ff", touchAction: "none" }}>
+          {/* Zone de dessin — TRÈS grande */}
+          <div className="relative w-full rounded-3xl overflow-hidden border-4 border-violet-200"
+            style={{ height: 260, background: "linear-gradient(135deg, #faf8ff 0%, #f5f0ff 100%)", touchAction: "none" }}>
 
-            {/* Canvas guide (en dessous) */}
+            {/* Canvas guide */}
             <canvas
               ref={guideCanvasRef}
               width={W}
@@ -266,7 +262,7 @@ export default function DrawRevision({ subject }) {
               style={{ pointerEvents: "none" }}
             />
 
-            {/* Canvas dessin (par-dessus, capte les events) */}
+            {/* Canvas dessin */}
             <canvas
               ref={drawCanvasRef}
               width={W}
@@ -281,34 +277,82 @@ export default function DrawRevision({ subject }) {
               onTouchMove={draw}
               onTouchEnd={stopDraw}
             />
+
+            {/* Shimmer de succès — overlay brillant */}
+            <AnimatePresence>
+              {showShimmer && (
+                <motion.div
+                  className="absolute inset-0 pointer-events-none z-10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {/* Fond doré brillant */}
+                  <motion.div
+                    className="absolute inset-0 rounded-3xl"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 0.6, 0] }}
+                    transition={{ duration: 1.5, times: [0, 0.3, 1] }}
+                    style={{ background: "linear-gradient(135deg, rgba(251,191,36,0.4), rgba(167,139,250,0.4), rgba(52,211,153,0.4))" }}
+                  />
+                  {/* Rayon de lumière qui balaye */}
+                  <motion.div
+                    className="absolute inset-0"
+                    initial={{ x: "-100%" }}
+                    animate={{ x: "200%" }}
+                    transition={{ duration: 0.9, ease: "easeOut" }}
+                    style={{ background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.85) 50%, transparent 70%)" }}
+                  />
+                  {/* Particules étoiles */}
+                  {particles.map(p => (
+                    <motion.div
+                      key={p.id}
+                      className="absolute font-bold"
+                      style={{ left: `${p.x}%`, top: `${p.y}%`, fontSize: p.size, color: p.color }}
+                      initial={{ opacity: 0, scale: 0, y: 0 }}
+                      animate={{ opacity: [0, 1, 0], scale: [0, 1.4, 0], y: -40 }}
+                      transition={{ duration: 1.2, delay: p.delay, ease: "easeOut" }}
+                    >
+                      ★
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Résultat inline */}
           <AnimatePresence>
             {result && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className={`mt-3 rounded-xl px-4 py-3 text-center ${result.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-                <div className={`font-bold text-sm ${result.success ? "text-green-700" : "text-red-700"}`}>
-                  {result.success ? `✅ Bien tracé ! (${result.pct}% dans la zone)` : `❌ ${result.pct}% dans la zone — essaie de mieux suivre le modèle`}
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className={`mt-4 rounded-2xl px-5 py-4 text-center ${result.success ? "bg-green-50 border-2 border-green-300" : "bg-red-50 border-2 border-red-200"}`}
+              >
+                <div className={`font-bold text-lg ${result.success ? "text-green-700" : "text-red-700"}`}>
+                  {result.success
+                    ? `✅ Excellent ! ${result.pct}% dans la zone 🌟`
+                    : `❌ ${result.pct}% dans la zone — suis mieux le modèle !`}
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Boutons */}
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-3 mt-5">
             <button onClick={init}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-stone-100 text-stone-600 font-bold text-xs border border-stone-200 hover:bg-stone-200 transition-all">
-              <RotateCcw className="w-3.5 h-3.5" /> Effacer
+              className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-stone-100 text-stone-600 font-bold text-sm border border-stone-200 hover:bg-stone-200 transition-all">
+              <RotateCcw className="w-4 h-4" /> Effacer
             </button>
             {!result ? (
               <button onClick={validate} disabled={!hasDrawn}
-                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-4 py-2.5 rounded-2xl border-b-4 border-violet-800 disabled:opacity-40 active:border-b-0 active:translate-y-0.5 transition-all">
-                <CheckCircle2 className="w-4 h-4" /> Valider
+                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 disabled:opacity-40 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
+                <CheckCircle2 className="w-5 h-5" /> Valider
               </button>
             ) : (
               <button onClick={next}
-                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-4 py-2.5 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all">
+                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
                 {qIndex + 1 < questions.length ? "Question suivante →" : "Voir le résultat"}
               </button>
             )}
