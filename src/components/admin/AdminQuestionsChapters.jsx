@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Plus, ChevronDown, ChevronRight, Edit3, Trash2, X, Save } from "lucide-react";
+import { Loader2, Plus, ChevronDown, ChevronRight, Edit3, Trash2, X, Save, Pencil } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 
-// ── Chapitres VOJES dans l'ordre ──
+// ── Chapitres VOJES dans l'ordre 1→31 ──
 const VOJES_CHAPTERS = [
   "Chapitre 1 — Circuit et agents économiques",
   "Chapitre 2 — Le financement de l'économie",
@@ -81,14 +81,9 @@ const CESBF_GROUPS = [
   ]},
 ];
 
-const FIELDS = [
-  { key: "chapter", label: "Chapitre", type: "text" },
-  { key: "question", label: "Question", type: "textarea" },
-  { key: "options", label: "Options (A/B/C/D)", type: "array-options" },
-  { key: "correct_index", label: "Bonne réponse (0=A, 1=B, 2=C, 3=D)", type: "number" },
-  { key: "explanation", label: "Explication (optionnel)", type: "textarea" },
-];
+const ALL_CESBF_CHAPTERS = CESBF_GROUPS.flatMap(g => g.chapters);
 
+// ── Éditeur de champ générique ──
 function FieldEditor({ field, value, onChange, full }) {
   const base = "w-full rounded-xl border border-stone-200 px-3 py-2 focus:outline-none focus:border-primary text-sm";
   if (field.type === "textarea") return (
@@ -130,6 +125,7 @@ function FieldEditor({ field, value, onChange, full }) {
   );
 }
 
+// ── Modal ajout / édition d'une question ──
 function QuestionModal({ question, onSave, onClose, defaultChapter, subject, modeFilter }) {
   const [editing, setEditing] = useState(question || {
     subject,
@@ -140,16 +136,13 @@ function QuestionModal({ question, onSave, onClose, defaultChapter, subject, mod
     correct_index: 0,
     explanation: "",
   });
-
   const update = (key, val) => setEditing(e => ({ ...e, [key]: val }));
-
   const handleSave = async () => {
     const { id, created_date, updated_date, created_by, ...payload } = editing;
     if (id) await base44.entities.Question.update(id, payload);
     else await base44.entities.Question.create(payload);
     onSave();
   };
-
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
@@ -157,18 +150,17 @@ function QuestionModal({ question, onSave, onClose, defaultChapter, subject, mod
           <h3 className="font-display text-xl font-bold">{editing.id ? "Modifier la question" : "Nouvelle question"}</h3>
           <button onClick={onClose}><X className="w-5 h-5 text-stone-500" /></button>
         </div>
-
-        {/* Chapitre en lecture seule si vient d'un chapitre */}
-        <div className="mb-3 bg-stone-50 rounded-xl px-3 py-2 text-xs text-stone-500 font-bold border border-stone-100">
-          📂 {editing.chapter || "—"}
-        </div>
-
+        <div className="mb-3 bg-stone-50 rounded-xl px-3 py-2 text-xs text-stone-500 font-bold border border-stone-100">📂 {editing.chapter || "—"}</div>
         <div className="space-y-3">
-          {FIELDS.filter(f => f.key !== "chapter").map(f => (
+          {[
+            { key: "question", label: "Question", type: "textarea" },
+            { key: "options", label: "Options (A/B/C/D)", type: "array-options" },
+            { key: "correct_index", label: "Bonne réponse (0=A, 1=B, 2=C, 3=D)", type: "number" },
+            { key: "explanation", label: "Explication (optionnel)", type: "textarea" },
+          ].map(f => (
             <FieldEditor key={f.key} field={f} value={editing[f.key]} onChange={v => update(f.key, v)} full={editing} />
           ))}
         </div>
-
         <div className="flex justify-end gap-2 mt-5">
           <DuoButton variant="ghost" onClick={onClose}>Annuler</DuoButton>
           <DuoButton variant="primary" onClick={handleSave}><Save className="w-4 h-4 inline mr-1" /> Enregistrer</DuoButton>
@@ -178,45 +170,94 @@ function QuestionModal({ question, onSave, onClose, defaultChapter, subject, mod
   );
 }
 
-function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh }) {
+// ── Ligne de chapitre (accordéon) ──
+// isCustom = true pour chapitres hors référentiel (peuvent être renommés/supprimés)
+function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh, isCustom = false }) {
   const [open, setOpen] = useState(false);
-  const [modal, setModal] = useState(null); // null | "new" | question object
+  const [modal, setModal] = useState(null);
+  const [renaming, setRenaming] = useState(false);
+  const [newName, setNewName] = useState(chapter);
 
   const chapterQs = questions.filter(q => q.chapter === chapter);
 
-  const handleDelete = async (id) => {
+  const handleDeleteQuestion = async (id) => {
     if (!confirm("Supprimer cette question ?")) return;
     await base44.entities.Question.delete(id);
     onRefresh();
   };
 
+  const handleDeleteChapter = async () => {
+    if (!confirm(`Supprimer le chapitre "${chapter}" et toutes ses ${chapterQs.length} question(s) ?`)) return;
+    await Promise.all(chapterQs.map(q => base44.entities.Question.delete(q.id)));
+    onRefresh();
+  };
+
+  const handleRename = async () => {
+    if (!newName.trim() || newName.trim() === chapter) { setRenaming(false); return; }
+    await Promise.all(chapterQs.map(q => base44.entities.Question.update(q.id, { chapter: newName.trim() })));
+    setRenaming(false);
+    onRefresh();
+  };
+
   return (
     <div className="border border-stone-200 rounded-2xl overflow-hidden mb-2">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-stone-50 transition-colors text-left"
-      >
-        <div className="flex items-center gap-3">
-          {open ? <ChevronDown className="w-4 h-4 text-stone-400" /> : <ChevronRight className="w-4 h-4 text-stone-400" />}
-          <span className="font-bold text-sm text-stone-800">{chapter}</span>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">
-            {chapterQs.length} question{chapterQs.length !== 1 ? "s" : ""}
+      <div className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-stone-50 transition-colors">
+        {/* Left: toggle + name */}
+        <button className="flex items-center gap-3 flex-1 min-w-0 text-left" onClick={() => setOpen(o => !o)}>
+          {open ? <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" /> : <ChevronRight className="w-4 h-4 text-stone-400 shrink-0" />}
+          <span className="font-bold text-sm text-stone-800 truncate">{chapter}</span>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 shrink-0">
+            {chapterQs.length}
           </span>
-        </div>
-        <button
-          onClick={e => { e.stopPropagation(); setModal("new"); }}
-          className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-2 py-1 transition-colors"
-        >
-          <Plus className="w-3.5 h-3.5" /> Ajouter
         </button>
-      </button>
+        {/* Right: actions */}
+        <div className="flex items-center gap-1 shrink-0 ml-2">
+          <button
+            onClick={e => { e.stopPropagation(); setModal("new"); }}
+            className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-2 py-1 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" /> Ajouter
+          </button>
+          {isCustom && (
+            <>
+              <button
+                onClick={() => { setRenaming(true); setNewName(chapter); }}
+                className="p-1.5 text-stone-400 hover:text-blue-500 rounded-lg hover:bg-blue-50 transition-colors"
+                title="Renommer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleDeleteChapter}
+                className="p-1.5 text-stone-400 hover:text-destructive rounded-lg hover:bg-red-50 transition-colors"
+                title="Supprimer le chapitre"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Rename inline */}
+      {renaming && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border-t border-blue-100">
+          <input
+            className="flex-1 rounded-lg border border-blue-200 px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400"
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            autoFocus
+            onKeyDown={e => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setRenaming(false); }}
+          />
+          <button onClick={handleRename} className="px-3 py-1.5 bg-blue-500 text-white rounded-lg text-xs font-bold hover:bg-blue-600"><Save className="w-3.5 h-3.5" /></button>
+          <button onClick={() => setRenaming(false)} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold hover:bg-stone-300"><X className="w-3.5 h-3.5" /></button>
+        </div>
+      )}
 
       {open && (
         <div className="border-t border-stone-100 bg-stone-50">
           {chapterQs.length === 0 ? (
-            <div className="px-4 py-4 text-sm text-stone-400 text-center">
-              Aucune question — clique sur "Ajouter" pour en créer une.
-            </div>
+            <div className="px-4 py-4 text-sm text-stone-400 text-center">Aucune question — clique sur "Ajouter" pour en créer une.</div>
           ) : (
             <div className="divide-y divide-stone-100">
               {chapterQs.map(q => (
@@ -226,18 +267,14 @@ function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh }) {
                     <div className="flex gap-1.5 mt-1 flex-wrap">
                       {(q.options || []).map((opt, i) => (
                         <span key={i} className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${i === q.correct_index ? "bg-green-100 text-green-700" : "bg-stone-100 text-stone-500"}`}>
-                          {String.fromCharCode(65 + i)}: {opt?.slice(0, 20)}{opt?.length > 20 ? "…" : ""}
+                          {String.fromCharCode(65 + i)}: {opt?.slice(0, 25)}{opt?.length > 25 ? "…" : ""}
                         </span>
                       ))}
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <button onClick={() => setModal(q)} className="p-1.5 text-stone-400 hover:text-primary rounded-lg hover:bg-white transition-colors">
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handleDelete(q.id)} className="p-1.5 text-stone-400 hover:text-destructive rounded-lg hover:bg-white transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <button onClick={() => setModal(q)} className="p-1.5 text-stone-400 hover:text-primary rounded-lg hover:bg-white transition-colors"><Edit3 className="w-4 h-4" /></button>
+                    <button onClick={() => handleDeleteQuestion(q.id)} className="p-1.5 text-stone-400 hover:text-destructive rounded-lg hover:bg-white transition-colors"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               ))}
@@ -260,74 +297,135 @@ function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh }) {
   );
 }
 
+// ── Composant principal ──
 export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [showAddChapter, setShowAddChapter] = useState(false);
+  const [newChapterName, setNewChapterName] = useState("");
+
+  const subject = subjectFilter || "VOJES";
 
   const load = async () => {
     setLoading(true);
-    const filter = { subject: subjectFilter, mode: modeFilter || "pareto" };
-    const list = await base44.entities.Question.filter(filter, null, 500);
+    const list = await base44.entities.Question.filter({ subject, mode: modeFilter || "pareto" }, null, 500);
     setQuestions(list || []);
     setLoading(false);
   };
 
-  useEffect(() => {
-    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
-  }, []);
-
   useEffect(() => { load(); }, [subjectFilter, modeFilter]);
 
-  const subject = subjectFilter || currentUser?.teacherSubject || "VOJES";
-
-  if (loading) return (
-    <div className="flex items-center gap-2 text-stone-500"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>
-  );
+  if (loading) return <div className="flex items-center gap-2 text-stone-500"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>;
 
   const totalQ = questions.length;
 
-  // ── VOJES : liste plate de chapitres ──
+  // Chapitres présents dans la BDD pour ce sujet/mode
+  const chaptersInDB = new Set(questions.map(q => q.chapter).filter(Boolean));
+
+  // ── VOJES : seulement les chapitres qui ont des questions, dans l'ordre 1→31 + custom ──
   if (subject === "VOJES") {
+    const officialWithQ = VOJES_CHAPTERS.filter(ch => chaptersInDB.has(ch));
+    const customChapters = [...chaptersInDB].filter(ch => !VOJES_CHAPTERS.includes(ch)).sort();
+
     return (
       <div>
-        <div className="text-sm text-stone-500 font-bold mb-4">{totalQ} question(s) au total — VOJES</div>
-        {VOJES_CHAPTERS.map(ch => (
-          <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} />
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm text-stone-500 font-bold">{totalQ} question(s) — VOJES</div>
+          <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
+            <Plus className="w-3.5 h-3.5" /> Nouveau chapitre
+          </button>
+        </div>
+
+        {showAddChapter && (
+          <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
+            <input
+              className="flex-1 rounded-lg border border-green-200 px-3 py-1.5 text-sm focus:outline-none focus:border-green-400"
+              placeholder="Nom du nouveau chapitre…"
+              value={newChapterName}
+              onChange={e => setNewChapterName(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { setShowAddChapter(false); setNewChapterName(""); } if (e.key === "Escape") setShowAddChapter(false); }}
+              autoFocus
+            />
+            <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
+          </div>
+        )}
+
+        {officialWithQ.length === 0 && customChapters.length === 0 ? (
+          <div className="text-center py-10 text-stone-400">Aucune question Pareto pour VOJES. Commence par ajouter un chapitre ci-dessus.</div>
+        ) : null}
+
+        {officialWithQ.map(ch => (
+          <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
         ))}
-        {/* Chapitres hors liste (custom) */}
-        {[...new Set(questions.map(q => q.chapter).filter(ch => ch && !VOJES_CHAPTERS.includes(ch)))].map(ch => (
-          <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} />
-        ))}
+
+        {customChapters.length > 0 && (
+          <div className="mt-3 mb-1">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
+            {customChapters.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+            ))}
+          </div>
+        )}
+
+        {/* Nouveau chapitre custom créé depuis le form */}
+        {showAddChapter === false && newChapterName.trim() && !chaptersInDB.has(newChapterName.trim()) && (
+          <ChapterRow chapter={newChapterName.trim()} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+        )}
       </div>
     );
   }
 
-  // ── CESBF : chapitres groupés par module ──
+  // ── CESBF : groupes, seulement chapitres avec questions + custom ──
+  const customChaptersCesbf = [...chaptersInDB].filter(ch => !ALL_CESBF_CHAPTERS.includes(ch)).sort();
+
   return (
     <div>
-      <div className="text-sm text-stone-500 font-bold mb-4">{totalQ} question(s) au total — CESBF</div>
-      {CESBF_GROUPS.map(group => (
-        <div key={group.title} className="mb-5">
-          <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">
-            {group.title}
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm text-stone-500 font-bold">{totalQ} question(s) — CESBF</div>
+        <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
+          <Plus className="w-3.5 h-3.5" /> Nouveau chapitre
+        </button>
+      </div>
+
+      {showAddChapter && (
+        <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
+          <input
+            className="flex-1 rounded-lg border border-green-200 px-3 py-1.5 text-sm focus:outline-none focus:border-green-400"
+            placeholder="Nom du nouveau chapitre…"
+            value={newChapterName}
+            onChange={e => setNewChapterName(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") { setShowAddChapter(false); setNewChapterName(""); } if (e.key === "Escape") setShowAddChapter(false); }}
+            autoFocus
+          />
+          <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
+        </div>
+      )}
+
+      {CESBF_GROUPS.map(group => {
+        const groupChaptersWithQ = group.chapters.filter(ch => chaptersInDB.has(ch));
+        if (groupChaptersWithQ.length === 0) return null;
+        return (
+          <div key={group.title} className="mb-5">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">{group.title}</div>
+            {groupChaptersWithQ.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
+            ))}
           </div>
-          {group.chapters.map(ch => (
-            <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} />
+        );
+      })}
+
+      {customChaptersCesbf.length > 0 && (
+        <div className="mb-5">
+          <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
+          {customChaptersCesbf.map(ch => (
+            <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
           ))}
         </div>
-      ))}
-      {/* Chapitres CESBF hors liste */}
-      {(() => {
-        const allCesbfChapters = CESBF_GROUPS.flatMap(g => g.chapters);
-        const extra = [...new Set(questions.map(q => q.chapter).filter(ch => ch && !allCesbfChapters.includes(ch)))];
-        return extra.length > 0 ? (
-          <div className="mb-5">
-            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">AUTRES</div>
-            {extra.map(ch => <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} />)}
-          </div>
-        ) : null;
-      })()}
+      )}
+
+      {showAddChapter === false && newChapterName.trim() && !chaptersInDB.has(newChapterName.trim()) && (
+        <ChapterRow chapter={newChapterName.trim()} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+      )}
     </div>
   );
 }

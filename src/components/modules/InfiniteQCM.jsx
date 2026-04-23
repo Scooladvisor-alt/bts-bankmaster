@@ -6,7 +6,8 @@ import { saveInfiniRecord, getInfiniRecord } from "@/lib/scoreStorage";
 import { trackProgress } from "@/lib/trackProgress";
 
 export default function InfiniteQCM({ subject }) {
-  const [pool, setPool] = useState([]);
+  const [allQuestions, setAllQuestions] = useState([]);
+  const [queue, setQueue] = useState([]); // file de questions mélangée
   const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -18,26 +19,37 @@ export default function InfiniteQCM({ subject }) {
   useEffect(() => {
     (async () => {
       const [infini, pareto] = await Promise.all([
-        base44.entities.Question.filter({ subject, mode: "infini" }),
-        base44.entities.Question.filter({ subject, mode: "pareto" }),
+        base44.entities.Question.filter({ subject, mode: "infini" }, null, 500),
+        base44.entities.Question.filter({ subject, mode: "pareto" }, null, 500),
       ]);
-      // Dédoublonner par question text
       const seen = new Set();
       const merged = [...infini, ...pareto].filter(q => {
         if (seen.has(q.question)) return false;
         seen.add(q.question);
         return true;
       });
-      setPool(merged);
-      if (merged.length) setCurrent(merged[Math.floor(Math.random() * merged.length)]);
+      setAllQuestions(merged);
+      const shuffled = [...merged].sort(() => Math.random() - 0.5);
+      setQueue(shuffled);
+      if (shuffled.length) setCurrent(shuffled[0]);
       setBest(getInfiniRecord(subject));
       setLoading(false);
     })();
   }, [subject]);
 
-  const next = () => {
-    if (pool.length === 0) return;
-    setCurrent(pool[Math.floor(Math.random() * pool.length)]);
+  // Passe à la suivante — recharge la file si épuisée (boucle infinie)
+  const next = (currentQueue) => {
+    const q = currentQueue ?? queue;
+    if (q.length <= 1) {
+      // File épuisée : rebattre toutes les questions
+      const reshuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+      setQueue(reshuffled);
+      setCurrent(reshuffled[0]);
+    } else {
+      const remaining = q.slice(1);
+      setQueue(remaining);
+      setCurrent(remaining[0]);
+    }
     setSelected(null);
   };
 
@@ -47,7 +59,7 @@ export default function InfiniteQCM({ subject }) {
     if (i === current.correct_index) {
       setScore((s) => s + 1);
       setStreak((s) => s + 1);
-      setTimeout(next, 700);
+      setTimeout(() => next(null), 700);
     } else {
       const newRecord = saveInfiniRecord(subject, score);
       trackProgress({ toolUsed: "infini", subject, score, totalQuestions: score + 1 });
@@ -57,11 +69,14 @@ export default function InfiniteQCM({ subject }) {
   };
 
   const restart = () => {
-    setScore(0); setStreak(0); setOver(false); setBest(getInfiniRecord(subject)); next();
+    const reshuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+    setQueue(reshuffled);
+    setCurrent(reshuffled[0]);
+    setScore(0); setStreak(0); setOver(false); setSelected(null); setBest(getInfiniRecord(subject));
   };
 
   if (loading) return <div className="flex items-center gap-2 text-stone-500"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>;
-  if (pool.length === 0) return <div className="bg-white rounded-2xl p-6 text-center text-stone-600">Aucune question disponible pour cette matière.</div>;
+  if (allQuestions.length === 0) return <div className="bg-white rounded-2xl p-6 text-center text-stone-600">Aucune question disponible pour cette matière.</div>;
 
   if (over) {
     return (
