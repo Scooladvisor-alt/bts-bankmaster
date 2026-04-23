@@ -13,6 +13,7 @@ import {
   Bot,
   ChevronLeft,
   Flame,
+  Pen,
 } from "lucide-react";
 
 const SUBJECT_CONFIG = {
@@ -42,6 +43,7 @@ const METHODS = [
   { slug: "libre",      label: "Réponse libre",        desc: "Écris, compare grace à l'IA",           icon: PenLine,      color: "bg-teal-400",    text: "text-teal-900" },
 
   { slug: "vraiouFaux", label: "Vrai ou Faux",         desc: "Révise efficacement",      icon: Flame,        color: "bg-rose-500",    text: "text-white" },
+  { slug: "dessin",     label: "Mémo Dessin",          desc: "Trace pour mémoriser",     icon: Pen,          color: "bg-violet-500",  text: "text-white" },
   { slug: "cours",      label: "Cours",                desc: "Méthodo & théorie",        icon: BookOpen,     color: "bg-emerald-400", text: "text-emerald-900" },
   { slug: "ressources", label: "Ressources",           desc: "Vidéos, podcasts…",        icon: LinkIcon,     color: "bg-indigo-400",  text: "text-indigo-900" },
 ];
@@ -62,7 +64,7 @@ export default function Subject() {
 
   return (
     <div className={`min-h-screen bg-gradient-to-b ${config.bg} relative`}>
-      <FloatingPopup subject={config.name} />
+      <FloatingPopup subject={config.name} alignRight={true} />
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-6 pb-20">
         <button

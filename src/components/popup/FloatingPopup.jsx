@@ -11,7 +11,7 @@ const DIRECTIONS = [
   { initial: { opacity: 0, x: 60, y: 30, scale: 0.85 }, label: "right-bottom" },
 ];
 
-export default function FloatingPopup({ subject = "ALL" }) {
+export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
   const [popups, setPopups] = useState([]);
   const [current, setCurrent] = useState(null);
   const [visible, setVisible] = useState(false);
@@ -62,7 +62,7 @@ export default function FloatingPopup({ subject = "ALL" }) {
   };
 
   return (
-    <div className="fixed top-4 left-4 z-50 pointer-events-none">
+    <div className={`fixed top-4 z-50 pointer-events-none ${alignRight ? "right-4" : "left-4"}`}>
       <AnimatePresence>
         {visible && current && (
           <motion.div

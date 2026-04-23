@@ -14,6 +14,7 @@ import Courses from "@/components/modules/Courses";
 import Resources from "@/components/modules/Resources";
 import AssistantLauncher from "@/components/modules/AssistantLauncher";
 import VraiOuFaux from "@/components/modules/VraiOuFaux";
+import DrawRevision from "@/components/modules/DrawRevision";
 
 const SUBJECT_LABEL = { vojes: "VOJES", cesbf: "CESBF" };
 
@@ -26,7 +27,8 @@ const MODULES = {
   cours:      { title: "Cours",              emoji: "📚", bg: "bg-gradient-to-b from-emerald-50 to-white",     Comp: Courses },
   ressources: { title: "Ressources",         emoji: "🔗", bg: "bg-gradient-to-b from-indigo-50 to-white",      Comp: Resources },
   assistant:  { title: "Assistant",          emoji: "🤖", bg: "bg-gradient-to-b from-stone-100 to-stone-200",  Comp: AssistantLauncher },
-  vraiouFaux: { title: "Vrai ou Faux",       emoji: "🔥", bg: "bg-gradient-to-b from-rose-50 to-orange-50",    Comp: VraiOuFaux },
+  vraiouFaux:   { title: "Vrai ou Faux",       emoji: "🔥", bg: "bg-gradient-to-b from-rose-50 to-orange-50",    Comp: VraiOuFaux },
+  dessin:       { title: "Mémo dessin",        emoji: "✏️", bg: "bg-gradient-to-b from-violet-50 to-purple-50",   Comp: DrawRevision },
 };
 
 export default function Module() {
@@ -75,7 +77,7 @@ export default function Module() {
   }
 
   // Modules où le bouton assistant n'est pas utile
-  const hideAssistantBtn = ["questions", "libre", "assistant"].includes(method);
+  const hideAssistantBtn = ["questions", "libre", "assistant", "dessin"].includes(method);
 
   return (
     <ModuleShell subject={subjectLabel} title={config.title} emoji={config.emoji} bgClass={config.bg}>
