@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { checkIsAdmin } from "@/lib/isAdmin";
 import { base44 } from "@/api/base44Client";
-import { Loader2, ChevronLeft, LogOut, Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, GraduationCap, Users } from "lucide-react";
+import { Loader2, ChevronLeft, LogOut, Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, Pencil, Users } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import AdminQuestions from "@/components/admin/AdminQuestions";
 import AdminQuestionsChapters from "@/components/admin/AdminQuestionsChapters";
@@ -12,7 +12,7 @@ import AdminPopups from "@/components/admin/AdminPopups";
 import AdminCourses from "@/components/admin/AdminCourses";
 import AdminResources from "@/components/admin/AdminResources";
 import AdminAssistant from "@/components/admin/AdminAssistant";
-import AdminTeachers from "@/components/admin/AdminTeachers";
+import AdminDrawQuestions from "@/components/admin/AdminDrawQuestions";
 import AdminUsers from "@/components/admin/AdminUsers";
 import DebugDataCheck from "@/components/admin/DebugDataCheck";
 
@@ -27,7 +27,7 @@ const TABS = [
   { key: "ressources",  label: "Ressources",         icon: Link2,        Comp: AdminResources },
   { key: "popups",      label: "Pop-ups",            icon: MessageSquare,Comp: AdminPopups },
   { key: "assistant",   label: "Assistant",          icon: Bot,          Comp: AdminAssistant },
-  { key: "teachers",    label: "Professeurs",        icon: GraduationCap,Comp: AdminTeachers },
+  { key: "memo",        label: "Mémo Dessin",        icon: Pencil,       Comp: AdminDrawQuestions },
   { key: "users",       label: "Utilisateurs",       icon: Users,        Comp: AdminUsers },
 ];
 
@@ -77,7 +77,7 @@ export default function Admin() {
   const tabConfig = TABS.find((t) => t.key === tab);
   const Current = tabConfig?.Comp;
   // Teachers tab has no subject filter
-  const needsSubject = tab !== "teachers" && tab !== "popups" && tab !== "users";
+  const needsSubject = tab !== "popups" && tab !== "users";
 
   return (
     <div className="min-h-screen bg-stone-50">

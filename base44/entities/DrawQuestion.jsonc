@@ -1,0 +1,32 @@
+{
+  "name": "DrawQuestion",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOJES",
+        "CESBF"
+      ],
+      "description": "Mati\u00e8re concern\u00e9e"
+    },
+    "prompt": {
+      "type": "string",
+      "description": "L'indice / description \u00e0 afficher \u00e0 l'\u00e9l\u00e8ve"
+    },
+    "answer": {
+      "type": "string",
+      "description": "Le texte / chiffre \u00e0 tracer (mod\u00e8le visible)"
+    },
+    "order": {
+      "type": "number",
+      "default": 0,
+      "description": "Ordre d'affichage"
+    }
+  },
+  "required": [
+    "subject",
+    "prompt",
+    "answer"
+  ]
+}

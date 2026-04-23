@@ -1,23 +1,7 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, CheckCircle2, Sparkles } from "lucide-react";
-
-const QUESTIONS = {
-  VOJES: [
-    { prompt: "Coefficient de réserves obligatoires en abrégé", answer: "RRR" },
-    { prompt: "Institution qui fixe les taux directeurs de la zone euro", answer: "BCE" },
-    { prompt: "Lutte Contre le Blanchiment et le Financement du Terrorisme", answer: "LCB-FT" },
-    { prompt: "Ratio de solvabilité imposé par Bâle III (en %)", answer: "8%" },
-    { prompt: "Autorité de Contrôle Prudentiel et de Résolution", answer: "ACPR" },
-  ],
-  CESBF: [
-    { prompt: "Taux annuel effectif global — abréviation", answer: "TAEG" },
-    { prompt: "Durée légale de rétractation pour un crédit conso (en jours)", answer: "14" },
-    { prompt: "Plan d'Épargne en Actions — sigle", answer: "PEA" },
-    { prompt: "Plan d'Épargne Retraite — abréviation", answer: "PER" },
-    { prompt: "Nombre de jours du délai de réflexion pour un crédit immobilier", answer: "10" },
-  ],
-};
+import { RotateCcw, CheckCircle2, Loader2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 // Dimensions internes du canvas (résolution fixe — grande !)
 const W = 900;
@@ -30,7 +14,7 @@ function buildGuideImageData(text) {
   const ctx = offscreen.getContext("2d");
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
-  const fontSize = Math.min(H * 0.70, (W * 0.88) / (text.length * 0.52));
+  const fontSize = Math.min(H * 0.65, (W * 0.85) / (text.length * 0.52));
   ctx.font = `900 ${fontSize}px Arial Black, Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -47,20 +31,33 @@ function pixelIsGuide(imageData, x, y) {
   return imageData.data[i] < 128;
 }
 
-// Génère des particules d'étoiles pour l'animation de succès
-function generateParticles(count = 30) {
+function generateParticles(count = 32) {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    size: Math.random() * 16 + 6,
+    size: Math.random() * 18 + 8,
     delay: Math.random() * 0.4,
     color: ["#a855f7", "#f59e0b", "#10b981", "#3b82f6", "#ec4899", "#f97316"][Math.floor(Math.random() * 6)],
   }));
 }
 
+// Dessine le modèle guide sur le canvas visible
+function drawGuide(canvas, text) {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, W, H);
+  const fontSize = Math.min(H * 0.65, (W * 0.85) / (text.length * 0.52));
+  ctx.font = `900 ${fontSize}px Arial Black, Arial, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "rgba(139, 92, 246, 0.20)";
+  ctx.fillText(text, W / 2, H / 2);
+}
+
 export default function DrawRevision({ subject }) {
-  const questions = QUESTIONS[subject] || [];
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [qIndex, setQIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [score, setScore] = useState(0);
@@ -77,28 +74,36 @@ export default function DrawRevision({ subject }) {
   const onGuideCount = useRef(0);
   const offGuideCount = useRef(0);
 
+  // Charge les questions depuis la BDD
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const list = await base44.entities.DrawQuestion.filter({ subject }, "order", 500);
+      setQuestions(list || []);
+      setLoading(false);
+    })();
+  }, [subject]);
+
   const q = questions[qIndex];
 
-  const init = () => {
+  // Initialise les canvas pour la question courante — réinitialise tout
+  const init = useCallback(() => {
     if (!q) return;
+
+    // Effacer canvas dessin
     const drawCanvas = drawCanvasRef.current;
     if (drawCanvas) {
       const ctx = drawCanvas.getContext("2d");
       ctx.clearRect(0, 0, W, H);
     }
-    const guideCanvas = guideCanvasRef.current;
-    if (guideCanvas) {
-      const ctx = guideCanvas.getContext("2d");
-      ctx.clearRect(0, 0, W, H);
-      const fontSize = Math.min(H * 0.70, (W * 0.88) / (q.answer.length * 0.52));
-      ctx.font = `900 ${fontSize}px Arial Black, Arial, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      // Texte guide très visible — violet doux
-      ctx.fillStyle = "rgba(139, 92, 246, 0.18)";
-      ctx.fillText(q.answer, W / 2, H / 2);
-    }
+
+    // Redessiner le guide sur le canvas guide visible
+    drawGuide(guideCanvasRef.current, q.answer);
+
+    // ImageData hors-écran pour la détection pixel
     guideImageDataRef.current = buildGuideImageData(q.answer);
+
+    // Reset compteurs et états
     onGuideCount.current = 0;
     offGuideCount.current = 0;
     setHasDrawn(false);
@@ -107,12 +112,22 @@ export default function DrawRevision({ subject }) {
     setParticles([]);
     isDrawing.current = false;
     lastPos.current = null;
-  };
+  }, [q]);
 
+  // Re-init quand la question change — petit délai pour que le DOM soit rendu
   useEffect(() => {
-    const t = setTimeout(init, 60);
+    if (!q) return;
+    const t = setTimeout(init, 80);
     return () => clearTimeout(t);
-  }, [qIndex]);
+  }, [qIndex, q, init]);
+
+  // Re-dessine le guide quand le canvas guide est monté
+  const guideRefCallback = useCallback((node) => {
+    guideCanvasRef.current = node;
+    if (node && q) {
+      setTimeout(() => drawGuide(node, q.answer), 30);
+    }
+  }, [q]);
 
   const getPos = (e) => {
     const canvas = drawCanvasRef.current;
@@ -149,11 +164,10 @@ export default function DrawRevision({ subject }) {
     if (!prev) { lastPos.current = pos; return; }
 
     const onGuide = pixelIsGuide(guideImageDataRef.current, pos.x, pos.y);
-
     ctx.beginPath();
     ctx.moveTo(prev.x, prev.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.lineWidth = 18; // trait épais = facile à tracer
+    ctx.lineWidth = 20;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = onGuide ? "rgba(109, 40, 217, 0.92)" : "rgba(239, 68, 68, 0.65)";
@@ -166,11 +180,8 @@ export default function DrawRevision({ subject }) {
     for (let s = 0; s <= steps; s++) {
       const sx = prev.x + (dx * s) / steps;
       const sy = prev.y + (dy * s) / steps;
-      if (pixelIsGuide(guideImageDataRef.current, sx, sy)) {
-        onGuideCount.current++;
-      } else {
-        offGuideCount.current++;
-      }
+      if (pixelIsGuide(guideImageDataRef.current, sx, sy)) onGuideCount.current++;
+      else offGuideCount.current++;
     }
     lastPos.current = pos;
   };
@@ -200,6 +211,7 @@ export default function DrawRevision({ subject }) {
       setDone(true);
     } else {
       setQIndex(i => i + 1);
+      // Le useEffect [qIndex] s'occupera du init
     }
   };
 
@@ -212,13 +224,30 @@ export default function DrawRevision({ subject }) {
     setParticles([]);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16 gap-2 text-stone-400">
+        <Loader2 className="w-5 h-5 animate-spin" /> Chargement des questions…
+      </div>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-8 text-center text-stone-400 border border-stone-200">
+        Aucune question de traçage pour cette matière.<br />
+        <span className="text-xs">L'administrateur peut en ajouter depuis l'espace admin.</span>
+      </div>
+    );
+  }
+
   if (done) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
-        <div className="text-6xl mb-4">{score >= 4 ? "🏆" : score >= 2 ? "💪" : "📚"}</div>
+        <div className="text-6xl mb-4">{score >= Math.ceil(questions.length * 0.8) ? "🏆" : score >= Math.ceil(questions.length * 0.5) ? "💪" : "📚"}</div>
         <div className="font-display text-4xl font-bold text-stone-900 mb-1">{score} / {questions.length}</div>
         <div className="text-stone-500 text-base mb-8">
-          {score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= 3 ? "Bien joué !" : "Continue à t'entraîner !"}
+          {score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= Math.ceil(questions.length * 0.7) ? "Bien joué !" : "Continue à t'entraîner !"}
         </div>
         <button onClick={restart}
           className="inline-flex items-center gap-2 bg-violet-600 text-white font-display font-bold px-8 py-4 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
@@ -240,29 +269,32 @@ export default function DrawRevision({ subject }) {
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div key={qIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-          className="bg-white rounded-3xl p-6 shadow-sm border border-stone-200 border-b-4 border-b-stone-300">
-
+        <motion.div key={qIndex}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="bg-white rounded-3xl p-6 shadow-sm border border-stone-200 border-b-4 border-b-stone-300"
+        >
           {/* Question */}
-          <p className="font-fredoka text-2xl text-stone-800 mb-1 leading-snug">{q.prompt}</p>
+          <p className="font-fredoka text-2xl text-stone-800 mb-1 leading-snug">{q?.prompt}</p>
           <p className="text-xs font-bold uppercase tracking-widest text-violet-400 mb-5">
             ✏️ Trace par-dessus le modèle — reste dans les contours
           </p>
 
-          {/* Zone de dessin — TRÈS grande */}
+          {/* Zone de dessin — deux canvas superposés */}
           <div className="relative w-full rounded-3xl overflow-hidden border-4 border-violet-200"
             style={{ height: 260, background: "linear-gradient(135deg, #faf8ff 0%, #f5f0ff 100%)", touchAction: "none" }}>
 
-            {/* Canvas guide */}
+            {/* Canvas guide — toujours visible en dessous */}
             <canvas
-              ref={guideCanvasRef}
+              ref={guideRefCallback}
               width={W}
               height={H}
               className="absolute inset-0 w-full h-full"
               style={{ pointerEvents: "none" }}
             />
 
-            {/* Canvas dessin */}
+            {/* Canvas dessin — par-dessus, capte les events */}
             <canvas
               ref={drawCanvasRef}
               width={W}
@@ -278,7 +310,7 @@ export default function DrawRevision({ subject }) {
               onTouchEnd={stopDraw}
             />
 
-            {/* Shimmer de succès — overlay brillant */}
+            {/* Shimmer de succès */}
             <AnimatePresence>
               {showShimmer && (
                 <motion.div
@@ -288,7 +320,6 @@ export default function DrawRevision({ subject }) {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {/* Fond doré brillant */}
                   <motion.div
                     className="absolute inset-0 rounded-3xl"
                     initial={{ opacity: 0 }}
@@ -296,7 +327,6 @@ export default function DrawRevision({ subject }) {
                     transition={{ duration: 1.5, times: [0, 0.3, 1] }}
                     style={{ background: "linear-gradient(135deg, rgba(251,191,36,0.4), rgba(167,139,250,0.4), rgba(52,211,153,0.4))" }}
                   />
-                  {/* Rayon de lumière qui balaye */}
                   <motion.div
                     className="absolute inset-0"
                     initial={{ x: "-100%" }}
@@ -304,25 +334,22 @@ export default function DrawRevision({ subject }) {
                     transition={{ duration: 0.9, ease: "easeOut" }}
                     style={{ background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.85) 50%, transparent 70%)" }}
                   />
-                  {/* Particules étoiles */}
                   {particles.map(p => (
                     <motion.div
                       key={p.id}
-                      className="absolute font-bold"
+                      className="absolute font-bold select-none"
                       style={{ left: `${p.x}%`, top: `${p.y}%`, fontSize: p.size, color: p.color }}
                       initial={{ opacity: 0, scale: 0, y: 0 }}
                       animate={{ opacity: [0, 1, 0], scale: [0, 1.4, 0], y: -40 }}
                       transition={{ duration: 1.2, delay: p.delay, ease: "easeOut" }}
-                    >
-                      ★
-                    </motion.div>
+                    >★</motion.div>
                   ))}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Résultat inline */}
+          {/* Résultat */}
           <AnimatePresence>
             {result && (
               <motion.div
