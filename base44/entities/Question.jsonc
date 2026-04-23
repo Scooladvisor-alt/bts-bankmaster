@@ -21,7 +21,7 @@
         "infini",
         "jeu"
       ],
-      "description": "Mode de QCM auquel la question appartient"
+      "description": "Mode de QCM"
     },
     "question": {
       "type": "string",
@@ -49,19 +49,5 @@
     "question",
     "options",
     "correct_index"
-  ],
-  "rls": {
-    "read": {
-      "rule": "true"
-    },
-    "create": {
-      "rule": "user.role == 'admin' || (user.role == 'teacher' && newData.subject == user.teacherSubject)"
-    },
-    "update": {
-      "rule": "user.role == 'admin' || (user.role == 'teacher' && resource.subject == user.teacherSubject && newData.subject == resource.subject)"
-    },
-    "delete": {
-      "rule": "user.role == 'admin' || (user.role == 'teacher' && resource.subject == user.teacherSubject)"
-    }
-  }
+  ]
 }

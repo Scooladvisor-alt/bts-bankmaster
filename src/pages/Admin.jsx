@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { checkIsAdmin } from "@/lib/isAdmin";
 import { base44 } from "@/api/base44Client";
-import { Loader2, ChevronLeft, LogOut } from "lucide-react";
+import { Loader2, ChevronLeft, LogOut, Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, GraduationCap, Users } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import AdminQuestions from "@/components/admin/AdminQuestions";
 import AdminRevision from "@/components/admin/AdminRevision";
@@ -16,18 +16,18 @@ import AdminUsers from "@/components/admin/AdminUsers";
 import DebugDataCheck from "@/components/admin/DebugDataCheck";
 
 const TABS = [
-  { key: "pareto",     label: "🎯 QCM Pareto",         Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
-  { key: "jeu",        label: "🎮 QCM Jeu",             Comp: (p) => <AdminQuestions {...p} modeFilter="jeu" /> },
-  { key: "infini",     label: "🔥 QCM Infini",          Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
-  { key: "revision",   label: "📝 Questions révision",  Comp: AdminRevision },
-  { key: "vraiofaux",  label: "✅ Vrai ou Faux",         Comp: AdminVraiOuFaux },
-  { key: "voiefranche", label: "📖 Réponse libre",        Comp: AdminRevision },
-  { key: "cours",      label: "📚 Cours",                Comp: AdminCourses },
-  { key: "ressources", label: "🔗 Ressources",           Comp: AdminResources },
-  { key: "popups",     label: "💬 Pop-ups",              Comp: AdminPopups },
-  { key: "assistant",  label: "🤖 Assistant",            Comp: AdminAssistant },
-  { key: "teachers",   label: "👩‍🏫 Professeurs",         Comp: AdminTeachers },
-  { key: "users",      label: "👥 Utilisateurs",          Comp: AdminUsers },
+  { key: "pareto",      label: "QCM Pareto",        icon: Target,       Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
+  { key: "jeu",         label: "QCM Jeu",            icon: Gamepad2,     Comp: (p) => <AdminQuestions {...p} modeFilter="jeu" /> },
+  { key: "infini",      label: "QCM Infini",         icon: Flame,        Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
+  { key: "revision",    label: "Révision",           icon: FileQuestion, Comp: AdminRevision },
+  { key: "vraiofaux",   label: "Vrai ou Faux",       icon: CheckSquare,  Comp: AdminVraiOuFaux },
+  { key: "voiefranche", label: "Réponse libre",      icon: BookOpen,     Comp: AdminRevision },
+  { key: "cours",       label: "Cours",              icon: BookMarked,   Comp: AdminCourses },
+  { key: "ressources",  label: "Ressources",         icon: Link2,        Comp: AdminResources },
+  { key: "popups",      label: "Pop-ups",            icon: MessageSquare,Comp: AdminPopups },
+  { key: "assistant",   label: "Assistant",          icon: Bot,          Comp: AdminAssistant },
+  { key: "teachers",    label: "Professeurs",        icon: GraduationCap,Comp: AdminTeachers },
+  { key: "users",       label: "Utilisateurs",       icon: Users,        Comp: AdminUsers },
 ];
 
 const SUBJECTS = ["VOJES", "CESBF"];
@@ -93,18 +93,24 @@ export default function Admin() {
             <LogOut className="w-4 h-4" /> Déconnexion
           </button>
         </div>
-        <div className="max-w-6xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap ${
-                tab === t.key ? "bg-primary text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="max-w-6xl mx-auto px-2 pb-2 grid grid-cols-6 md:grid-cols-12 gap-1">
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                title={t.label}
+                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-xl text-[10px] font-bold transition-all ${
+                  active ? "bg-primary text-white shadow-sm" : "bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-800"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="truncate w-full text-center leading-tight">{t.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

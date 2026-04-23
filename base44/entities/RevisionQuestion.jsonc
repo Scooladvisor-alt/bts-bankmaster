@@ -33,19 +33,5 @@
     "subject",
     "question",
     "expected_answer"
-  ],
-  "rls": {
-    "read": {
-      "rule": "true"
-    },
-    "create": {
-      "rule": "user.role == 'admin' || user.role == 'teacher'"
-    },
-    "update": {
-      "rule": "user.role == 'admin' || user.role == 'teacher'"
-    },
-    "delete": {
-      "rule": "user.role == 'admin' || user.role == 'teacher'"
-    }
-  }
+  ]
 }

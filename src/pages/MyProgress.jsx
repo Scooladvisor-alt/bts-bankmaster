@@ -100,8 +100,7 @@ export default function MyProgress() {
         </button>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-display text-4xl font-bold text-stone-900 mb-1">Ma progression</h1>
-          <p className="text-stone-500 text-sm mb-6">Bonjour {user?.full_name || user?.email} 👋</p>
+          <h1 className="font-display text-4xl font-bold text-stone-900 mb-6">Ma progression</h1>
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
