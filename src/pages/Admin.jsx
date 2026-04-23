@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, ChevronLeft, LogOut, Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, GraduationCap, Users } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import AdminQuestions from "@/components/admin/AdminQuestions";
+import AdminQuestionsChapters from "@/components/admin/AdminQuestionsChapters";
 import AdminRevision from "@/components/admin/AdminRevision";
 import AdminVraiOuFaux from "@/components/admin/AdminVraiOuFaux";
 import AdminPopups from "@/components/admin/AdminPopups";
@@ -16,7 +17,7 @@ import AdminUsers from "@/components/admin/AdminUsers";
 import DebugDataCheck from "@/components/admin/DebugDataCheck";
 
 const TABS = [
-  { key: "pareto",      label: "QCM Pareto",        icon: Target,       Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
+  { key: "pareto",      label: "QCM Pareto",        icon: Target,       Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="pareto" /> },
   { key: "jeu",         label: "QCM Jeu",            icon: Gamepad2,     Comp: (p) => <AdminQuestions {...p} modeFilter="jeu" /> },
   { key: "infini",      label: "QCM Infini",         icon: Flame,        Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
   { key: "revision",    label: "Révision",           icon: FileQuestion, Comp: AdminRevision },
