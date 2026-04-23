@@ -298,13 +298,14 @@ function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh, isCust
 }
 
 // ── Composant principal ──
-export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
+export default function AdminQuestionsChapters({ subjectFilter, modeFilter: initialModeFilter }) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [newChapterName, setNewChapterName] = useState("");
   // Extra custom chapters créés via le bouton "Nouveau chapitre" (pas encore en BDD)
   const [extraCustomChapters, setExtraCustomChapters] = useState([]);
+  const [modeFilter, setModeFilter] = useState(initialModeFilter || "pareto");
 
   const subject = subjectFilter || "VOJES";
 
@@ -347,11 +348,30 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
 
     return (
       <div>
+        {/* Mode filter buttons */}
         <div className="flex items-center justify-between mb-4">
-          <div className="text-sm text-stone-500 font-bold">{totalQ} question(s) — VOJES</div>
-          <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
-            <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-stone-500 uppercase">Mode :</span>
+            {["pareto", "jeu", "infini"].map(m => (
+              <button
+                key={m}
+                onClick={() => { setModeFilter(m); setExtraCustomChapters([]); }}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
+                  modeFilter === m 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                }`}
+              >
+                {m === "pareto" ? "Pareto" : m === "jeu" ? "Jeu" : "Infini"}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center justify-between gap-2 flex-1 ml-4">
+            <div className="text-sm text-stone-500 font-bold">{totalQ} question(s) — VOJES</div>
+            <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
+            </button>
+          </div>
         </div>
 
         {showAddChapter && (
@@ -396,11 +416,30 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
 
   return (
     <div>
+      {/* Mode filter buttons */}
       <div className="flex items-center justify-between mb-4">
-        <div className="text-sm text-stone-500 font-bold">{totalQ} question(s) — CESBF</div>
-        <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
-          <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
-        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-stone-500 uppercase">Mode :</span>
+          {["pareto", "jeu", "infini"].map(m => (
+            <button
+              key={m}
+              onClick={() => { setModeFilter(m); setExtraCustomChapters([]); }}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
+                modeFilter === m 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+              }`}
+            >
+              {m === "pareto" ? "Pareto" : m === "jeu" ? "Jeu" : "Infini"}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between gap-2 flex-1 ml-4">
+          <div className="text-sm text-stone-500 font-bold">{totalQ} question(s) — CESBF</div>
+          <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
+            <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
+          </button>
+        </div>
       </div>
 
       {showAddChapter && (

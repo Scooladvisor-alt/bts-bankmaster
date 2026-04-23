@@ -62,7 +62,7 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
   };
 
   return (
-    <div className={`fixed top-3 z-40 pointer-events-none ${alignRight ? "right-3" : "left-3"}`} style={{ maxWidth: "min(240px, calc(100vw - 24px))" }}>
+    <div className={`fixed top-3 z-40 pointer-events-none ${alignRight ? "right-3" : "left-3"}`} style={{ maxWidth: "calc(100vw - 24px)" }}>
       <AnimatePresence>
         {visible && current && (
           <motion.div
@@ -111,7 +111,7 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
                 <div className="text-[8px] uppercase tracking-widest font-bold mb-1" style={{ color: "#b8860b" }}>
                   Le savais-tu ?
                 </div>
-                <div className="text-xs leading-snug font-semibold text-stone-800">
+                <div className="text-xs font-semibold text-stone-800 whitespace-nowrap overflow-hidden text-ellipsis">
                   {current.content}
                 </div>
               </div>

@@ -18,8 +18,8 @@ import DebugDataCheck from "@/components/admin/DebugDataCheck";
 
 const TABS = [
   { key: "pareto",      label: "QCM Pareto",        icon: Target,       Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="pareto" /> },
-  { key: "jeu",         label: "QCM Jeu",            icon: Gamepad2,     Comp: (p) => <AdminQuestions {...p} modeFilter="jeu" /> },
-  { key: "infini",      label: "QCM Infini",         icon: Flame,        Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
+  { key: "jeu",         label: "QCM Jeu",            icon: Gamepad2,     Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="jeu" /> },
+  { key: "infini",      label: "QCM Infini",         icon: Flame,        Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="infini" /> },
   { key: "revision",    label: "Révision",           icon: FileQuestion, Comp: AdminRevision },
   { key: "vraiofaux",   label: "Vrai ou Faux",       icon: CheckSquare,  Comp: AdminVraiOuFaux },
   { key: "voiefranche", label: "Réponse libre",      icon: BookOpen,     Comp: AdminRevision },
