@@ -26,8 +26,7 @@
         "mentale",
         "libre"
       ],
-      "default": "mentale",
-      "description": "Mentale = l'utilisateur affiche la r\u00e9ponse. Libre = l'utilisateur \u00e9crit."
+      "default": "mentale"
     }
   },
   "required": [
