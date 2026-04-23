@@ -369,8 +369,8 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
           </div>
         )}
 
-        {/* Tous les chapitres officiels 1→31 */}
-        {officialChapters.map(ch => (
+        {/* Tous les chapitres officiels 1→31 — masquer ceux à 0 questions */}
+        {officialChapters.filter(ch => chaptersInDB.has(ch)).map(ch => (
           <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
         ))}
 
@@ -418,15 +418,19 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter }) {
         </div>
       )}
 
-      {/* Tous les groupes CESBF dans l'ordre officiel */}
-      {CESBF_GROUPS.map(group => (
-        <div key={group.title} className="mb-5">
-          <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">{group.title}</div>
-          {group.chapters.map(ch => (
-            <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
-          ))}
-        </div>
-      ))}
+      {/* Tous les groupes CESBF dans l'ordre officiel — masquer chapitres à 0 questions */}
+      {CESBF_GROUPS.map(group => {
+        const chaptersWithQ = group.chapters.filter(ch => chaptersInDB.has(ch));
+        if (chaptersWithQ.length === 0) return null;
+        return (
+          <div key={group.title} className="mb-5">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">{group.title}</div>
+            {chaptersWithQ.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
+            ))}
+          </div>
+        );
+      })}
 
       {/* Chapitres personnalisés */}
       {(customInDBCesbf.length > 0 || customExtraCesbf.length > 0) && (

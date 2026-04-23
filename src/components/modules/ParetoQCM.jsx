@@ -104,7 +104,7 @@ export default function ParetoQCM({ subject }) {
   }, [subject]);
 
   const selectChapter = (chapter) => {
-    const qs = allQuestions.filter(q => q.chapter === chapter).slice(0, 5);
+    const qs = allQuestions.filter(q => q.chapter === chapter);
     setSelectedChapter(chapter);
     setQuestions(qs);
     setCurrent(0);
