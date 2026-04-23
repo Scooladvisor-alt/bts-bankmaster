@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, Heart, RotateCcw, Pause, Play } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { saveGameKmRecord, getGameKmRecord } from "@/lib/scoreStorage";
+import { saveGameKmRecordDB } from "@/lib/recordStorage";
 import * as THREE from "three";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -498,7 +499,11 @@ export default function GameQCM({ subject }) {
   // Save km record on game over/win
   useEffect(() => {
     if (uiState === STATE.GAMEOVER || uiState === STATE.WIN) {
-      if (km > 0) saveGameKmRecord(subject, km);
+      if (km > 0) {
+        const prev = getGameKmRecord(subject);
+        saveGameKmRecord(subject, km);
+        saveGameKmRecordDB(subject, km, prev);
+      }
     }
   }, [uiState, km, subject]);
 

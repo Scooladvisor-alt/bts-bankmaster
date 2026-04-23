@@ -43,8 +43,12 @@ export function saveInfiniRecord(subject, score) {
 }
 
 export function getInfiniRecord(subject) {
-  const key = `infini_record_${subject}`;
-  return parseInt(localStorage.getItem(key) || "0");
+  // Also check new recordStorage key
+  const key1 = `infini_record_${subject}`;
+  const key2 = `record_infini_${subject}`;
+  const v1 = parseInt(localStorage.getItem(key1) || "0");
+  const v2 = parseInt(localStorage.getItem(key2) || "0");
+  return Math.max(v1, v2);
 }
 
 export function saveVraiOuFauxCategoryScore(subject, category, percentage) {

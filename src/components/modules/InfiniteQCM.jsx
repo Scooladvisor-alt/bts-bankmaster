@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, Flame, X, Check } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { saveInfiniRecord, getInfiniRecord } from "@/lib/scoreStorage";
+import { saveInfiniRecordDB } from "@/lib/recordStorage";
 import { trackProgress } from "@/lib/trackProgress";
 
 export default function InfiniteQCM({ subject }) {
@@ -62,6 +63,7 @@ export default function InfiniteQCM({ subject }) {
       setTimeout(() => next(null), 700);
     } else {
       const newRecord = saveInfiniRecord(subject, score);
+      saveInfiniRecordDB(subject, score, getInfiniRecord(subject));
       trackProgress({ toolUsed: "infini", subject, score, totalQuestions: score + 1 });
       setBest(newRecord);
       setTimeout(() => setOver(true), 1200);

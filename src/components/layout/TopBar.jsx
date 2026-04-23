@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { LogIn, LogOut, User, ChevronDown, BarChart2, GraduationCap, Shield } from "lucide-react";
+import { LogIn, LogOut, User, ChevronDown, GraduationCap, Shield } from "lucide-react";
 
 export default function TopBar() {
   const [user, setUser] = useState(null);
@@ -82,14 +82,6 @@ export default function TopBar() {
                 <div className="text-xs text-stone-400 truncate">{user.email}</div>
                 <RoleBadge role={user.role} subject={user.teacherSubject} />
               </div>
-
-              <Link
-                to="/mon-progres"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-50 transition-colors"
-              >
-                <BarChart2 className="w-4 h-4 text-blue-500" /> Ma progression
-              </Link>
 
               {isTeacherOrAdmin && (
                 <Link

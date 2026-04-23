@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { useNavigate } from "react-router-dom";
 import { saveParetoScore, getParetoScore, getScoreColor, getScoreBgColor } from "@/lib/scoreStorage";
+import { saveParetoScoreDB } from "@/lib/recordStorage";
 import { trackProgress } from "@/lib/trackProgress";
 
 // Structure officielle CESBF : groupes avec titre + chapitres dans l'ordre
@@ -374,6 +375,7 @@ export default function ParetoQCM({ subject }) {
             {done && (() => {
               const percentage = Math.round((score / questions.length) * 100);
               saveParetoScore(subject, selectedChapter, percentage);
+              saveParetoScoreDB(subject, selectedChapter, percentage, getParetoScore(subject, selectedChapter) || 0);
               trackProgress({ toolUsed: "pareto", subject, score, totalQuestions: questions.length, chapter: selectedChapter });
               return (
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-10">

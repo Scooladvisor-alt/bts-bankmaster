@@ -1,42 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
 import RoleModal from "@/components/landing/RoleModal";
-import WelcomeWidget from "@/components/landing/WelcomeWidget";
 import { Sparkles } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
-import { getLocalUser, startTimeTracking, stopTimeTracking, getTotalSeconds, updateAdminUserTime } from "@/lib/localUser";
 
 export default function Landing() {
   const [showRoleModal, setShowRoleModal] = useState(false); // eslint-disable-line
-  const [userName, setUserName] = useState(null);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const user = getLocalUser();
-    if (user?.name) {
-      setUserName(user.name);
-      setReady(true);
-      startTimeTracking();
-    }
-    return () => {
-      const user2 = getLocalUser();
-      if (user2?.name) {
-        stopTimeTracking();
-        updateAdminUserTime(user2.name, getTotalSeconds());
-      }
-    };
-  }, []);
-
-  const handleReady = (name) => {
-    setUserName(name);
-    setReady(true);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-blue-50 relative overflow-hidden">
-      {!ready && <WelcomeWidget onReady={handleReady} />}
       <FloatingPopup subject="ALL" />
       <TopBar />
 
