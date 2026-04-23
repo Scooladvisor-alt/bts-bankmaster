@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Bot } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { getLocalUser, updateUserLastTool } from "@/lib/localUser";
+import { trackProgress } from "@/lib/trackProgress";
 import ModuleShell from "@/components/layout/ModuleShell";
 import ParetoQCM from "@/components/modules/ParetoQCM";
 import GameQCM from "@/components/modules/GameQCM";
@@ -49,6 +50,10 @@ export default function Module() {
         const tools = Array.isArray(me.toolsUsed) ? me.toolsUsed : [];
         if (!tools.includes(method)) {
           await base44.auth.updateMe({ toolsUsed: [...tools, method] });
+        }
+        // Track l'accès au module (pour les outils non-QCM)
+        if (!["pareto", "infini", "jeu"].includes(method)) {
+          trackProgress({ toolUsed: method, subject: subjectLabel });
         }
       } catch {}
     })();

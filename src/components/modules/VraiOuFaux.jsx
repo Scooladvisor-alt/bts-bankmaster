@@ -4,6 +4,7 @@ import { Loader2, Check, X, RotateCcw, Zap, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect as useEffectHook } from "react";
 import { saveVraiOuFauxCategoryScore, getVraiOuFauxCategoryScore, getScoreColor, getScoreBgColor } from "@/lib/scoreStorage";
+import { trackProgress } from "@/lib/trackProgress";
 
 // ── CESBF : mapping chapitre → catégorie ──
 const CESBF_CHAPTER_TO_CATEGORY = {
@@ -352,6 +353,7 @@ export default function VraiOuFaux({ subject }) {
     if (selectedCategory !== "all") {
       saveVraiOuFauxCategoryScore(subject, selectedCategory, percentage);
     }
+    trackProgress({ toolUsed: "vraiouFaux", subject, score: score.good, totalQuestions: cards.length, chapter: selectedCategory !== "all" ? selectedCategory : null });
     return (
       <div className="flex flex-col gap-4">
         {TopBar}

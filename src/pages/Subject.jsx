@@ -20,9 +20,9 @@ const SUBJECT_CONFIG = {
     name: "VOJES",
     emoji: "📊",
     tagline: "Veille, Organisationnel, Juridique et Sectorielle",
-    color: "voges",
+    color: "vojes",
     bg: "from-purple-50 to-indigo-50",
-    btnClass: "bg-voges",
+    btnClass: "bg-vojes",
   },
   cesbf: {
     name: "CESBF",

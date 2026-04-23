@@ -5,6 +5,7 @@ import FloatingPopup from "@/components/popup/FloatingPopup";
 import RoleModal from "@/components/landing/RoleModal";
 import WelcomeWidget from "@/components/landing/WelcomeWidget";
 import { Sparkles, Settings } from "lucide-react";
+import TopBar from "@/components/layout/TopBar";
 import { getLocalUser, startTimeTracking, stopTimeTracking, getTotalSeconds, updateAdminUserTime } from "@/lib/localUser";
 
 export default function Landing() {
@@ -37,6 +38,7 @@ export default function Landing() {
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-blue-50 relative overflow-hidden">
       {!ready && <WelcomeWidget onReady={handleReady} />}
       <FloatingPopup subject="ALL" />
+      <TopBar />
 
       {/* Blobs déco */}
       <div className="absolute top-20 -left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />

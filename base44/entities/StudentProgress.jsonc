@@ -1,0 +1,72 @@
+{
+  "name": "StudentProgress",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "ID de l'utilisateur (User.id)"
+    },
+    "userEmail": {
+      "type": "string",
+      "description": "Email de l'utilisateur (pour affichage admin)"
+    },
+    "toolUsed": {
+      "type": "string",
+      "enum": [
+        "pareto",
+        "jeu",
+        "infini",
+        "questions",
+        "libre",
+        "vraiouFaux",
+        "cours",
+        "ressources",
+        "assistant",
+        "connexion"
+      ],
+      "description": "Outil/module utilis\u00e9"
+    },
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOJES",
+        "CESBF"
+      ],
+      "description": "Mati\u00e8re concern\u00e9e"
+    },
+    "score": {
+      "type": "number",
+      "description": "Score obtenu (0-100 ou nombre de bonnes r\u00e9ponses)"
+    },
+    "totalQuestions": {
+      "type": "number",
+      "description": "Nombre total de questions"
+    },
+    "chapter": {
+      "type": "string",
+      "description": "Chapitre ou th\u00e8me (optionnel)"
+    },
+    "sessionDate": {
+      "type": "string",
+      "description": "Date ISO de la session"
+    }
+  },
+  "required": [
+    "userId",
+    "toolUsed"
+  ],
+  "rls": {
+    "read": {
+      "rule": "auth != null && (user.role == 'admin' || resource.userId == user.id)"
+    },
+    "create": {
+      "rule": "auth != null"
+    },
+    "update": {
+      "rule": "user.role == 'admin'"
+    },
+    "delete": {
+      "rule": "user.role == 'admin'"
+    }
+  }
+}
