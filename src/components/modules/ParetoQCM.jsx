@@ -308,7 +308,7 @@ export default function ParetoQCM({ subject }) {
             <div>
                 {/* Progress */}
                 <div className="mb-5">
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-yellow-600 mb-2 hidden">{selectedChapter}</div>
+                  
                   <div className="h-2 bg-yellow-100 rounded-full overflow-hidden">
                     <div
                     className="h-full bg-yellow-400 rounded-full transition-all duration-500"
