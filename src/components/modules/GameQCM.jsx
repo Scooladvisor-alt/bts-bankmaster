@@ -521,38 +521,41 @@ export default function GameQCM({ subject }) {
 
   return (
     <div className="w-full select-none flex flex-col gap-3">
-      {/* Widget record en haut — hors du canvas */}
-      {kmRecord > 0 && (
-        <div className="w-full text-right">
-          <div className="inline-block bg-stone-800 text-yellow-300 font-bold text-sm px-4 py-2 rounded-full">
-            🏆 record : {kmRecord} km
-          </div>
+      {/* Widget record — desktop: droite seul / mobile: km + record sur la même ligne */}
+      <div className="flex items-center justify-end gap-2 md:justify-end">
+        <div className="md:hidden bg-black/80 text-green-300 font-bold text-xs px-3 py-1.5 rounded-full">
+          🛣️ {km.toFixed(1)} km
         </div>
-      )}
+        {kmRecord > 0 && (
+          <div className="inline-block bg-stone-800 text-yellow-300 font-bold text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 rounded-full">
+            🏆 {kmRecord} km
+          </div>
+        )}
+      </div>
 
       {/* ── Canvas ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "4/3" }}>
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap">
         <div ref={mountRef} className="absolute inset-0 w-full h-full" />
 
         {/* Question banner — tout en haut */}
         {isPlaying && current && (
           <div className="absolute top-2 left-3 right-3 z-10">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg text-center border-b-4 border-pink-300">
-              {current.chapter && <div className="text-[10px] font-bold uppercase tracking-widest text-pink-500 mb-0.5">{current.chapter}</div>}
-              <div className="font-display font-bold text-base leading-snug">{current.question}</div>
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl px-3 py-2 shadow-lg text-center border-b-4 border-pink-300">
+              {current.chapter && <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-pink-400 mb-0.5 opacity-70">{current.chapter}</div>}
+              <div className="font-fredoka font-normal text-sm md:text-base leading-snug">{current.question}</div>
             </div>
           </div>
         )}
 
         {/* HUD sous la question */}
-         <div className="absolute left-0 right-0 z-10 flex items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 72px)" : "4px" }}>
+         <div className="absolute left-0 right-0 z-10 flex items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 60px)" : "4px" }}>
            <div className="flex gap-1">
              {Array.from({ length: 3 }).map((_, i) => (
-               <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
+               <Heart key={i} className={`w-4 h-4 md:w-5 md:h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
              ))}
            </div>
            <div className="flex items-center gap-2">
-             <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
+             <div className="hidden md:block bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
              {isPlaying && (
                <button
                  onClick={togglePause}
@@ -629,14 +632,14 @@ export default function GameQCM({ subject }) {
 
       {/* ── Boutons de réponse — hors canvas ── */}
       {uiState === STATE.DRIVING && !paused && current && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 -mx-4 md:mx-0">
           {current.options.slice(0, 3).map((opt, i) => (
             <button
               key={i}
               onClick={() => chooseLane(i)}
-              className={`rounded-2xl px-3 py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
+              className={`rounded-2xl px-2 md:px-3 py-3 md:py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
             >
-              <div className="font-fredoka text-base text-stone-800 leading-snug">{opt}</div>
+              <div className="font-fredoka text-sm md:text-base text-stone-800 leading-snug">{opt}</div>
             </button>
           ))}
         </div>

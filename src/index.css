@@ -103,6 +103,10 @@
   }
 }
 
+/* Game canvas responsive aspect ratio */
+.game-canvas-wrap { aspect-ratio: 4/3; }
+@media (max-width: 767px) { .game-canvas-wrap { aspect-ratio: 3/4; } }
+
 @layer utilities {
   .text-voges { color: hsl(var(--voges)); }
   .bg-voges { background-color: hsl(var(--voges)); }

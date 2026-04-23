@@ -292,25 +292,25 @@ export default function DrawRevision({ subject: subjectProp }) {
       </div>
 
       {/* Contenu scrollable */}
-      <div className="flex-1 overflow-y-auto px-4 pb-6">
+      <div className="flex-1 overflow-y-auto px-2 pb-6">
         <AnimatePresence mode="wait">
           <motion.div key={qIndex}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-3 px-2"
           >
             {/* Question */}
             <div>
-              <p className="font-fredoka text-2xl text-stone-800 mb-1 leading-snug">{q?.prompt}</p>
-              <p className="text-xs font-bold uppercase tracking-widest text-violet-400">
+              <p className="font-fredoka text-2xl text-stone-800 mb-0.5 leading-snug">{q?.prompt}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-violet-400 whitespace-nowrap overflow-hidden text-ellipsis">
                 ✏️ Trace par-dessus le modèle — reste dans les contours
               </p>
             </div>
 
             {/* Zone de dessin — pleine largeur, hauteur adaptée */}
-            <div className="relative w-full rounded-3xl overflow-hidden border-4 border-violet-200"
-              style={{ height: 220, background: "linear-gradient(135deg, #faf8ff 0%, #f5f0ff 100%)", touchAction: "none" }}>
+            <div className="relative rounded-3xl overflow-hidden border-4 border-violet-200"
+              style={{ height: 240, marginLeft: "-0.5rem", marginRight: "-0.5rem", background: "linear-gradient(135deg, #faf8ff 0%, #f5f0ff 100%)", touchAction: "none" }}>
 
               <canvas
                 ref={guideRefCallback}
@@ -393,7 +393,7 @@ export default function DrawRevision({ subject: subjectProp }) {
             {/* Boutons */}
             <div className="flex gap-3">
               <button onClick={init}
-                className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-stone-100 text-stone-600 font-bold text-sm border border-stone-200 hover:bg-stone-200 transition-all">
+                className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-stone-100 text-stone-600 font-bold text-sm border border-stone-200 active:bg-stone-200 transition-all">
                 <RotateCcw className="w-4 h-4" /> Effacer
               </button>
               {!result ? (

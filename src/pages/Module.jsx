@@ -83,11 +83,11 @@ export default function Module() {
     <ModuleShell subject={subjectLabel} title={config.title} emoji={config.emoji} bgClass={config.bg}>
       <Comp subject={subjectLabel} />
       
-      {/* Bouton Assistant flottant */}
+      {/* Bouton Assistant flottant — caché sur mobile pour le jeu */}
       {!hideAssistantBtn && (
         <Link
           to={`/${subject}/assistant`}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-stone-800 shadow-lg flex items-center justify-center hover:bg-stone-700 transition-colors border-b-4 border-black/30 active:border-b-0 active:translate-y-1"
+          className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-stone-800 shadow-lg flex items-center justify-center hover:bg-stone-700 transition-colors border-b-4 border-black/30 active:border-b-0 active:translate-y-1 ${method === "jeu" ? "hidden md:flex" : ""}`}
           title="Assistant — Pose tes questions"
         >
           <Bot className="w-6 h-6 text-white" />
