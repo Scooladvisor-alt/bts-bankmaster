@@ -577,8 +577,8 @@ export default function GameQCM({ subject }) {
         )}
       </div>
 
-      {/* ── Canvas — augmenté 25% sur mobile ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap mobile-game-canvas" style={{ minHeight: "max(250px, 125vh)" }}>
+      {/* ── Canvas ── */}
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap mobile-game-canvas">
         <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
         {/* Question banner — tout en haut */}

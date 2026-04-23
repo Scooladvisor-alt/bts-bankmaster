@@ -134,36 +134,87 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "$
 
   // Sélection du chapitre
   if (!selectedChapter) {
+    // Structure CESBF avec groupes
+    const CESBF_GROUPS = [
+      { title: "OUVERTURE DE COMPTE", chapters: ["Chap 1 : Procéder à l'ouverture de compte", "Chap 2 : Mettre en place des produits et services liés au compte"] },
+      { title: "SUIVI DES COMPTES BANCAIRES", chapters: ["Chap 1 : Comprendre les opérations au débit et au crédit (agios)", "Chap 2 : Prévenir et gérer les risques de blanchiment", "Chap 3 : Gérer les événements exceptionnels sur le compte", "Chap 4 : Gérer le risque débiteur", "Chap 5 : Gérer la clôture de compte"] },
+      { title: "MISE À DISPOSITION DES MOYENS DE PAIEMENT", chapters: ["Chap 1 : Identifier les différents moyens de paiement", "Chap 2 : Proposer et gérer l'équipement en chéquier et carte bancaire", "Chap 3 : Adapter les moyens de paiement à la situation du client"] },
+      { title: "ÉLABORATION D'UNE SOLUTION D'ÉPARGNE", chapters: ["Chap 1 & 2 : Épargne bancaire disponible et logement", "Chap 3 : Épargne non bancaire (Assurance-vie & PER)", "Chap 4, 5, 6 : Instruments financiers et marchés"] },
+      { title: "ÉLABORATION D'UNE SOLUTION D'ASSURANCE", chapters: ["Chap 1 & 2 : Marché et vie d'un contrat d'assurance", "Chap 3 : Identifier les produits d'assurance adaptés"] },
+      { title: "ÉLABORATION D'UNE SOLUTION DE FINANCEMENT", chapters: ["Chap 1 : Monter un dossier de crédit", "Chap 2 : Identifier les types de crédits adaptés", "Chap 3 : Suivre la vie d'un contrat de prêt"] },
+    ];
+
+    const orderedCourses = subject === "CESBF" 
+      ? CESBF_GROUPS.map(group => ({
+          title: group.title,
+          chapters: group.chapters.map(chapterName => 
+            courses.find(c => c.title?.includes(chapterName.split(" : ")[0]) || c.title?.includes(chapterName))
+          ).filter(Boolean),
+        })).filter(g => g.chapters.length > 0)
+      : null;
+
     return (
       <div>
         <div className="mb-5">
           <h2 className="font-display text-2xl font-bold text-stone-900">Choisis un thème à réviser</h2>
           <p className="text-stone-500 text-sm mt-1">L'IA te posera une question sur le cours et évaluera ta réponse.</p>
         </div>
-        <div className="grid gap-3">
-          {[
-            ...courses.filter(c => c.title?.toLowerCase().includes("méthodologie pratique")),
-            ...courses.filter(c => c.title?.toLowerCase().includes("méthodologie") && !c.title?.toLowerCase().includes("méthodologie pratique")),
-            ...courses.filter(c => !c.title?.toLowerCase().includes("méthodologie")),
-          ].filter((c, idx, arr) => arr.findIndex(x => x.id === c.id) === idx).map((c, i) => (
-            <motion.button
-              key={c.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => selectChapter(c)}
-              className="bg-white rounded-2xl p-5 shadow-duo border-b-4 border-teal-200 text-left hover:-translate-y-0.5 transition-transform flex items-center gap-4"
-            >
-              <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center shrink-0">
-                <BookOpen className="w-5 h-5 text-teal-600" />
+
+        {/* CESBF : structure par groupe */}
+        {subject === "CESBF" && orderedCourses ? (
+          <div className="space-y-5">
+            {orderedCourses.map((group) => (
+              <div key={group.title}>
+                <div className="text-[9px] font-extrabold uppercase tracking-widest text-orange-600/60 px-1 mb-2">{group.title}</div>
+                <div className="grid gap-2">
+                  {group.chapters.map((c, i) => (
+                    <motion.button
+                      key={c.id}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03 }}
+                      onClick={() => selectChapter(c)}
+                      className="bg-white rounded-2xl p-4 shadow-duo border-b-4 border-orange-200 text-left hover:-translate-y-0.5 transition-transform flex items-center gap-3"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
+                        <BookOpen className="w-4 h-4 text-orange-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-sm text-stone-900">{c.title}</div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
               </div>
-              <div>
-                <div className="font-bold text-stone-900">{c.title}</div>
-                <div className="text-xs text-stone-500 mt-0.5">{subject}</div>
-              </div>
-            </motion.button>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          /* VOJES : simple list */
+          <div className="grid gap-3">
+            {[
+              ...courses.filter(c => c.title?.toLowerCase().includes("méthodologie pratique")),
+              ...courses.filter(c => c.title?.toLowerCase().includes("méthodologie") && !c.title?.toLowerCase().includes("méthodologie pratique")),
+              ...courses.filter(c => !c.title?.toLowerCase().includes("méthodologie")),
+            ].filter((c, idx, arr) => arr.findIndex(x => x.id === c.id) === idx).map((c, i) => (
+              <motion.button
+                key={c.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => selectChapter(c)}
+                className="bg-white rounded-2xl p-5 shadow-duo border-b-4 border-teal-200 text-left hover:-translate-y-0.5 transition-transform flex items-center gap-4"
+              >
+                <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-5 h-5 text-teal-600" />
+                </div>
+                <div>
+                  <div className="font-bold text-stone-900">{c.title}</div>
+                  <div className="text-xs text-stone-500 mt-0.5">{subject}</div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

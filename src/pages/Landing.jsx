@@ -34,8 +34,8 @@ export default function Landing() {
             <br />
             <span className="text-primary">Réussis fort.</span>
           </h1>
-          <p className="mt-6 text-lg text-stone-600 max-w-xl mx-auto">
-            Plateforme de révision pour la classe de Antonin 🐐.
+          <p className="mt-6 text-lg text-stone-600 max-w-2xl mx-auto">
+            Plateforme de révision complète pour BTS Banque. QCM, jeux interactifs, fiches de révision, réponses libres avec IA, cours, ressources, et plus. Entraîne-toi comme tu veux et progresse vite ! 🎯
           </p>
         </motion.div>
 
