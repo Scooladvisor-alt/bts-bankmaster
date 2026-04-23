@@ -34,9 +34,9 @@ export default function Landing() {
             <br />
             <span className="text-primary">Réussis fort.</span>
           </h1>
-          <p className="mt-6 text-lg text-stone-600 max-w-2xl mx-auto hidden">
-            Plateforme de révision pour la classe de Antonin 🐐.
-          </p>
+          
+
+          
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mt-4">
