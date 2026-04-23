@@ -24,8 +24,8 @@ export default function Landing() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
+          className="text-center mb-12">
+          
           <div className="inline-flex items-center gap-2 bg-yellow-200 text-yellow-900 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
             <Sparkles className="w-4 h-4" /> Spécial BTS Banque
           </div>
@@ -34,8 +34,8 @@ export default function Landing() {
             <br />
             <span className="text-primary">Réussis fort.</span>
           </h1>
-          <p className="mt-6 text-lg text-stone-600 max-w-2xl mx-auto">
-            Plateforme de révision complète pour BTS Banque. QCM, jeux interactifs, fiches de révision, réponses libres avec IA, cours, ressources, et plus. Entraîne-toi comme tu veux et progresse vite ! 🎯
+          <p className="mt-6 text-lg text-stone-600 max-w-2xl mx-auto hidden">
+            Plateforme de révision pour la classe de Antonin 🐐.
           </p>
         </motion.div>
 
@@ -46,32 +46,32 @@ export default function Landing() {
             emoji="📊"
             tagline="Veille, organisationnelle, juridique & sectorielle"
             gradient="from-purple-500 via-purple-600 to-indigo-600"
-            delay={0.1}
-          />
+            delay={0.1} />
+          
           <SubjectCard
             to="/cesbf"
             label="CESBF"
             emoji="🏦"
             tagline="Conseil/Expertise en Solution Bancaire & Financière"
             gradient="from-orange-400 via-orange-500 to-red-500"
-            delay={0.2}
-          />
+            delay={0.2} />
+          
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
-const SubjectCard = ({ to, label, emoji, tagline, gradient, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, type: "spring", stiffness: 100 }}
-  >
+const SubjectCard = ({ to, label, emoji, tagline, gradient, delay }) =>
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay, type: "spring", stiffness: 100 }}>
+  
     <Link to={to}>
       <div
-        className={`group relative bg-gradient-to-br ${gradient} rounded-3xl p-8 shadow-duo-lg border-b-[6px] border-black/20 hover:-translate-y-1 transition-transform cursor-pointer h-64 flex flex-col justify-between`}
-      >
+      className={`group relative bg-gradient-to-br ${gradient} rounded-3xl p-8 shadow-duo-lg border-b-[6px] border-black/20 hover:-translate-y-1 transition-transform cursor-pointer h-64 flex flex-col justify-between`}>
+      
         <div>
           <div className="text-6xl mb-3">{emoji}</div>
           <div className="text-white/80 text-xs font-bold uppercase tracking-widest">
@@ -87,5 +87,4 @@ const SubjectCard = ({ to, label, emoji, tagline, gradient, delay }) => (
         </div>
       </div>
     </Link>
-  </motion.div>
-);
+  </motion.div>;
