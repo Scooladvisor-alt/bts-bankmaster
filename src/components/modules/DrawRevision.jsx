@@ -277,7 +277,7 @@ export default function DrawRevision({ subject: subjectProp }) {
       <div className="flex items-center gap-3 px-4 py-3 shrink-0">
         <Link
           to={`/${subjectKey}`}
-          className="flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm shrink-0 py-2 pr-2"
+          className="flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm shrink-0 py-2 px-2 rounded-lg active:bg-stone-200 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" /> Retour
         </Link>
@@ -298,7 +298,7 @@ export default function DrawRevision({ subject: subjectProp }) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="flex flex-col gap-3 px-2"
+            className="flex flex-col gap-3 px-2 md:max-w-2xl md:mx-auto"
           >
             {/* Question */}
             <div>
@@ -308,8 +308,8 @@ export default function DrawRevision({ subject: subjectProp }) {
               </p>
             </div>
 
-            {/* Zone de dessin — pleine largeur, hauteur adaptée */}
-            <div className="relative rounded-3xl overflow-hidden border-4 border-violet-200"
+            {/* Zone de dessin — pleine largeur sur mobile, réduite sur desktop */}
+            <div className="relative rounded-3xl overflow-hidden border-4 border-violet-200 md:m-0"
               style={{ height: 240, marginLeft: "-0.5rem", marginRight: "-0.5rem", background: "linear-gradient(135deg, #faf8ff 0%, #f5f0ff 100%)", touchAction: "none" }}>
 
               <canvas
