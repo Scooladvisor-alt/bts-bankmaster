@@ -105,7 +105,7 @@
 
 /* Game canvas responsive aspect ratio */
 .game-canvas-wrap { aspect-ratio: 4/3; }
-@media (max-width: 767px) { .mobile-game-canvas { aspect-ratio: 3/2 !important; } }
+@media (max-width: 767px) { .mobile-game-canvas { aspect-ratio: 2/1.2 !important; min-height: 320px; } }
 
 @layer utilities {
   .text-voges { color: hsl(var(--voges)); }

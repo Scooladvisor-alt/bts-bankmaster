@@ -682,7 +682,7 @@ export default function GameQCM({ subject }) {
               onClick={() => chooseLane(i)}
               className={`rounded-2xl px-2 md:px-4 py-3 md:py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
             >
-              <div className="font-fredoka text-sm md:text-base text-stone-800 leading-snug">{opt}</div>
+              <div className="font-fredoka text-xs md:text-base text-stone-800 leading-snug">{opt}</div>
             </button>
           ))}
         </div>
