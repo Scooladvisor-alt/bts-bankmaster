@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Bot } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { getLocalUser, updateUserLastTool } from "@/lib/localUser";
 import { trackProgress } from "@/lib/trackProgress";
@@ -76,23 +75,9 @@ export default function Module() {
     return <Comp subject={subjectLabel} />;
   }
 
-  // Modules où le bouton assistant n'est pas utile
-  const hideAssistantBtn = ["questions", "libre", "assistant", "dessin"].includes(method);
-
   return (
     <ModuleShell subject={subjectLabel} title={config.title} emoji={config.emoji} bgClass={config.bg}>
       <Comp subject={subjectLabel} />
-      
-      {/* Bouton Assistant flottant — caché sur mobile pour le jeu */}
-      {!hideAssistantBtn && (
-        <Link
-          to={`/${subject}/assistant`}
-          className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-stone-800 shadow-lg flex items-center justify-center hover:bg-stone-700 transition-colors border-b-4 border-black/30 active:border-b-0 active:translate-y-1 ${method === "jeu" ? "hidden md:flex" : ""}`}
-          title="Assistant — Pose tes questions"
-        >
-          <Bot className="w-6 h-6 text-white" />
-        </Link>
-      )}
     </ModuleShell>
   );
 }

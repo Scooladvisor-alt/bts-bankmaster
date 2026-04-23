@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react";
 export default function ModuleShell({ subject, title, emoji, bgClass = "bg-gradient-to-b from-green-50 to-white", children }) {
   const navigate = useNavigate();
   return (
-    <div className={`min-h-screen ${bgClass}`}>
+    <div className={`min-h-screen ${bgClass}`} style={{ WebkitOverflowScrolling: "touch" }}>
       <div className="max-w-3xl mx-auto px-4 md:px-6 pt-5 pb-24">
         <button
           onClick={() => navigate(`/${subject.toLowerCase()}`)}

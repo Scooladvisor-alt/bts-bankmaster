@@ -303,6 +303,9 @@ export default function GameQCM({ subject }) {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H);
+    // Empêche Three.js de bloquer les touch events en dehors du canvas
+    renderer.domElement.style.touchAction = "none";
+    renderer.domElement.style.userSelect = "none";
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -520,14 +523,36 @@ export default function GameQCM({ subject }) {
   const isPlaying = uiState === STATE.DRIVING || uiState === STATE.EXPLODE;
 
   return (
-    <div className="w-full select-none flex flex-col gap-3">
-      {/* Widget record — desktop: droite seul / mobile: km + record sur la même ligne */}
-      <div className="flex items-center justify-end gap-2 md:justify-end">
-        <div className="md:hidden bg-black/80 text-green-300 font-bold text-xs px-3 py-1.5 rounded-full">
-          🛣️ {km.toFixed(1)} km
+    <div className="w-full select-none flex flex-col gap-2">
+
+      {/* ── HUD mobile : cœurs + pause à gauche / km + record à droite ── */}
+      <div className="flex md:hidden items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Heart key={i} className={`w-4 h-4 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-stone-300"}`} />
+          ))}
+          {isPlaying && (
+            <button onClick={togglePause} className="ml-1 bg-stone-200 rounded-full p-1 text-stone-700">
+              {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+            </button>
+          )}
         </div>
+        <div className="flex items-center gap-2">
+          <div className="bg-black/80 text-green-300 font-bold text-xs px-3 py-1 rounded-full">
+            🛣️ {km.toFixed(1)} km
+          </div>
+          {kmRecord > 0 && (
+            <div className="bg-stone-800 text-yellow-300 font-bold text-xs px-3 py-1 rounded-full">
+              🏆 {kmRecord} km
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── HUD desktop : record à droite ── */}
+      <div className="hidden md:flex items-center justify-end gap-2">
         {kmRecord > 0 && (
-          <div className="inline-block bg-stone-800 text-yellow-300 font-bold text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 rounded-full">
+          <div className="inline-block bg-stone-800 text-yellow-300 font-bold text-sm px-4 py-2 rounded-full">
             🏆 {kmRecord} km
           </div>
         )}
@@ -535,7 +560,7 @@ export default function GameQCM({ subject }) {
 
       {/* ── Canvas ── */}
       <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap">
-        <div ref={mountRef} className="absolute inset-0 w-full h-full" />
+        <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
         {/* Question banner — tout en haut */}
         {isPlaying && current && (
@@ -547,20 +572,17 @@ export default function GameQCM({ subject }) {
           </div>
         )}
 
-        {/* HUD sous la question */}
-         <div className="absolute left-0 right-0 z-10 flex items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 60px)" : "4px" }}>
+        {/* HUD desktop dans le canvas : cœurs + km + pause */}
+        <div className="hidden md:flex absolute left-0 right-0 z-10 items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 60px)" : "4px" }}>
            <div className="flex gap-1">
              {Array.from({ length: 3 }).map((_, i) => (
-               <Heart key={i} className={`w-4 h-4 md:w-5 md:h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
+               <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
              ))}
            </div>
            <div className="flex items-center gap-2">
-             <div className="hidden md:block bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
+             <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
              {isPlaying && (
-               <button
-                 onClick={togglePause}
-                 className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors"
-               >
+               <button onClick={togglePause} className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors">
                  {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
                </button>
              )}
@@ -632,12 +654,12 @@ export default function GameQCM({ subject }) {
 
       {/* ── Boutons de réponse — hors canvas ── */}
       {uiState === STATE.DRIVING && !paused && current && (
-        <div className="grid grid-cols-3 gap-2 -mx-4 md:mx-0">
+        <div className="grid grid-cols-3 gap-2 md:gap-3 md:-mx-8">
           {current.options.slice(0, 3).map((opt, i) => (
             <button
               key={i}
               onClick={() => chooseLane(i)}
-              className={`rounded-2xl px-2 md:px-3 py-3 md:py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
+              className={`rounded-2xl px-2 md:px-4 py-3 md:py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
             >
               <div className="font-fredoka text-sm md:text-base text-stone-800 leading-snug">{opt}</div>
             </button>
