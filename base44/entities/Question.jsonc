@@ -52,7 +52,7 @@
   ],
   "rls": {
     "read": {
-      "rule": "auth != null"
+      "rule": "true"
     },
     "create": {
       "rule": "user.role == 'admin' || (user.role == 'teacher' && newData.subject == user.teacherSubject)"

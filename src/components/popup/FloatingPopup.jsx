@@ -62,7 +62,7 @@ export default function FloatingPopup({ subject = "ALL" }) {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 pointer-events-none">
+    <div className="fixed top-4 left-4 z-50 pointer-events-none">
       <AnimatePresence>
         {visible && current && (
           <motion.div

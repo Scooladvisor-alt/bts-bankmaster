@@ -277,8 +277,15 @@ export default function ParetoQCM({ subject }) {
         <div className="flex-1 overflow-y-auto flex flex-col items-center justify-start px-6 py-8">
           <div className="w-full max-w-2xl">
 
-            {/* Empty state */}
-            {!selectedChapter && (
+            {/* Empty state — no chapter selected */}
+            {!selectedChapter && chapters.length === 0 && !loading && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-6xl mb-5">📭</div>
+                <div className="font-display text-2xl font-bold text-stone-700 mb-2">Pas encore de questions</div>
+                <div className="text-stone-400 text-sm">Les questions Pareto n'ont pas encore été ajoutées pour cette matière.</div>
+              </div>
+            )}
+            {!selectedChapter && chapters.length > 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="text-6xl mb-5">👈</div>
                 <div className="font-display text-2xl font-bold text-stone-700 mb-2">Choisis un chapitre</div>
@@ -288,7 +295,11 @@ export default function ParetoQCM({ subject }) {
 
             {/* No questions */}
             {selectedChapter && questions.length === 0 && (
-              <div className="text-center text-stone-400 mt-16">Aucune question disponible pour ce chapitre.</div>
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-5xl mb-4">📭</div>
+                <div className="font-display text-xl font-bold text-stone-600 mb-2">Aucune question pour ce chapitre</div>
+                <div className="text-stone-400 text-sm">Les questions n'ont pas encore été ajoutées par ton professeur.</div>
+              </div>
             )}
 
             {/* Quiz */}

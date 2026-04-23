@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
 import RoleModal from "@/components/landing/RoleModal";
 import WelcomeWidget from "@/components/landing/WelcomeWidget";
-import { Sparkles, Settings } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import { getLocalUser, startTimeTracking, stopTimeTracking, getTotalSeconds, updateAdminUserTime } from "@/lib/localUser";
 
 export default function Landing() {
-  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showRoleModal, setShowRoleModal] = useState(false); // eslint-disable-line
   const [userName, setUserName] = useState(null);
   const [ready, setReady] = useState(false);
 
@@ -43,14 +43,6 @@ export default function Landing() {
       {/* Blobs déco */}
       <div className="absolute top-20 -left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
       <div className="absolute bottom-20 -right-20 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
-
-      <button
-        onClick={() => setShowRoleModal(true)}
-        className="absolute top-4 left-4 z-10 bg-white/70 backdrop-blur rounded-full p-2 text-stone-500 hover:text-stone-800"
-        aria-label="Paramètres"
-      >
-        <Settings className="w-4 h-4" />
-      </button>
 
       {showRoleModal && <RoleModal onClose={() => setShowRoleModal(false)} />}
 
