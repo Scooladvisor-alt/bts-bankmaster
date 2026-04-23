@@ -562,8 +562,14 @@ export default function GameQCM({ subject }) {
         </div>
       </div>
 
-      {/* ── HUD desktop : record à droite ── */}
-      <div className="hidden md:flex items-center justify-end gap-2">
+      {/* ── HUD desktop : retour + record ── */}
+      <div className="hidden md:flex items-center justify-between gap-3">
+        <Link
+          to={`/${subject.toLowerCase()}`}
+          className="flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm py-2 px-2 rounded-lg active:bg-stone-200 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" /> Retour
+        </Link>
         {kmRecord > 0 && (
           <div className="inline-block bg-stone-800 text-yellow-300 font-bold text-sm px-4 py-2 rounded-full">
             🏆 {kmRecord} km
@@ -571,8 +577,8 @@ export default function GameQCM({ subject }) {
         )}
       </div>
 
-      {/* ── Canvas ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap mobile-game-canvas">
+      {/* ── Canvas — augmenté 25% sur mobile ── */}
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap mobile-game-canvas" style={{ minHeight: "max(250px, 125vh)" }}>
         <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
         {/* Question banner — tout en haut */}
@@ -585,22 +591,24 @@ export default function GameQCM({ subject }) {
           </div>
         )}
 
-        {/* HUD desktop dans le canvas : cœurs + km + pause */}
-        <div className="hidden md:flex absolute left-0 right-0 z-10 items-center justify-between px-4 py-1.5" style={{ top: isPlaying && current ? "calc(2px + 60px)" : "4px" }}>
-           <div className="flex gap-1">
-             {Array.from({ length: 3 }).map((_, i) => (
-               <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
-             ))}
-           </div>
-           <div className="flex items-center gap-2">
-             <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
-             {isPlaying && (
-               <button onClick={togglePause} className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors">
-                 {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-               </button>
-             )}
-           </div>
-         </div>
+        {/* HUD desktop dans le canvas : cœurs + km + pause — adaptative */}
+         {isPlaying && current && (
+           <div className="hidden md:flex absolute left-0 right-0 z-10 items-center justify-between px-4" style={{ top: `max(calc(68px + max(0px, 100vh - 900px)), 80px)`, paddingTop: "0.375rem", paddingBottom: "0.375rem" }}>
+              <div className="flex gap-1">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
+                {isPlaying && (
+                  <button onClick={togglePause} className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors">
+                    {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                  </button>
+                )}
+              </div>
+            </div>
+         )}
 
         {/* Feedback overlays */}
         {feedback === "correct" && current && (
