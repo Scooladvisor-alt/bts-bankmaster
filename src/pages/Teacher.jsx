@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronLeft, Loader2, LogOut } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import AdminQuestions from "@/components/admin/AdminQuestions";
 import AdminRevision from "@/components/admin/AdminRevision";
 import AdminVraiOuFaux from "@/components/admin/AdminVraiOuFaux";
@@ -10,39 +11,54 @@ import AdminAssistant from "@/components/admin/AdminAssistant";
 import AdminPopups from "@/components/admin/AdminPopups";
 
 const TABS = [
-  { key: "pareto",    label: "🎯 QCM Pareto",          Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
-  { key: "jeu",       label: "🎮 QCM Jeu",              Comp: (p) => <AdminQuestions {...p} modeFilter="jeu" /> },
-  { key: "infini",    label: "🔥 QCM Infini",           Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
-  { key: "revision",  label: "📝 Questions révision",   Comp: AdminRevision },
-  { key: "libre",     label: "✍️ Réponse libre",         Comp: AdminRevision },
-  { key: "vraiofaux", label: "✅ Vrai ou Faux",          Comp: AdminVraiOuFaux },
-  { key: "cours",     label: "📚 Cours",                 Comp: AdminCourses },
-  { key: "ressources",label: "🔗 Ressources",            Comp: AdminResources },
-  { key: "assistant", label: "🤖 Assistant IA",          Comp: AdminAssistant },
-  { key: "popups",    label: "💬 Pop-ups",               Comp: AdminPopups },
+  { key: "pareto",     label: "🎯 QCM Pareto",        Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
+  { key: "jeu",        label: "🎮 QCM Jeu",            Comp: (p) => <AdminQuestions {...p} modeFilter="jeu" /> },
+  { key: "infini",     label: "🔥 QCM Infini",         Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
+  { key: "revision",   label: "📝 Questions révision", Comp: AdminRevision },
+  { key: "vraiofaux",  label: "✅ Vrai ou Faux",        Comp: AdminVraiOuFaux },
+  { key: "cours",      label: "📚 Cours",               Comp: AdminCourses },
+  { key: "ressources", label: "🔗 Ressources",          Comp: AdminResources },
+  { key: "popups",     label: "💬 Pop-ups",             Comp: AdminPopups },
+  { key: "assistant",  label: "🤖 Assistant IA",        Comp: AdminAssistant },
 ];
 
-const SUBJECT_LABELS = { vojes: "VOJES", cesbf: "CESBF" };
-
 export default function Teacher() {
-  const { subject } = useParams();
-  const subjectLabel = SUBJECT_LABELS[subject?.toLowerCase()];
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
   const [tab, setTab] = useState("pareto");
 
-  if (!subjectLabel) {
+  useEffect(() => {
+    (async () => {
+      const authed = await base44.auth.isAuthenticated();
+      if (!authed) {
+        base44.auth.redirectToLogin();
+        return;
+      }
+      const user = await base44.auth.me();
+      // Autoriser teacher ET admin
+      if (user?.role !== "teacher" && user?.role !== "admin") {
+        navigate("/");
+        return;
+      }
+      setCurrentUser(user);
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="bg-white rounded-3xl p-8 text-center shadow-duo-lg">
-          <div className="text-5xl mb-3">🔒</div>
-          <h1 className="font-display text-2xl font-bold">Matière inconnue</h1>
-          <Link to="/" className="text-primary underline mt-4 block">Retour à l'accueil</Link>
-        </div>
+      <div className="min-h-screen flex items-center justify-center text-stone-500">
+        <Loader2 className="w-5 h-5 animate-spin mr-2" /> Vérification…
       </div>
     );
   }
 
+  const isAdmin = currentUser?.role === "admin";
+  const subjectLabel = isAdmin ? null : currentUser?.teacherSubject;
   const tabConfig = TABS.find((t) => t.key === tab);
   const Comp = tabConfig?.Comp;
+  const needsSubject = !["popups", "assistant"].includes(tab);
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -52,9 +68,22 @@ export default function Teacher() {
             <ChevronLeft className="w-4 h-4" /> Accueil
           </Link>
           <div className="font-display text-xl font-bold">
-            Espace Professeur — <span className={subject === "vojes" ? "text-purple-600" : "text-orange-500"}>{subjectLabel}</span>
+            {isAdmin ? (
+              "Espace Professeur (Admin)"
+            ) : (
+              <>Espace Professeur —{" "}
+                <span className={subjectLabel === "VOJES" ? "text-purple-600" : "text-orange-500"}>
+                  {subjectLabel}
+                </span>
+              </>
+            )}
           </div>
-          <div className="w-20" />
+          <button
+            onClick={() => base44.auth.logout("/")}
+            className="text-sm font-bold text-stone-500 hover:text-stone-800 flex items-center gap-1"
+          >
+            <LogOut className="w-4 h-4" /> Déconnexion
+          </button>
         </div>
         <div className="max-w-6xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
@@ -73,9 +102,14 @@ export default function Teacher() {
 
       <div className="max-w-6xl mx-auto p-4 md:p-6">
         <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 text-sm text-blue-700 font-medium">
-          📚 Tu gères les contenus de la matière : <strong>{subjectLabel}</strong> — onglet actif : <strong>{tabConfig?.label}</strong>
+          📚 {isAdmin
+            ? `Vue admin — onglet actif : ${tabConfig?.label}`
+            : `Tu gères les contenus de la matière : `}
+          {!isAdmin && <strong>{subjectLabel}</strong>}
+          {!isAdmin && ` — onglet actif : `}
+          {!isAdmin && <strong>{tabConfig?.label}</strong>}
         </div>
-        {Comp && <Comp subjectFilter={subjectLabel} />}
+        {Comp && <Comp subjectFilter={needsSubject ? subjectLabel : undefined} />}
       </div>
     </div>
   );

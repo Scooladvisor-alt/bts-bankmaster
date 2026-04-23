@@ -1,0 +1,32 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "teacher",
+        "user"
+      ],
+      "default": "user",
+      "description": "R\u00f4le de l'utilisateur dans l'application"
+    },
+    "teacherSubject": {
+      "type": "string",
+      "enum": [
+        "VOJES",
+        "CESBF"
+      ],
+      "description": "Mati\u00e8re assign\u00e9e si r\u00f4le = teacher"
+    },
+    "toolsUsed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Liste des outils/modules utilis\u00e9s"
+    }
+  }
+}

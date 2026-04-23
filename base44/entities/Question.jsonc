@@ -41,15 +41,6 @@
     "explanation": {
       "type": "string",
       "description": "Explication affich\u00e9e apr\u00e8s r\u00e9ponse"
-    },
-    "difficulty": {
-      "type": "string",
-      "enum": [
-        "facile",
-        "moyen",
-        "difficile"
-      ],
-      "default": "moyen"
     }
   },
   "required": [
@@ -58,5 +49,19 @@
     "question",
     "options",
     "correct_index"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "rule": "auth != null"
+    },
+    "create": {
+      "rule": "user.role == 'admin' || (user.role == 'teacher' && newData.subject == user.teacherSubject)"
+    },
+    "update": {
+      "rule": "user.role == 'admin' || (user.role == 'teacher' && resource.subject == user.teacherSubject && newData.subject == resource.subject)"
+    },
+    "delete": {
+      "rule": "user.role == 'admin' || (user.role == 'teacher' && resource.subject == user.teacherSubject)"
+    }
+  }
 }

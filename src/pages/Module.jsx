@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Bot } from "lucide-react";
-import { getLocalUser } from "@/lib/localUser";
-import { updateUserLastTool } from "@/lib/localUser";
+import { base44 } from "@/api/base44Client";
+import { getLocalUser, updateUserLastTool } from "@/lib/localUser";
 import ModuleShell from "@/components/layout/ModuleShell";
 import ParetoQCM from "@/components/modules/ParetoQCM";
 import GameQCM from "@/components/modules/GameQCM";
@@ -34,10 +34,24 @@ export default function Module() {
   const config = MODULES[method];
 
   useEffect(() => {
-    const user = getLocalUser();
-    if (user?.name && method) {
-      updateUserLastTool(user.name, method);
+    // Tracker dans localStorage (apprenants anonymes)
+    const localUser = getLocalUser();
+    if (localUser?.name && method) {
+      updateUserLastTool(localUser.name, method);
     }
+    // Tracker dans Base44 User (utilisateurs authentifiés)
+    (async () => {
+      try {
+        const authed = await base44.auth.isAuthenticated();
+        if (!authed) return;
+        const me = await base44.auth.me();
+        if (!me) return;
+        const tools = Array.isArray(me.toolsUsed) ? me.toolsUsed : [];
+        if (!tools.includes(method)) {
+          await base44.auth.updateMe({ toolsUsed: [...tools, method] });
+        }
+      } catch {}
+    })();
   }, [method]);
 
   if (!subjectLabel || !config) {
