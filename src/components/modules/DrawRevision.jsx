@@ -1,110 +1,131 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, CheckCircle2, ChevronRight } from "lucide-react";
+import { RotateCcw, CheckCircle2 } from "lucide-react";
 
-// Questions par matière — le texte à tracer
 const QUESTIONS = {
   VOJES: [
-    { prompt: "Comment s'appelle le coefficient de réserves obligatoires en abrégé ?", answer: "RRR" },
-    { prompt: "Quelle institution fixe les taux directeurs de la zone euro ?", answer: "BCE" },
-    { prompt: "Abréviation de la Lutte Contre le Blanchiment et le Financement du Terrorisme", answer: "LCB-FT" },
+    { prompt: "Coefficient de réserves obligatoires en abrégé", answer: "RRR" },
+    { prompt: "Institution qui fixe les taux directeurs de la zone euro", answer: "BCE" },
+    { prompt: "Lutte Contre le Blanchiment et le Financement du Terrorisme", answer: "LCB-FT" },
     { prompt: "Ratio de solvabilité imposé par Bâle III (en %)", answer: "8%" },
-    { prompt: "Sigle de l'Autorité de Contrôle Prudentiel et de Résolution", answer: "ACPR" },
+    { prompt: "Autorité de Contrôle Prudentiel et de Résolution", answer: "ACPR" },
   ],
   CESBF: [
     { prompt: "Taux annuel effectif global — abréviation", answer: "TAEG" },
-    { prompt: "Durée légale de rétractation pour un crédit conso (jours)", answer: "14" },
-    { prompt: "Sigle du Plan d'Épargne en Actions", answer: "PEA" },
-    { prompt: "Abréviation du Plan d'Épargne Retraite", answer: "PER" },
-    { prompt: "Nombre de garants maximum pour un cautionnement solidaire", answer: "2" },
+    { prompt: "Durée légale de rétractation pour un crédit conso (en jours)", answer: "14" },
+    { prompt: "Plan d'Épargne en Actions — sigle", answer: "PEA" },
+    { prompt: "Plan d'Épargne Retraite — abréviation", answer: "PER" },
+    { prompt: "Nombre de jours du délai de réflexion pour un crédit immobilier", answer: "10" },
   ],
 };
 
-// Dessiner le texte guide sur le canvas (semi-transparent)
-function drawGuide(ctx, text, W, H) {
-  ctx.clearRect(0, 0, W, H);
-  // Fond blanc
+// Dimensions internes du canvas (résolution fixe)
+const W = 600;
+const H = 180;
+
+// Dessine le texte guide sur un canvas hors-écran, retourne son ImageData
+function buildGuideImageData(text) {
+  const offscreen = document.createElement("canvas");
+  offscreen.width = W;
+  offscreen.height = H;
+  const ctx = offscreen.getContext("2d");
+
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
 
-  // Texte guide transparent
-  const fontSize = Math.min(H * 0.55, W / (text.length * 0.65));
-  ctx.font = `900 ${fontSize}px 'Fredoka', sans-serif`;
+  // Taille de police adaptée à la longueur du texte
+  const fontSize = Math.min(H * 0.72, (W * 0.88) / (text.length * 0.58));
+  ctx.font = `900 ${fontSize}px Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = "rgba(130, 100, 220, 0.18)";
+
+  // On remplit avec du noir opaque pour la détection (hors-écran)
+  ctx.fillStyle = "#000000";
   ctx.fillText(text, W / 2, H / 2);
 
-  // Ligne guide centrale
-  ctx.strokeStyle = "rgba(130,100,220,0.08)";
-  ctx.lineWidth = 1;
-  ctx.setLineDash([6, 6]);
-  ctx.beginPath();
-  ctx.moveTo(W * 0.1, H / 2);
-  ctx.lineTo(W * 0.9, H / 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Récupérer les pixels du guide pour la détection
-  const imageData = ctx.getImageData(0, 0, W, H);
-  return imageData;
+  return ctx.getImageData(0, 0, W, H);
 }
 
-// Vérifie si un pixel appartient au texte guide (canal alpha > seuil)
-function isOnGuide(guideData, x, y, W) {
-  // On utilise l'opacité — le fond blanc est alpha=255 partout
-  // Le texte guide a une couleur différente du blanc : R<200 ou G<200 ou B<200
-  const i = (Math.round(y) * W + Math.round(x)) * 4;
-  const r = guideData.data[i];
-  const g = guideData.data[i + 1];
-  const b = guideData.data[i + 2];
-  // Si le pixel est significativement coloré (pas blanc pur)
-  return r < 235 || g < 235 || b < 235;
+// Vérifie si le pixel (x,y) est "noir" dans l'ImageData du guide
+function pixelIsGuide(imageData, x, y) {
+  const xi = Math.round(x);
+  const yi = Math.round(y);
+  if (xi < 0 || yi < 0 || xi >= W || yi >= H) return false;
+  const i = (yi * W + xi) * 4;
+  // Pixel noir = R faible (fond blanc = R=255)
+  return imageData.data[i] < 128;
 }
 
 export default function DrawRevision({ subject }) {
   const questions = QUESTIONS[subject] || [];
   const [qIndex, setQIndex] = useState(0);
-  const [phase, setPhase] = useState("question"); // question | draw | result
-  const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
-  const [drawing, setDrawing] = useState(false);
+  const [score, setScore] = useState(0);
+  const [result, setResult] = useState(null); // null | { pct, success }
   const [hasDrawn, setHasDrawn] = useState(false);
 
-  const canvasRef = useRef(null);
-  const guideDataRef = useRef(null);
-  const lastPos = useRef(null);
-  const onGuidePixels = useRef(0);
-  const offGuidePixels = useRef(0);
+  // Canvas dessin (visible)
+  const drawCanvasRef = useRef(null);
+  // Canvas guide (visible, en dessous via position absolute)
+  const guideCanvasRef = useRef(null);
+  // ImageData hors-écran pour la détection
+  const guideImageDataRef = useRef(null);
 
-  const W = 340;
-  const H = 120;
+  const isDrawing = useRef(false);
+  const lastPos = useRef(null);
+  const onGuideCount = useRef(0);
+  const offGuideCount = useRef(0);
 
   const q = questions[qIndex];
 
-  // Initialiser le canvas avec le guide
-  const initCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !q) return;
-    const ctx = canvas.getContext("2d");
-    guideDataRef.current = drawGuide(ctx, q.answer, W, H);
-    onGuidePixels.current = 0;
-    offGuidePixels.current = 0;
+  // Initialise / réinitialise le canvas guide et le canvas dessin
+  const init = () => {
+    if (!q) return;
+
+    // Canvas dessin — effacer complètement (transparent)
+    const drawCanvas = drawCanvasRef.current;
+    if (drawCanvas) {
+      const ctx = drawCanvas.getContext("2d");
+      ctx.clearRect(0, 0, W, H);
+    }
+
+    // Canvas guide — dessiner le texte en transparent
+    const guideCanvas = guideCanvasRef.current;
+    if (guideCanvas) {
+      const ctx = guideCanvas.getContext("2d");
+      ctx.clearRect(0, 0, W, H);
+      const fontSize = Math.min(H * 0.72, (W * 0.88) / (q.answer.length * 0.58));
+      ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "rgba(139, 92, 246, 0.15)"; // violet très transparent
+      ctx.fillText(q.answer, W / 2, H / 2);
+    }
+
+    // ImageData hors-écran pour la détection pixel
+    guideImageDataRef.current = buildGuideImageData(q.answer);
+
+    // Reset compteurs
+    onGuideCount.current = 0;
+    offGuideCount.current = 0;
     setHasDrawn(false);
+    setResult(null);
+    isDrawing.current = false;
     lastPos.current = null;
-  }, [q]);
+  };
 
   useEffect(() => {
-    if (phase === "draw") {
-      setTimeout(initCanvas, 50);
-    }
-  }, [phase, initCanvas]);
+    // Petit délai pour que le DOM soit rendu
+    const t = setTimeout(init, 60);
+    return () => clearTimeout(t);
+  }, [qIndex]);
 
-  const getPos = (e, canvas) => {
+  const getPos = (e) => {
+    const canvas = drawCanvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const scaleX = W / rect.width;
     const scaleY = H / rect.height;
-    if (e.touches) {
+    if (e.touches && e.touches.length > 0) {
       return {
         x: (e.touches[0].clientX - rect.left) * scaleX,
         y: (e.touches[0].clientY - rect.top) * scaleY,
@@ -118,55 +139,66 @@ export default function DrawRevision({ subject }) {
 
   const startDraw = (e) => {
     e.preventDefault();
-    setDrawing(true);
+    if (result) return; // désactivé après validation
+    isDrawing.current = true;
     setHasDrawn(true);
-    const canvas = canvasRef.current;
-    lastPos.current = getPos(e, canvas);
+    lastPos.current = getPos(e);
   };
 
   const draw = (e) => {
     e.preventDefault();
-    if (!drawing) return;
-    const canvas = canvasRef.current;
+    if (!isDrawing.current || result) return;
+    const canvas = drawCanvasRef.current;
     const ctx = canvas.getContext("2d");
-    const pos = getPos(e, canvas);
+    const pos = getPos(e);
     const prev = lastPos.current;
+    if (!prev) { lastPos.current = pos; return; }
 
-    // Vérifier si on est sur le guide
-    const onGuide = guideDataRef.current ? isOnGuide(guideDataRef.current, pos.x, pos.y, W) : false;
+    // Vérifier si la position actuelle est sur le guide
+    const onGuide = pixelIsGuide(guideImageDataRef.current, pos.x, pos.y);
 
+    // Dessiner le segment
     ctx.beginPath();
     ctx.moveTo(prev.x, prev.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 10;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-
-    if (onGuide) {
-      ctx.strokeStyle = "rgba(100, 60, 200, 0.85)";
-      onGuidePixels.current++;
-    } else {
-      ctx.strokeStyle = "rgba(239, 68, 68, 0.55)";
-      offGuidePixels.current++;
-    }
+    ctx.strokeStyle = onGuide ? "rgba(109, 40, 217, 0.9)" : "rgba(239, 68, 68, 0.7)";
     ctx.stroke();
+
+    // Compter les points pour le score
+    // On échantillonne tous les ~2px le long du segment
+    const dx = pos.x - prev.x;
+    const dy = pos.y - prev.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const steps = Math.max(1, Math.round(dist / 2));
+    for (let s = 0; s <= steps; s++) {
+      const sx = prev.x + (dx * s) / steps;
+      const sy = prev.y + (dy * s) / steps;
+      if (pixelIsGuide(guideImageDataRef.current, sx, sy)) {
+        onGuideCount.current++;
+      } else {
+        offGuideCount.current++;
+      }
+    }
 
     lastPos.current = pos;
   };
 
   const stopDraw = (e) => {
     e?.preventDefault();
-    setDrawing(false);
+    isDrawing.current = false;
     lastPos.current = null;
   };
 
   const validate = () => {
-    const total = onGuidePixels.current + offGuidePixels.current;
+    const total = onGuideCount.current + offGuideCount.current;
     if (total === 0) return;
-    const pct = total > 0 ? Math.round((onGuidePixels.current / total) * 100) : 0;
-    const success = pct >= 50;
+    const pct = Math.round((onGuideCount.current / total) * 100);
+    const success = pct >= 55;
     if (success) setScore(s => s + 1);
-    setPhase("result");
+    setResult({ pct, success });
   };
 
   const next = () => {
@@ -174,33 +206,26 @@ export default function DrawRevision({ subject }) {
       setDone(true);
     } else {
       setQIndex(i => i + 1);
-      setPhase("question");
     }
   };
 
   const restart = () => {
     setQIndex(0);
-    setPhase("question");
     setScore(0);
     setDone(false);
+    setResult(null);
   };
-
-  const total = onGuidePixels.current + offGuidePixels.current;
-  const pct = total > 0 ? Math.round((onGuidePixels.current / total) * 100) : 0;
-  const success = pct >= 50;
 
   if (done) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-8">
         <div className="text-5xl mb-3">{score >= 4 ? "🏆" : score >= 2 ? "💪" : "📚"}</div>
-        <div className="font-display text-2xl font-bold text-stone-900 mb-1">
-          {score} / {questions.length}
-        </div>
+        <div className="font-display text-3xl font-bold text-stone-900 mb-1">{score} / {questions.length}</div>
         <div className="text-stone-500 text-sm mb-6">
           {score === questions.length ? "Parfait !" : score >= 3 ? "Bien joué !" : "Continue à t'entraîner !"}
         </div>
         <button onClick={restart}
-          className="flex items-center gap-2 mx-auto bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all">
+          className="inline-flex items-center gap-2 bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all">
           <RotateCcw className="w-4 h-4" /> Recommencer
         </button>
       </motion.div>
@@ -210,83 +235,85 @@ export default function DrawRevision({ subject }) {
   return (
     <div className="flex flex-col gap-4">
       {/* Progress */}
-      <div className="flex justify-between text-xs font-bold text-stone-400 mb-1">
+      <div className="flex justify-between text-xs font-bold text-stone-400">
         <span>Question {qIndex + 1} / {questions.length}</span>
         <span className="text-violet-600">{score} ✅</span>
       </div>
-      <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden mb-2">
+      <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
         <div className="h-full bg-violet-400 rounded-full transition-all" style={{ width: `${(qIndex / questions.length) * 100}%` }} />
       </div>
 
       <AnimatePresence mode="wait">
-        {phase === "question" && (
-          <motion.div key="q" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-stone-300">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-violet-500 mb-2">✏️ Mémorise et trace</div>
-            <p className="font-fredoka text-lg leading-snug text-stone-800 mb-4">{q.prompt}</p>
-            <div className="bg-violet-50 rounded-xl px-4 py-3 text-center border border-violet-200">
-              <div className="text-xs text-violet-400 font-bold mb-1">Réponse à tracer</div>
-              <div className="font-display text-3xl font-bold text-violet-700">{q.answer}</div>
-            </div>
-            <button onClick={() => setPhase("draw")}
-              className="mt-4 w-full flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-4 py-3 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all">
-              <ChevronRight className="w-4 h-4" /> J'ai mémorisé — à moi de tracer !
+        <motion.div key={qIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+          className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-stone-300">
+
+          {/* Question */}
+          <p className="font-fredoka text-lg text-stone-800 mb-1 leading-snug">{q.prompt}</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400 mb-4">
+            ✏️ Trace par-dessus le modèle — reste dans les contours
+          </p>
+
+          {/* Zone de dessin : deux canvas superposés */}
+          <div className="relative w-full rounded-2xl overflow-hidden border-2 border-violet-200"
+            style={{ height: 120, background: "#faf8ff", touchAction: "none" }}>
+
+            {/* Canvas guide (en dessous) */}
+            <canvas
+              ref={guideCanvasRef}
+              width={W}
+              height={H}
+              className="absolute inset-0 w-full h-full"
+              style={{ pointerEvents: "none" }}
+            />
+
+            {/* Canvas dessin (par-dessus, capte les events) */}
+            <canvas
+              ref={drawCanvasRef}
+              width={W}
+              height={H}
+              className="absolute inset-0 w-full h-full cursor-crosshair"
+              style={{ background: "transparent" }}
+              onMouseDown={startDraw}
+              onMouseMove={draw}
+              onMouseUp={stopDraw}
+              onMouseLeave={stopDraw}
+              onTouchStart={startDraw}
+              onTouchMove={draw}
+              onTouchEnd={stopDraw}
+            />
+          </div>
+
+          {/* Résultat inline */}
+          <AnimatePresence>
+            {result && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className={`mt-3 rounded-xl px-4 py-3 text-center ${result.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
+                <div className={`font-bold text-sm ${result.success ? "text-green-700" : "text-red-700"}`}>
+                  {result.success ? `✅ Bien tracé ! (${result.pct}% dans la zone)` : `❌ ${result.pct}% dans la zone — essaie de mieux suivre le modèle`}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Boutons */}
+          <div className="flex gap-2 mt-4">
+            <button onClick={init}
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-stone-100 text-stone-600 font-bold text-xs border border-stone-200 hover:bg-stone-200 transition-all">
+              <RotateCcw className="w-3.5 h-3.5" /> Effacer
             </button>
-          </motion.div>
-        )}
-
-        {phase === "draw" && (
-          <motion.div key="draw" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-stone-300">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-violet-500 mb-1">✏️ Trace par-dessus le modèle</div>
-            <p className="text-xs text-stone-400 mb-3">Reste dans les contours — rouge = hors zone</p>
-
-            <div className="flex justify-center">
-              <canvas
-                ref={canvasRef}
-                width={W}
-                height={H}
-                className="border-2 border-violet-200 rounded-2xl cursor-crosshair touch-none"
-                style={{ width: "100%", maxWidth: W, height: "auto", background: "#fff" }}
-                onMouseDown={startDraw}
-                onMouseMove={draw}
-                onMouseUp={stopDraw}
-                onMouseLeave={stopDraw}
-                onTouchStart={startDraw}
-                onTouchMove={draw}
-                onTouchEnd={stopDraw}
-              />
-            </div>
-
-            <div className="flex gap-2 mt-4">
-              <button onClick={initCanvas}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-100 text-stone-600 font-bold text-xs border border-stone-200 hover:bg-stone-200 transition-all">
-                <RotateCcw className="w-3.5 h-3.5" /> Effacer
-              </button>
+            {!result ? (
               <button onClick={validate} disabled={!hasDrawn}
                 className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-4 py-2.5 rounded-2xl border-b-4 border-violet-800 disabled:opacity-40 active:border-b-0 active:translate-y-0.5 transition-all">
-                <CheckCircle2 className="w-4 h-4" /> Valider mon tracé
+                <CheckCircle2 className="w-4 h-4" /> Valider
               </button>
-            </div>
-          </motion.div>
-        )}
-
-        {phase === "result" && (
-          <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-stone-300">
-            <div className={`rounded-2xl p-4 mb-4 text-center ${success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-              <div className="text-2xl mb-1">{success ? "✅" : "❌"}</div>
-              <div className={`font-bold text-sm ${success ? "text-green-700" : "text-red-700"}`}>
-                {success ? `Bien tracé ! ${pct}% dans la zone` : `${pct}% dans la zone — réessaie !`}
-              </div>
-              <div className="text-xs text-stone-500 mt-1">Réponse : <span className="font-bold text-stone-800">{q.answer}</span></div>
-            </div>
-            <button onClick={next}
-              className="w-full flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-4 py-3 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all">
-              {qIndex + 1 < questions.length ? "Question suivante →" : "Voir le résultat"}
-            </button>
-          </motion.div>
-        )}
+            ) : (
+              <button onClick={next}
+                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-4 py-2.5 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all">
+                {qIndex + 1 < questions.length ? "Question suivante →" : "Voir le résultat"}
+              </button>
+            )}
+          </div>
+        </motion.div>
       </AnimatePresence>
     </div>
   );
