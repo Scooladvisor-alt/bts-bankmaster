@@ -75,6 +75,17 @@ export default function Module() {
     return <Comp subject={subjectLabel} />;
   }
 
+  // Le jeu voiture a besoin d'un layout compact sans scroll superflu sur mobile
+  if (method === "jeu") {
+    return (
+      <div className={`${config.bg} min-h-screen`}>
+        <div className="max-w-3xl mx-auto px-3 md:px-6 pt-3 md:pt-5 pb-4 md:pb-24">
+          <Comp subject={subjectLabel} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ModuleShell subject={subjectLabel} title={config.title} emoji={config.emoji} bgClass={config.bg}>
       <Comp subject={subjectLabel} />

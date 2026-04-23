@@ -58,8 +58,12 @@ export default function InfiniteQCM({ subject }) {
     if (selected !== null) return;
     setSelected(i);
     if (i === current.correct_index) {
-      setScore((s) => s + 1);
+      const newScore = score + 1;
+      setScore(newScore);
       setStreak((s) => s + 1);
+      // Met à jour le record en temps réel à chaque bonne réponse
+      const newRecord = saveInfiniRecord(subject, newScore);
+      setBest(newRecord);
       setTimeout(() => next(null), 700);
     } else {
       const newRecord = saveInfiniRecord(subject, score);

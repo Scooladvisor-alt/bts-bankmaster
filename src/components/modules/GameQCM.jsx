@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Heart, RotateCcw, Pause, Play } from "lucide-react";
+import { Loader2, Heart, RotateCcw, Pause, Play, ChevronLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { saveGameKmRecord, getGameKmRecord } from "@/lib/scoreStorage";
 import { saveGameKmRecordDB } from "@/lib/recordStorage";
@@ -525,25 +526,37 @@ export default function GameQCM({ subject }) {
   return (
     <div className="w-full select-none flex flex-col gap-2">
 
-      {/* ── HUD mobile : cœurs + pause à gauche / km + record à droite ── */}
-      <div className="flex md:hidden items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
+      {/* ── HUD mobile : retour + cœurs + pause + km ── */}
+      <div className="flex md:hidden items-center gap-1.5">
+        {/* Bouton retour */}
+        <Link
+          to={`/${subject.toLowerCase()}`}
+          className="flex items-center gap-0.5 bg-white border border-stone-200 text-stone-600 font-bold text-xs px-2 py-1.5 rounded-xl shrink-0"
+        >
+          <ChevronLeft className="w-3.5 h-3.5" /> Retour
+        </Link>
+        {/* Séparateur */}
+        <div className="w-px h-5 bg-stone-200 shrink-0" />
+        {/* Cœurs */}
+        <div className="flex items-center gap-1">
           {Array.from({ length: 3 }).map((_, i) => (
             <Heart key={i} className={`w-4 h-4 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-stone-300"}`} />
           ))}
-          {isPlaying && (
-            <button onClick={togglePause} className="ml-1 bg-stone-200 rounded-full p-1 text-stone-700">
-              {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-            </button>
-          )}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="bg-black/80 text-green-300 font-bold text-xs px-3 py-1 rounded-full">
-            🛣️ {km.toFixed(1)} km
+        {/* Pause */}
+        {isPlaying && (
+          <button onClick={togglePause} className="bg-stone-200 rounded-full p-1 text-stone-700 shrink-0">
+            {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+          </button>
+        )}
+        {/* Km + record — poussés à droite */}
+        <div className="flex items-center gap-1.5 ml-auto">
+          <div className="bg-black/80 text-green-300 font-bold text-xs px-2 py-1 rounded-full">
+            🛣️ {km.toFixed(1)}
           </div>
           {kmRecord > 0 && (
-            <div className="bg-stone-800 text-yellow-300 font-bold text-xs px-3 py-1 rounded-full">
-              🏆 {kmRecord} km
+            <div className="bg-stone-800 text-yellow-300 font-bold text-xs px-2 py-1 rounded-full">
+              🏆 {kmRecord}
             </div>
           )}
         </div>
@@ -559,7 +572,7 @@ export default function GameQCM({ subject }) {
       </div>
 
       {/* ── Canvas ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap">
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap mobile-game-canvas">
         <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
         {/* Question banner — tout en haut */}

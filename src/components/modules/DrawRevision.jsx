@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, CheckCircle2, Loader2, ChevronLeft } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 // Dimensions internes du canvas (résolution fixe — grande !)
 const W = 900;
@@ -257,10 +257,10 @@ export default function DrawRevision({ subject: subjectProp }) {
             {score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= Math.ceil(questions.length * 0.7) ? "Bien joué !" : "Continue à t'entraîner !"}
           </div>
           <div className="flex gap-3 justify-center flex-wrap">
-            <button onClick={() => navigate(`/${subjectKey}`)}
+            <Link to={`/${subjectKey}`}
               className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-stone-100 text-stone-700 font-bold border border-stone-200 hover:bg-stone-200 transition-all">
               <ChevronLeft className="w-4 h-4" /> Retour
-            </button>
+            </Link>
             <button onClick={restart}
               className="inline-flex items-center gap-2 bg-violet-600 text-white font-display font-bold px-8 py-4 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
               <RotateCcw className="w-5 h-5" /> Recommencer
@@ -275,12 +275,12 @@ export default function DrawRevision({ subject: subjectProp }) {
     <div className="fixed inset-0 bg-gradient-to-b from-violet-50 to-purple-50 flex flex-col overflow-hidden">
       {/* Top bar — retour + progression discrète sur la même ligne */}
       <div className="flex items-center gap-3 px-4 py-3 shrink-0">
-        <button
-          onClick={() => navigate(`/${subjectKey}`)}
-          className="flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm shrink-0"
+        <Link
+          to={`/${subjectKey}`}
+          className="flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm shrink-0 py-2 pr-2"
         >
           <ChevronLeft className="w-4 h-4" /> Retour
-        </button>
+        </Link>
         {/* Barre de progression discrète */}
         <div className="flex-1 flex items-center gap-2 min-w-0">
           <div className="flex-1 h-1.5 bg-violet-100 rounded-full overflow-hidden">

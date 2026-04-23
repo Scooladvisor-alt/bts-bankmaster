@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
 import {
@@ -50,7 +50,6 @@ const METHODS = [
 
 export default function Subject() {
   const { subject } = useParams();
-  const navigate = useNavigate();
   const config = SUBJECT_CONFIG[subject];
 
   if (!config) {
@@ -67,12 +66,12 @@ export default function Subject() {
       <FloatingPopup subject={config.name} alignRight={true} />
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-6 pb-20">
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm mb-6"
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm mb-6 py-2 pr-3"
         >
           <ChevronLeft className="w-4 h-4" /> Accueil
-        </button>
+        </Link>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}

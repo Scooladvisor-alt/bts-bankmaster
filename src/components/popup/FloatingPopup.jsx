@@ -62,7 +62,7 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
   };
 
   return (
-    <div className={`fixed top-4 z-50 pointer-events-none ${alignRight ? "right-4" : "left-4"}`}>
+    <div className={`fixed top-3 z-40 pointer-events-none ${alignRight ? "right-3" : "left-3"}`} style={{ maxWidth: "min(240px, calc(100vw - 24px))" }}>
       <AnimatePresence>
         {visible && current && (
           <motion.div
@@ -74,7 +74,7 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
             className="pointer-events-auto"
           >
             {/* Liquid glass — fond or translucide, bordure brillante or */}
-            <div className="relative overflow-hidden rounded-3xl whitespace-nowrap"
+            <div className="relative overflow-hidden rounded-2xl"
               style={{
                 background: "rgba(255, 215, 80, 0.18)",
                 backdropFilter: "blur(24px) saturate(180%)",
@@ -107,11 +107,11 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
                 <X className="w-3 h-3 text-amber-700" />
               </button>
 
-              <div className="px-4 pt-3.5 pb-4">
-                <div className="text-[9px] uppercase tracking-widest font-bold mb-1.5" style={{ color: "#b8860b" }}>
+              <div className="px-3 pt-2.5 pb-3 pr-7">
+                <div className="text-[8px] uppercase tracking-widest font-bold mb-1" style={{ color: "#b8860b" }}>
                   Le savais-tu ?
                 </div>
-                <div className="text-sm leading-snug font-semibold text-stone-800">
+                <div className="text-xs leading-snug font-semibold text-stone-800">
                   {current.content}
                 </div>
               </div>

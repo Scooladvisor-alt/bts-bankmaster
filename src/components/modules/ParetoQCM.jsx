@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, RotateCcw, CheckCircle2, XCircle, Menu, X, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import DuoButton from "@/components/ui-duo/DuoButton";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { saveParetoScore, getParetoScore, getScoreColor, getScoreBgColor } from "@/lib/scoreStorage";
 import { saveParetoScoreDB } from "@/lib/recordStorage";
 import { trackProgress } from "@/lib/trackProgress";
@@ -184,12 +184,12 @@ export default function ParetoQCM({ subject }) {
       `}>
         {/* Bouton retour en haut */}
         <div className="px-4 py-3 border-b border-stone-100 bg-white flex items-center justify-between shrink-0">
-          <button
-            onClick={() => navigate(`/${subject.toLowerCase()}`)}
-            className="flex items-center gap-1.5 font-bold text-stone-600 hover:text-stone-900 transition-colors text-sm"
+          <Link
+            to={`/${subject.toLowerCase()}`}
+            className="flex items-center gap-1.5 font-bold text-stone-600 hover:text-stone-900 transition-colors text-sm py-1"
           >
             <ChevronLeft className="w-4 h-4" /> Retour à {subject}
-          </button>
+          </Link>
           <button className="md:hidden p-1.5 rounded-lg bg-stone-100 text-stone-600" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />
           </button>
