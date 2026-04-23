@@ -74,7 +74,7 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
             className="pointer-events-auto"
           >
             {/* Liquid glass — fond or translucide, bordure brillante or */}
-            <div className="relative max-w-[270px] overflow-hidden rounded-3xl"
+            <div className="relative overflow-hidden rounded-3xl whitespace-nowrap"
               style={{
                 background: "rgba(255, 215, 80, 0.18)",
                 backdropFilter: "blur(24px) saturate(180%)",

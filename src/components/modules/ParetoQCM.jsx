@@ -319,8 +319,8 @@ export default function ParetoQCM({ subject }) {
 
                 <AnimatePresence mode="wait">
                   <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                    {/* Question card */}
-                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 border-b-4 border-b-stone-300 mb-4">
+                    {/* Question */}
+                    <div className="mb-4 px-1">
                       <div className="font-fredoka text-xl leading-snug text-stone-900">{q.question}</div>
                     </div>
 

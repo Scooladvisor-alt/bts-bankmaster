@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, CheckCircle2, Loader2 } from "lucide-react";
+import { RotateCcw, CheckCircle2, Loader2, ChevronLeft } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useNavigate, useParams } from "react-router-dom";
 
 // Dimensions internes du canvas (résolution fixe — grande !)
 const W = 900;
@@ -55,7 +56,10 @@ function drawGuide(canvas, text) {
   ctx.fillText(text, W / 2, H / 2);
 }
 
-export default function DrawRevision({ subject }) {
+export default function DrawRevision({ subject: subjectProp }) {
+  const navigate = useNavigate();
+  const { subject: subjectParam } = useParams();
+  const subject = subjectProp || subjectParam;
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [qIndex, setQIndex] = useState(0);
@@ -241,151 +245,172 @@ export default function DrawRevision({ subject }) {
     );
   }
 
+  const subjectKey = (subject || "").toLowerCase();
+
   if (done) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
-        <div className="text-6xl mb-4">{score >= Math.ceil(questions.length * 0.8) ? "🏆" : score >= Math.ceil(questions.length * 0.5) ? "💪" : "📚"}</div>
-        <div className="font-display text-4xl font-bold text-stone-900 mb-1">{score} / {questions.length}</div>
-        <div className="text-stone-500 text-base mb-8">
-          {score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= Math.ceil(questions.length * 0.7) ? "Bien joué !" : "Continue à t'entraîner !"}
-        </div>
-        <button onClick={restart}
-          className="inline-flex items-center gap-2 bg-violet-600 text-white font-display font-bold px-8 py-4 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
-          <RotateCcw className="w-5 h-5" /> Recommencer
-        </button>
-      </motion.div>
+      <div className="fixed inset-0 bg-gradient-to-b from-violet-50 to-purple-50 flex flex-col items-center justify-center p-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+          <div className="text-6xl mb-4">{score >= Math.ceil(questions.length * 0.8) ? "🏆" : score >= Math.ceil(questions.length * 0.5) ? "💪" : "📚"}</div>
+          <div className="font-display text-4xl font-bold text-stone-900 mb-1">{score} / {questions.length}</div>
+          <div className="text-stone-500 text-base mb-8">
+            {score === questions.length ? "Parfait ! Maîtrise totale 🎯" : score >= Math.ceil(questions.length * 0.7) ? "Bien joué !" : "Continue à t'entraîner !"}
+          </div>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <button onClick={() => navigate(`/${subjectKey}`)}
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-stone-100 text-stone-700 font-bold border border-stone-200 hover:bg-stone-200 transition-all">
+              <ChevronLeft className="w-4 h-4" /> Retour
+            </button>
+            <button onClick={restart}
+              className="inline-flex items-center gap-2 bg-violet-600 text-white font-display font-bold px-8 py-4 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
+              <RotateCcw className="w-5 h-5" /> Recommencer
+            </button>
+          </div>
+        </motion.div>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Progress */}
-      <div className="flex justify-between text-sm font-bold text-stone-400">
-        <span>Question {qIndex + 1} / {questions.length}</span>
-        <span className="text-violet-600">{score} ✅</span>
-      </div>
-      <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
-        <div className="h-full bg-violet-400 rounded-full transition-all" style={{ width: `${(qIndex / questions.length) * 100}%` }} />
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.div key={qIndex}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          className="bg-white rounded-3xl p-6 shadow-sm border border-stone-200 border-b-4 border-b-stone-300"
+    <div className="fixed inset-0 bg-gradient-to-b from-violet-50 to-purple-50 flex flex-col overflow-hidden">
+      {/* Top bar — retour + progression discrète sur la même ligne */}
+      <div className="flex items-center gap-3 px-4 py-3 shrink-0">
+        <button
+          onClick={() => navigate(`/${subjectKey}`)}
+          className="flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm shrink-0"
         >
-          {/* Question */}
-          <p className="font-fredoka text-2xl text-stone-800 mb-1 leading-snug">{q?.prompt}</p>
-          <p className="text-xs font-bold uppercase tracking-widest text-violet-400 mb-5">
-            ✏️ Trace par-dessus le modèle — reste dans les contours
-          </p>
+          <ChevronLeft className="w-4 h-4" /> Retour
+        </button>
+        {/* Barre de progression discrète */}
+        <div className="flex-1 flex items-center gap-2 min-w-0">
+          <div className="flex-1 h-1.5 bg-violet-100 rounded-full overflow-hidden">
+            <div className="h-full bg-violet-400 rounded-full transition-all" style={{ width: `${(qIndex / questions.length) * 100}%` }} />
+          </div>
+          <span className="text-[11px] font-bold text-violet-400 shrink-0">{qIndex + 1}/{questions.length}</span>
+          <span className="text-[11px] font-bold text-stone-400 shrink-0">{score} ✅</span>
+        </div>
+      </div>
 
-          {/* Zone de dessin — deux canvas superposés */}
-          <div className="relative w-full rounded-3xl overflow-hidden border-4 border-violet-200"
-            style={{ height: 260, background: "linear-gradient(135deg, #faf8ff 0%, #f5f0ff 100%)", touchAction: "none" }}>
+      {/* Contenu scrollable */}
+      <div className="flex-1 overflow-y-auto px-4 pb-6">
+        <AnimatePresence mode="wait">
+          <motion.div key={qIndex}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="flex flex-col gap-4"
+          >
+            {/* Question */}
+            <div>
+              <p className="font-fredoka text-2xl text-stone-800 mb-1 leading-snug">{q?.prompt}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-violet-400">
+                ✏️ Trace par-dessus le modèle — reste dans les contours
+              </p>
+            </div>
 
-            {/* Canvas guide — toujours visible en dessous */}
-            <canvas
-              ref={guideRefCallback}
-              width={W}
-              height={H}
-              className="absolute inset-0 w-full h-full"
-              style={{ pointerEvents: "none" }}
-            />
+            {/* Zone de dessin — pleine largeur, hauteur adaptée */}
+            <div className="relative w-full rounded-3xl overflow-hidden border-4 border-violet-200"
+              style={{ height: 220, background: "linear-gradient(135deg, #faf8ff 0%, #f5f0ff 100%)", touchAction: "none" }}>
 
-            {/* Canvas dessin — par-dessus, capte les events */}
-            <canvas
-              ref={drawCanvasRef}
-              width={W}
-              height={H}
-              className="absolute inset-0 w-full h-full cursor-crosshair"
-              style={{ background: "transparent" }}
-              onMouseDown={startDraw}
-              onMouseMove={draw}
-              onMouseUp={stopDraw}
-              onMouseLeave={stopDraw}
-              onTouchStart={startDraw}
-              onTouchMove={draw}
-              onTouchEnd={stopDraw}
-            />
+              <canvas
+                ref={guideRefCallback}
+                width={W}
+                height={H}
+                className="absolute inset-0 w-full h-full"
+                style={{ pointerEvents: "none" }}
+              />
+              <canvas
+                ref={drawCanvasRef}
+                width={W}
+                height={H}
+                className="absolute inset-0 w-full h-full cursor-crosshair"
+                style={{ background: "transparent" }}
+                onMouseDown={startDraw}
+                onMouseMove={draw}
+                onMouseUp={stopDraw}
+                onMouseLeave={stopDraw}
+                onTouchStart={startDraw}
+                onTouchMove={draw}
+                onTouchEnd={stopDraw}
+              />
 
-            {/* Shimmer de succès */}
-            <AnimatePresence>
-              {showShimmer && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none z-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
+              {/* Shimmer de succès */}
+              <AnimatePresence>
+                {showShimmer && (
                   <motion.div
-                    className="absolute inset-0 rounded-3xl"
+                    className="absolute inset-0 pointer-events-none z-10"
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: [0, 0.6, 0] }}
-                    transition={{ duration: 1.5, times: [0, 0.3, 1] }}
-                    style={{ background: "linear-gradient(135deg, rgba(251,191,36,0.4), rgba(167,139,250,0.4), rgba(52,211,153,0.4))" }}
-                  />
-                  <motion.div
-                    className="absolute inset-0"
-                    initial={{ x: "-100%" }}
-                    animate={{ x: "200%" }}
-                    transition={{ duration: 0.9, ease: "easeOut" }}
-                    style={{ background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.85) 50%, transparent 70%)" }}
-                  />
-                  {particles.map(p => (
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     <motion.div
-                      key={p.id}
-                      className="absolute font-bold select-none"
-                      style={{ left: `${p.x}%`, top: `${p.y}%`, fontSize: p.size, color: p.color }}
-                      initial={{ opacity: 0, scale: 0, y: 0 }}
-                      animate={{ opacity: [0, 1, 0], scale: [0, 1.4, 0], y: -40 }}
-                      transition={{ duration: 1.2, delay: p.delay, ease: "easeOut" }}
-                    >★</motion.div>
-                  ))}
+                      className="absolute inset-0 rounded-3xl"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 0.6, 0] }}
+                      transition={{ duration: 1.5, times: [0, 0.3, 1] }}
+                      style={{ background: "linear-gradient(135deg, rgba(251,191,36,0.4), rgba(167,139,250,0.4), rgba(52,211,153,0.4))" }}
+                    />
+                    <motion.div
+                      className="absolute inset-0"
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "200%" }}
+                      transition={{ duration: 0.9, ease: "easeOut" }}
+                      style={{ background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.85) 50%, transparent 70%)" }}
+                    />
+                    {particles.map(p => (
+                      <motion.div
+                        key={p.id}
+                        className="absolute font-bold select-none"
+                        style={{ left: `${p.x}%`, top: `${p.y}%`, fontSize: p.size, color: p.color }}
+                        initial={{ opacity: 0, scale: 0, y: 0 }}
+                        animate={{ opacity: [0, 1, 0], scale: [0, 1.4, 0], y: -40 }}
+                        transition={{ duration: 1.2, delay: p.delay, ease: "easeOut" }}
+                      >★</motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Résultat */}
+            <AnimatePresence>
+              {result && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className={`rounded-2xl px-5 py-4 text-center ${result.success ? "bg-green-50 border-2 border-green-300" : "bg-red-50 border-2 border-red-200"}`}
+                >
+                  <div className={`font-bold text-lg ${result.success ? "text-green-700" : "text-red-700"}`}>
+                    {result.success
+                      ? `✅ Excellent ! ${result.pct}% dans la zone 🌟`
+                      : `❌ ${result.pct}% dans la zone — suis mieux le modèle !`}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
 
-          {/* Résultat */}
-          <AnimatePresence>
-            {result && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                className={`mt-4 rounded-2xl px-5 py-4 text-center ${result.success ? "bg-green-50 border-2 border-green-300" : "bg-red-50 border-2 border-red-200"}`}
-              >
-                <div className={`font-bold text-lg ${result.success ? "text-green-700" : "text-red-700"}`}>
-                  {result.success
-                    ? `✅ Excellent ! ${result.pct}% dans la zone 🌟`
-                    : `❌ ${result.pct}% dans la zone — suis mieux le modèle !`}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Boutons */}
-          <div className="flex gap-3 mt-5">
-            <button onClick={init}
-              className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-stone-100 text-stone-600 font-bold text-sm border border-stone-200 hover:bg-stone-200 transition-all">
-              <RotateCcw className="w-4 h-4" /> Effacer
-            </button>
-            {!result ? (
-              <button onClick={validate} disabled={!hasDrawn}
-                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 disabled:opacity-40 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
-                <CheckCircle2 className="w-5 h-5" /> Valider
+            {/* Boutons */}
+            <div className="flex gap-3">
+              <button onClick={init}
+                className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-stone-100 text-stone-600 font-bold text-sm border border-stone-200 hover:bg-stone-200 transition-all">
+                <RotateCcw className="w-4 h-4" /> Effacer
               </button>
-            ) : (
-              <button onClick={next}
-                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
-                {qIndex + 1 < questions.length ? "Question suivante →" : "Voir le résultat"}
-              </button>
-            )}
-          </div>
-        </motion.div>
-      </AnimatePresence>
+              {!result ? (
+                <button onClick={validate} disabled={!hasDrawn}
+                  className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 disabled:opacity-40 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
+                  <CheckCircle2 className="w-5 h-5" /> Valider
+                </button>
+              ) : (
+                <button onClick={next}
+                  className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white font-display font-bold px-6 py-3 rounded-2xl border-b-4 border-violet-800 active:border-b-0 active:translate-y-0.5 transition-all text-lg">
+                  {qIndex + 1 < questions.length ? "Question suivante →" : "Voir le résultat"}
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
