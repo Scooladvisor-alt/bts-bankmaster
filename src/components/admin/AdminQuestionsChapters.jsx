@@ -263,7 +263,14 @@ function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh, isCust
               {chapterQs.map(q => (
                 <div key={q.id} className="flex items-start justify-between px-4 py-3 hover:bg-white transition-colors">
                   <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-sm text-stone-800 font-medium leading-snug truncate">{q.question}</p>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <p className="text-sm text-stone-800 font-medium leading-snug truncate">{q.question}</p>
+                      {q.mode !== modeFilter && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 shrink-0 border border-yellow-200">
+                          {q.mode}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex gap-1.5 mt-1 flex-wrap">
                       {(q.options || []).map((opt, i) => (
                         <span key={i} className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${i === q.correct_index ? "bg-green-100 text-green-700" : "bg-stone-100 text-stone-500"}`}>
@@ -311,15 +318,15 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter: init
 
   const load = async () => {
     setLoading(true);
-    // Pour "jeu", on affiche aussi toutes les questions "pareto" (elles peuvent être jouées dans ce mode)
-    if (modeFilter === "jeu") {
-      const [jeu, pareto] = await Promise.all([
-        base44.entities.Question.filter({ subject, mode: "jeu" }, null, 500),
+    // QCM Jeu : afficher mode:"jeu" + mode:"pareto" (fusionnés, sans doublons, chacun garde son vrai mode)
+    // QCM Infini : afficher mode:"infini" + mode:"pareto" (idem)
+    if (modeFilter === "jeu" || modeFilter === "infini") {
+      const [specific, pareto] = await Promise.all([
+        base44.entities.Question.filter({ subject, mode: modeFilter }, null, 500),
         base44.entities.Question.filter({ subject, mode: "pareto" }, null, 500),
       ]);
-      // Fusionner en évitant les doublons par id
       const seen = new Set();
-      const merged = [...jeu, ...pareto].filter(q => {
+      const merged = [...specific, ...pareto].filter(q => {
         if (seen.has(q.id)) return false;
         seen.add(q.id);
         return true;
