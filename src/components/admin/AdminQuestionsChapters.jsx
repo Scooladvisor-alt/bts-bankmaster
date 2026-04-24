@@ -339,9 +339,9 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter: init
 
   // ── VOJES : tous les chapitres officiels dans l'ordre 1→31 + custom ──
   if (subject === "VOJES") {
-    // Chapitres officiels : TOUS les 31, dans l'ordre
-    const officialChapters = VOJES_CHAPTERS;
-    // Custom en BDD (hors référentiel)
+    // Chapitres officiels qui ont des questions en BDD
+    const officialWithQ = VOJES_CHAPTERS.filter(ch => chaptersInDB.has(ch));
+    // Tous les chapitres en BDD hors référentiel officiel → affichés comme "custom" (modifiables)
     const customInDB = [...chaptersInDB].filter(ch => !VOJES_CHAPTERS.includes(ch)).sort();
     // Custom ajoutés via le bouton mais pas encore en BDD
     const customExtra = extraCustomChapters.filter(ch => !chaptersInDB.has(ch) && !VOJES_CHAPTERS.includes(ch));
@@ -389,14 +389,19 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter: init
           </div>
         )}
 
-        {/* Tous les chapitres officiels 1→31 — masquer ceux à 0 questions */}
-        {officialChapters.filter(ch => chaptersInDB.has(ch)).map(ch => (
-          <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
-        ))}
+        {/* Chapitres officiels avec questions */}
+        {officialWithQ.length > 0 && (
+          <div className="mb-4">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES OFFICIELS</div>
+            {officialWithQ.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+            ))}
+          </div>
+        )}
 
-        {/* Chapitres personnalisés */}
+        {/* Chapitres personnalisés (hors référentiel) */}
         {(customInDB.length > 0 || customExtra.length > 0) && (
-          <div className="mt-4 mb-1">
+          <div className="mt-2 mb-1">
             <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
             {customInDB.map(ch => (
               <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
@@ -465,7 +470,7 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter: init
           <div key={group.title} className="mb-5">
             <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">{group.title}</div>
             {chaptersWithQ.map(ch => (
-              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={false} />
+              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
             ))}
           </div>
         );
