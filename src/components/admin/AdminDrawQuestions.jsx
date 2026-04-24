@@ -88,7 +88,7 @@ export default function AdminDrawQuestions({ subjectFilter }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <div className="text-sm text-stone-500 font-bold">{items.length} question(s) de traçage — {subjectFilter}</div>
+        <div className="text-sm text-stone-500 font-bold">{items.length} question(s) de traçage pour retenir les chiffres clés — {subjectFilter}</div>
         <DuoButton variant="primary" onClick={() => setModal("new")}>
           <Plus className="w-4 h-4 inline mr-1" /> Ajouter
         </DuoButton>
