@@ -205,7 +205,7 @@ export default function ParetoQCM({ subject }) {
           // Groupes CESBF avec titres
           chapters.map((group) =>
           <div key={group.title} className="mb-3">
-                <div className="px-2 py-1.5 text-[9px] font-extrabold uppercase tracking-widest text-stone-400 border-b border-stone-100 mb-1">
+                <div className="text-yellow-400 mb-1 px-2 py-1.5 font-extrabold uppercase tracking-widest border-b border-stone-100">
                   {group.title}
                 </div>
                 {group.chapters.map((ch) => {
