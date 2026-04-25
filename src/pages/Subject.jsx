@@ -22,6 +22,7 @@ const SUBJECT_CONFIG = {
   vojes: {
     name: "VOJES",
     Icon: BarChart2,
+    iconColor: "text-purple-600",
     tagline: "Veille, Organisationnel, Juridique et Sectorielle",
     color: "vojes",
     bg: "from-purple-50 to-indigo-50",
@@ -80,8 +81,8 @@ export default function Subject() {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 mb-8"
         >
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-${config.color} text-white shadow-duo shrink-0`}>
-            <config.Icon className="w-7 h-7" />
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-${config.color} shadow-duo shrink-0`}>
+            <config.Icon className={`w-7 h-7 ${config.iconColor || "text-white"}`} />
           </div>
           <div>
             <div className={`text-xs font-bold uppercase tracking-widest text-${config.color}`}>

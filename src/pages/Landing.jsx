@@ -39,7 +39,7 @@ export default function Landing() {
           
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mt-4">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-4">
           <SubjectCard
             to="/vojes"
             label="VOJES"
