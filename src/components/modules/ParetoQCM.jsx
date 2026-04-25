@@ -185,8 +185,8 @@ export default function ParetoQCM({ subject }) {
         {/* Bouton retour en haut */}
         <div className="px-4 py-3 border-b border-stone-100 bg-white flex items-center justify-between shrink-0">
           <Link
-            to={`/${subject.toLowerCase()}`}
-            className="flex items-center gap-1.5 font-bold text-stone-600 hover:text-stone-900 transition-colors text-sm py-1">
+            to={`/${subject.toLowerCase()}`} className="text-amber-400 py-1 text-sm font-bold flex items-center gap-1.5 hover:text-stone-900 transition-colors">
+            
             
             <ChevronLeft className="w-4 h-4" /> Retour à {subject}
           </Link>
