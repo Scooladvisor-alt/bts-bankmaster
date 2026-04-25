@@ -320,8 +320,8 @@ export default function ParetoQCM({ subject }) {
                 <AnimatePresence mode="wait">
                   <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                     {/* Question */}
-                    <div className="mb-8 px-2">
-                      <div className="font-fredoka text-2xl md:text-3xl leading-relaxed text-stone-900 tracking-wide">{q.question}</div>
+                    <div className="mb-10 px-2">
+                      <div className="font-nunito font-semibold text-xl md:text-2xl leading-relaxed text-stone-900">{q.question}</div>
                     </div>
 
                     {/* Options */}
