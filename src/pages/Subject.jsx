@@ -14,12 +14,14 @@ import {
   ChevronLeft,
   Flame,
   Pen,
+  BarChart2,
+  Landmark,
 } from "lucide-react";
 
 const SUBJECT_CONFIG = {
   vojes: {
     name: "VOJES",
-    emoji: "📊",
+    Icon: BarChart2,
     tagline: "Veille, Organisationnel, Juridique et Sectorielle",
     color: "vojes",
     bg: "from-purple-50 to-indigo-50",
@@ -27,7 +29,7 @@ const SUBJECT_CONFIG = {
   },
   cesbf: {
     name: "CESBF",
-    emoji: "🏦",
+    Icon: Landmark,
     tagline: "Conseil et Expertise en Solution Bancaire et Financière",
     color: "cesbf",
     bg: "from-orange-50 to-red-50",
@@ -78,7 +80,9 @@ export default function Subject() {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 mb-8"
         >
-          <div className="text-5xl">{config.emoji}</div>
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-${config.color} text-white shadow-duo shrink-0`}>
+            <config.Icon className="w-7 h-7" />
+          </div>
           <div>
             <div className={`text-xs font-bold uppercase tracking-widest text-${config.color}`}>
               Matière
@@ -124,7 +128,7 @@ export default function Subject() {
             style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #f8fafc 50%, #dc2626 100%)" }}
             title="Certification AMF — Méthode Survie"
           >
-            <span className="text-lg">🎯</span>
+            <Target className="w-4 h-4 text-stone-900" />
             <span className="text-stone-900 drop-shadow-sm">Certif AMF</span>
           </Link>
         )}
