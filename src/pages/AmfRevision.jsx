@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Lock, CheckCircle2, XCircle, RotateCcw, Trophy, Star, TrendingUp } from "lucide-react";
+import { ChevronLeft, Lock, CheckCircle2, XCircle, RotateCcw, Trophy, Star, TrendingUp, ShieldCheck, BarChart2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import InspecteurAmf from "@/components/admin/InspecteurAmf";
 
@@ -278,13 +278,7 @@ export default function AmfRevision() {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setShowInspecteur(true)}
-            className="flex flex-col items-center justify-center gap-1.5 px-4 py-3 bg-gradient-to-br from-slate-700 to-slate-900 text-white rounded-3xl shadow-lg hover:scale-105 transition-transform shrink-0"
-          >
-            <span className="text-2xl">🕵️</span>
-            <span className="text-[10px] font-bold uppercase tracking-wide leading-tight text-center">Mode<br/>Inspecteur</span>
-          </button>
+
         </div>
         {showInspecteur && <InspecteurAmf onClose={() => setShowInspecteur(false)} />}
 
@@ -347,14 +341,32 @@ export default function AmfRevision() {
         )}
       </div>
 
-      {/* Widget flottant Trading Desk */}
-      <Link to="/cesbf/amf/trading"
-        className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-1.5 px-4 py-3 rounded-2xl shadow-2xl hover:scale-105 transition-transform"
-        style={{ background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)", border: "1px solid #374151" }}>
-        <span className="text-2xl">📈</span>
-        <span className="text-[10px] font-bold uppercase tracking-wide leading-tight text-center text-green-400">Trading<br/>Desk</span>
-        <span className="text-[9px] text-yellow-400 font-bold">Daily 🪙</span>
-      </Link>
+      {/* Widgets flottants — Mode Inspecteur + Trading Desk */}
+      <div className="fixed top-20 right-4 z-50 flex flex-col gap-2">
+        <button
+          onClick={() => setShowInspecteur(true)}
+          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl shadow-lg hover:scale-105 transition-transform bg-gradient-to-br from-slate-700 to-slate-900 border border-slate-600"
+          title="Mode Inspecteur AMF"
+        >
+          <ShieldCheck className="w-4 h-4 text-yellow-400 shrink-0" />
+          <div className="text-left">
+            <div className="text-[10px] font-bold text-yellow-400 uppercase tracking-wide leading-none">Inspecteur</div>
+            <div className="text-[9px] text-slate-400 mt-0.5">Conforme / Sanction</div>
+          </div>
+        </button>
+        <Link
+          to="/cesbf/amf/trading"
+          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl shadow-lg hover:scale-105 transition-transform border"
+          style={{ background: "linear-gradient(135deg, #052e16 0%, #14532d 100%)", borderColor: "#166534" }}
+          title="Trading Desk — Daily Challenge"
+        >
+          <BarChart2 className="w-4 h-4 text-green-400 shrink-0" />
+          <div className="text-left">
+            <div className="text-[10px] font-bold text-green-400 uppercase tracking-wide leading-none">Trading Desk</div>
+            <div className="text-[9px] text-green-700 mt-0.5">Daily · BTS Coins</div>
+          </div>
+        </Link>
+      </div>
     </div>
   );
 }

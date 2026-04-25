@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Loader2, LogOut } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -36,6 +36,7 @@ export default function Teacher() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [tab, setTab] = useState("pareto");
+  const [adminSubject, setAdminSubject] = useState("VOJES");
 
   useEffect(() => {
     (async () => {
@@ -64,7 +65,8 @@ export default function Teacher() {
   }
 
   const isAdmin = currentUser?.role === "admin";
-  const subjectLabel = isAdmin ? null : currentUser?.teacherSubject;
+  const teacherSubject = isAdmin ? null : currentUser?.teacherSubject;
+  const subjectLabel = isAdmin ? adminSubject : teacherSubject;
   const tabConfig = TABS.find((t) => t.key === tab);
   const Comp = tabConfig?.Comp;
   const needsSubject = !["popups", "assistant", "amf", "users"].includes(tab);
@@ -116,14 +118,27 @@ export default function Teacher() {
       </div>
 
       <div className="max-w-6xl mx-auto p-4 md:p-6">
-        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 text-sm text-blue-700 font-medium">
-          📚 {isAdmin
-            ? `Vue admin — onglet actif : ${tabConfig?.label}`
-            : `Tu gères les contenus de la matière : `}
-          {!isAdmin && <strong>{subjectLabel}</strong>}
-          {!isAdmin && ` — onglet actif : `}
-          {!isAdmin && <strong>{tabConfig?.label}</strong>}
-        </div>
+        {/* Filtre matière — visible pour admin ET prof, mais admin peut changer */}
+        {needsSubject && (
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-sm font-bold text-stone-500">Matière :</span>
+            {["VOJES", "CESBF"].map((s) => (
+              <button
+                key={s}
+                disabled={!isAdmin}
+                onClick={() => isAdmin && setAdminSubject(s)}
+                className={`px-4 py-1.5 rounded-full text-sm font-bold border-2 transition-all ${
+                  subjectLabel === s
+                    ? s === "VOJES" ? "bg-purple-600 text-white border-purple-600" : "bg-orange-500 text-white border-orange-500"
+                    : isAdmin ? "bg-white text-stone-600 border-stone-200 hover:border-stone-400 cursor-pointer" : "bg-white text-stone-400 border-stone-200 cursor-not-allowed opacity-60"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+            {!isAdmin && <span className="text-xs text-stone-400 italic">matière fixée par votre profil</span>}
+          </div>
+        )}
         {Comp && <Comp subjectFilter={needsSubject ? subjectLabel : undefined} />}
       </div>
     </div>

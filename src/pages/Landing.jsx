@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
 import RoleModal from "@/components/landing/RoleModal";
-import { Sparkles } from "lucide-react";
+import { Sparkles, BarChart2, Landmark } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 
 export default function Landing() {
@@ -43,7 +43,7 @@ export default function Landing() {
           <SubjectCard
             to="/vojes"
             label="VOJES"
-            emoji="📊"
+            Icon={BarChart2}
             tagline="Veille, organisationnelle, juridique & sectorielle"
             gradient="from-purple-500 via-purple-600 to-indigo-600"
             delay={0.1} />
@@ -51,7 +51,7 @@ export default function Landing() {
           <SubjectCard
             to="/cesbf"
             label="CESBF"
-            emoji="🏦"
+            Icon={Landmark}
             tagline="Conseil/Expertise en Solution Bancaire & Financière"
             gradient="from-orange-400 via-orange-500 to-red-500"
             delay={0.2} />
@@ -79,7 +79,7 @@ export default function Landing() {
 
 }
 
-const SubjectCard = ({ to, label, emoji, tagline, gradient, delay }) =>
+const SubjectCard = ({ to, label, Icon, tagline, gradient, delay }) =>
 <motion.div
   initial={{ opacity: 0, y: 30 }}
   animate={{ opacity: 1, y: 0 }}
@@ -90,7 +90,9 @@ const SubjectCard = ({ to, label, emoji, tagline, gradient, delay }) =>
       className={`group relative bg-gradient-to-br ${gradient} rounded-3xl p-8 shadow-duo-lg border-b-[6px] border-black/20 hover:-translate-y-1 transition-transform cursor-pointer h-64 flex flex-col justify-between`}>
       
         <div>
-          <div className="text-6xl mb-3">{emoji}</div>
+          <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
+            <Icon className="w-7 h-7 text-white" />
+          </div>
           <div className="text-white/80 text-xs font-bold uppercase tracking-widest">
             Réviser
           </div>
