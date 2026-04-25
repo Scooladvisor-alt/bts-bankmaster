@@ -320,22 +320,22 @@ export default function ParetoQCM({ subject }) {
                 <AnimatePresence mode="wait">
                   <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                     {/* Question */}
-                    <div className="mb-4 px-1">
-                      <div className="font-fredoka text-xl leading-snug text-stone-900">{q.question}</div>
+                    <div className="mb-8 px-2">
+                      <div className="font-fredoka text-2xl md:text-3xl leading-relaxed text-stone-900 tracking-wide">{q.question}</div>
                     </div>
 
                     {/* Options */}
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       {q.options.map((opt, i) =>
                     <button key={i} onClick={() => handleAnswer(i)} className={getOptionClass(i)}>
-                          <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 mt-0.5 font-bold
+                          <span className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm shrink-0 font-bold
                             ${selected === null ? "border-stone-300 text-stone-500" :
                       i === q.correct_index ? "border-green-500 bg-green-500 text-white" :
                       i === selected ? "border-red-400 bg-red-400 text-white" :
                       "border-stone-200 text-stone-300"}`}>
                             {String.fromCharCode(65 + i)}
                           </span>
-                          <span className="flex-1 font-fredoka text-base">{opt}</span>
+                          <span className="flex-1 font-fredoka text-lg leading-snug">{opt}</span>
                           {selected !== null && i === q.correct_index && <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />}
                           {selected !== null && i === selected && i !== q.correct_index && <XCircle className="w-5 h-5 text-red-400 shrink-0" />}
                         </button>
