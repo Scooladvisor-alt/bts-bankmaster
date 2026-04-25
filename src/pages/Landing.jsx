@@ -58,6 +58,23 @@ export default function Landing() {
           
         </div>
       </div>
+    {/* Bannière défilante pied de page */}
+    <div className="fixed bottom-0 left-0 right-0 z-50 overflow-hidden bg-orange-500 py-3 border-t-4 border-orange-600">
+      <div className="flex whitespace-nowrap" style={{ animation: "marquee 18s linear infinite" }}>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <span key={i} className="inline-flex items-center gap-4 px-8 font-fredoka font-bold text-black text-xl tracking-wide shrink-0">
+            🏆 100% DE RÉUSSITE À L'EXAMEN DU BTS BANQUE
+            <span className="text-orange-900">★</span>
+          </span>
+        ))}
+      </div>
+      <style>{`
+        @keyframes marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+    </div>
     </div>);
 
 }
