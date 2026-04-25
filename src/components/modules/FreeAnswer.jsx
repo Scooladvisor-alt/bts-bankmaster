@@ -3,48 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, Send, RotateCcw, BookOpen, Sparkles, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ── Groupes CESBF officiels (même structure que AdminQuestionsChapters) ──
-const CESBF_GROUPS = [
-  { title: "MODULE 1 — OUVERTURE DE COMPTE", chapters: [
-    "MODULE 1 — Chap 1 : Droit au compte & inclusion bancaire",
-    "MODULE 1 — Chap 2 : Convention, médiation & mobilité",
-  ]},
-  { title: "MODULE 2 — SUIVI DES COMPTES BANCAIRES", chapters: [
-    "MODULE 2 — Chap 1 : Agios débiteurs",
-    "MODULE 2 — Chap 2 : Blanchiment & LCB-FT",
-    "MODULE 2 — Chap 3 : Événements exceptionnels",
-    "MODULE 2 — Chap 4 : Risque débiteur & clôture",
-    "MODULE 2 — Chap 5 : Suivi courant",
-  ]},
-  { title: "MODULE 3 — MOYENS DE PAIEMENT", chapters: [
-    "MODULE 3 — Chap 1 : Espèces, virement, prélèvement",
-    "MODULE 3 — Chap 2 : Chèque & carte bancaire",
-    "MODULE 3 — Chap 3 : Nouvelles technologies & international",
-  ]},
-  { title: "MODULE 4 — ÉPARGNE", chapters: [
-    "MODULE 4 — Chap 1 : Livrets réglementés",
-    "MODULE 4 — Chap 2 : PEL, CEL & épargne à terme",
-    "MODULE 4 — Chap 3 : Assurance-vie",
-    "MODULE 4 — Chap 4 : PER & instruments financiers",
-    "MODULE 4 — Chap 5 : Fiscalité de l'épargne",
-    "MODULE 4 — Chap 6 : Gestion de patrimoine",
-  ]},
-  { title: "MODULE 5 — ASSURANCE", chapters: [
-    "MODULE 5 — Chap 1 : Marché & vie du contrat",
-    "MODULE 5 — Chap 2 : Produits IARD & prévoyance",
-    "MODULE 5 — Chap 3 : Assurance emprunteur",
-  ]},
-  { title: "MODULE 6 — FINANCEMENT", chapters: [
-    "MODULE 6 — Chap 1 : Montage de dossier & analyse du risque",
-    "MODULE 6 — Chap 2 : Types de crédits & réglementation",
-    "MODULE 6 — Chap 3 : Vie du contrat de prêt",
-  ]},
-  { title: "MODULE 7 — FISCALITÉ", chapters: [
-    "MODULE 7 — Chap 1 : Impôt sur le revenu & prélèvements sociaux",
-    "MODULE 7 — Chap 2 : Fiscalité patrimoniale",
-    "MODULE 7 — Chap 3 : Succession, donation & IFI",
-  ]},
-];
+// Extrait le préfixe MODULE depuis un nom de chapitre BDD (ex: "MODULE I — LE COMPTE...")
+function getModuleKey(chapterName) {
+  const match = chapterName.match(/^(MODULE\s+[IVXLCDM\d]+)/i);
+  return match ? match[1].toUpperCase() : "AUTRE";
+}
 
 export default function FreeAnswer({ subject }) {
   const [chapters, setChapters] = useState([]); // liste de strings (noms de chapitres)
@@ -59,13 +22,17 @@ export default function FreeAnswer({ subject }) {
   useEffect(() => {
     (async () => {
       if (subject === "CESBF") {
-        // Utilise les chapitres officiels CESBF qui ont des questions QCM Pareto
-        const questions = await base44.entities.Question.filter({ subject: "CESBF", mode: "pareto" }, null, 500);
-        const chaptersWithQ = new Set(questions.map(q => q.chapter).filter(Boolean));
-        // Garde uniquement les chapitres qui ont des questions
-        const allCesbfChapters = CESBF_GROUPS.flatMap(g => g.chapters);
-        const available = allCesbfChapters.filter(ch => chaptersWithQ.has(ch));
-        setChapters(available);
+        // Récupère directement les chapitres uniques depuis la BDD (questions de révision libre)
+        const questions = await base44.entities.RevisionQuestion.filter({ subject: "CESBF" }, null, 500);
+        const seen = new Set();
+        const ordered = [];
+        questions.forEach(q => {
+          if (q.chapter && !seen.has(q.chapter)) {
+            seen.add(q.chapter);
+            ordered.push(q.chapter);
+          }
+        });
+        setChapters(ordered);
       } else {
         // VOJES : chapitres des questions QCM Pareto
         const questions = await base44.entities.Question.filter({ subject: "VOJES", mode: "pareto" }, null, 500);
@@ -98,13 +65,25 @@ export default function FreeAnswer({ subject }) {
     setAnswer("");
     setLoadingQuestion(true);
 
-    // Génère une première question via l'IA sur ce chapitre
-    const firstQ = await base44.integrations.Core.InvokeLLM({
-      prompt: `Tu es un professeur expert en BTS Banque, matière ${subject}. 
+    // Récupère les questions de révision du chapitre depuis la BDD
+    const allRevQ = await base44.entities.RevisionQuestion.filter({ subject }, null, 500);
+    const chapterQ = allRevQ.filter(q => q.chapter === chapter);
+    const pool = chapterQ.length > 0 ? chapterQ : allRevQ;
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+
+    const questionText = picked ? picked.question : null;
+
+    let firstQ;
+    if (questionText) {
+      firstQ = questionText;
+    } else {
+      // Fallback IA si aucune question en BDD
+      firstQ = await base44.integrations.Core.InvokeLLM({
+        prompt: `Tu es un professeur expert en BTS Banque, matière ${subject}. 
 Pose UNE seule question de révision précise et pertinente sur le chapitre : "${chapter}".
-La question doit porter sur un point clé du programme BTS Banque.
 Réponds UNIQUEMENT avec la question, sans introduction ni numérotation.`,
-    });
+      });
+    }
 
     setMessages([{ role: "assistant", content: firstQ }]);
     setLoadingQuestion(false);
@@ -118,6 +97,17 @@ Réponds UNIQUEMENT avec la question, sans introduction ni numérotation.`,
     setMessages((m) => [...m, { role: "user", content: userMsg }]);
 
     const history = messages.map((m) => `${m.role === "user" ? "Étudiant" : "Professeur"}: ${m.content}`).join("\n");
+
+    // Prochaine question depuis la BDD
+    const allRevQ = await base44.entities.RevisionQuestion.filter({ subject }, null, 500);
+    const chapterQ = allRevQ.filter(q => q.chapter === selectedChapter);
+    const pool = chapterQ.length > 0 ? chapterQ : allRevQ;
+    const usedQ = messages.filter(m => m.role === "assistant").map(m => m.content);
+    const nextPool = pool.filter(q => !usedQ.some(u => u.includes(q.question)));
+    const nextQ = nextPool.length > 0
+      ? nextPool[Math.floor(Math.random() * nextPool.length)]
+      : pool[Math.floor(Math.random() * pool.length)];
+    const nextQuestion = nextQ ? nextQ.question : null;
 
     const feedback = await base44.integrations.Core.InvokeLLM({
       prompt: `T'es le meilleur pote de l'étudiant, et t'es un crack en BTS Banque. Tu parles EXACTEMENT comme un pote IRL — naturel, familier, direct, sans chichis ni langue de bois. Tu tutoies toujours. Matière : ${subject} — Chapitre : "${selectedChapter}"
@@ -146,7 +136,7 @@ RÈGLES DE FORME ABSOLUES :
 - Utilise des listes à puces (- item) pour les énumérations.
 - Max 6 lignes de contenu. Sois chirurgical.
 - Zéro blabla motivationnel.
-- Termine avec "---" puis pose une NOUVELLE question différente sur le même chapitre "${selectedChapter}".`,
+${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "${nextQuestion}"` : `- Termine avec "---" puis pose une nouvelle question différente sur le chapitre "${selectedChapter}".`}`,
     });
 
     setMessages((m) => [...m, { role: "assistant", content: feedback }]);
@@ -170,7 +160,7 @@ RÈGLES DE FORME ABSOLUES :
   if (chapters.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-6 text-center text-stone-600">
-        Aucun chapitre disponible. Ajoute des questions QCM Pareto depuis l'espace admin.
+        Aucun chapitre disponible. Ajoute des questions de révision depuis l'espace admin.
       </div>
     );
   }
@@ -183,10 +173,14 @@ RÈGLES DE FORME ABSOLUES :
       : { badge: "text-purple-600/60", card: "border-purple-200", icon: "bg-purple-100 text-purple-600" };
 
     if (subject === "CESBF") {
-      const groupsWithChapters = CESBF_GROUPS.map(g => ({
-        ...g,
-        chapters: g.chapters.filter(ch => chapters.includes(ch)),
-      })).filter(g => g.chapters.length > 0);
+      // Grouper dynamiquement par MODULE depuis les noms réels en BDD
+      const groupMap = {};
+      chapters.forEach(ch => {
+        const key = getModuleKey(ch);
+        if (!groupMap[key]) groupMap[key] = [];
+        groupMap[key].push(ch);
+      });
+      const groups = Object.entries(groupMap).sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
 
       return (
         <div>
@@ -195,11 +189,11 @@ RÈGLES DE FORME ABSOLUES :
             <p className="text-stone-500 text-sm mt-1">L'IA t'interrogera sur le chapitre choisi avec des questions pertinentes.</p>
           </div>
           <div className="space-y-5">
-            {groupsWithChapters.map((group) => (
-              <div key={group.title}>
-                <div className={`text-[9px] font-extrabold uppercase tracking-widest ${accentClasses.badge} px-1 mb-2`}>{group.title}</div>
+            {groups.map(([moduleKey, chs]) => (
+              <div key={moduleKey}>
+                <div className={`text-[9px] font-extrabold uppercase tracking-widest ${accentClasses.badge} px-1 mb-2`}>{moduleKey}</div>
                 <div className="grid gap-2">
-                  {group.chapters.map((ch, i) => (
+                  {chs.map((ch, i) => (
                     <motion.button
                       key={ch}
                       initial={{ opacity: 0, y: 15 }}
