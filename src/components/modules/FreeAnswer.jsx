@@ -1,24 +1,89 @@
 import React, { useEffect, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Send, RotateCcw, BookOpen, ChevronDown, Sparkles, Bot, User } from "lucide-react";
-import DuoButton from "@/components/ui-duo/DuoButton";
+import { Loader2, Send, RotateCcw, BookOpen, Sparkles, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// ── Groupes CESBF officiels (même structure que AdminQuestionsChapters) ──
+const CESBF_GROUPS = [
+  { title: "MODULE 1 — OUVERTURE DE COMPTE", chapters: [
+    "MODULE 1 — Chap 1 : Droit au compte & inclusion bancaire",
+    "MODULE 1 — Chap 2 : Convention, médiation & mobilité",
+  ]},
+  { title: "MODULE 2 — SUIVI DES COMPTES BANCAIRES", chapters: [
+    "MODULE 2 — Chap 1 : Agios débiteurs",
+    "MODULE 2 — Chap 2 : Blanchiment & LCB-FT",
+    "MODULE 2 — Chap 3 : Événements exceptionnels",
+    "MODULE 2 — Chap 4 : Risque débiteur & clôture",
+    "MODULE 2 — Chap 5 : Suivi courant",
+  ]},
+  { title: "MODULE 3 — MOYENS DE PAIEMENT", chapters: [
+    "MODULE 3 — Chap 1 : Espèces, virement, prélèvement",
+    "MODULE 3 — Chap 2 : Chèque & carte bancaire",
+    "MODULE 3 — Chap 3 : Nouvelles technologies & international",
+  ]},
+  { title: "MODULE 4 — ÉPARGNE", chapters: [
+    "MODULE 4 — Chap 1 : Livrets réglementés",
+    "MODULE 4 — Chap 2 : PEL, CEL & épargne à terme",
+    "MODULE 4 — Chap 3 : Assurance-vie",
+    "MODULE 4 — Chap 4 : PER & instruments financiers",
+    "MODULE 4 — Chap 5 : Fiscalité de l'épargne",
+    "MODULE 4 — Chap 6 : Gestion de patrimoine",
+  ]},
+  { title: "MODULE 5 — ASSURANCE", chapters: [
+    "MODULE 5 — Chap 1 : Marché & vie du contrat",
+    "MODULE 5 — Chap 2 : Produits IARD & prévoyance",
+    "MODULE 5 — Chap 3 : Assurance emprunteur",
+  ]},
+  { title: "MODULE 6 — FINANCEMENT", chapters: [
+    "MODULE 6 — Chap 1 : Montage de dossier & analyse du risque",
+    "MODULE 6 — Chap 2 : Types de crédits & réglementation",
+    "MODULE 6 — Chap 3 : Vie du contrat de prêt",
+  ]},
+  { title: "MODULE 7 — FISCALITÉ", chapters: [
+    "MODULE 7 — Chap 1 : Impôt sur le revenu & prélèvements sociaux",
+    "MODULE 7 — Chap 2 : Fiscalité patrimoniale",
+    "MODULE 7 — Chap 3 : Succession, donation & IFI",
+  ]},
+];
+
 export default function FreeAnswer({ subject }) {
-  const [courses, setCourses] = useState([]);
+  const [chapters, setChapters] = useState([]); // liste de strings (noms de chapitres)
   const [loading, setLoading] = useState(true);
   const [selectedChapter, setSelectedChapter] = useState(null);
-  const [currentQuestion, setCurrentQuestion] = useState(null);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
-  const [messages, setMessages] = useState([]); // [{role, content}]
+  const [messages, setMessages] = useState([]);
   const [answer, setAnswer] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
 
   useEffect(() => {
     (async () => {
-      const list = await base44.entities.Course.filter({ subject }, "order");
-      setCourses(list);
+      if (subject === "CESBF") {
+        // Utilise les chapitres officiels CESBF qui ont des questions QCM Pareto
+        const questions = await base44.entities.Question.filter({ subject: "CESBF", mode: "pareto" }, null, 500);
+        const chaptersWithQ = new Set(questions.map(q => q.chapter).filter(Boolean));
+        // Garde uniquement les chapitres qui ont des questions
+        const allCesbfChapters = CESBF_GROUPS.flatMap(g => g.chapters);
+        const available = allCesbfChapters.filter(ch => chaptersWithQ.has(ch));
+        setChapters(available);
+      } else {
+        // VOJES : chapitres des questions QCM Pareto
+        const questions = await base44.entities.Question.filter({ subject: "VOJES", mode: "pareto" }, null, 500);
+        const seen = new Set();
+        const ordered = [];
+        questions.forEach(q => {
+          if (q.chapter && !seen.has(q.chapter)) {
+            seen.add(q.chapter);
+            ordered.push(q.chapter);
+          }
+        });
+        ordered.sort((a, b) => {
+          const na = parseInt(a.match(/\d+/)?.[0] || "999");
+          const nb = parseInt(b.match(/\d+/)?.[0] || "999");
+          return na - nb;
+        });
+        setChapters(ordered);
+      }
       setLoading(false);
     })();
   }, [subject]);
@@ -27,27 +92,21 @@ export default function FreeAnswer({ subject }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
 
-  const selectChapter = async (course) => {
-    setSelectedChapter(course);
+  const selectChapter = async (chapter) => {
+    setSelectedChapter(chapter);
     setMessages([]);
     setAnswer("");
-    setCurrentQuestion(null);
     setLoadingQuestion(true);
 
-    // Cherche uniquement dans les questions de révision existantes
-    const allRevQuestions = await base44.entities.RevisionQuestion.filter({ subject });
-    // Filtre par correspondance avec le titre du cours
-    const chapterQuestions = allRevQuestions.filter(q =>
-      q.chapter && course.title &&
-      (course.title.toLowerCase().includes(q.chapter.split(" - ").slice(1).join(" - ").toLowerCase()) ||
-       q.chapter.toLowerCase().includes(course.title.toLowerCase().replace(/chapitre \d+ - /i, "")))
-    );
-    const pool = chapterQuestions.length > 0 ? chapterQuestions : allRevQuestions;
-    const picked = pool[Math.floor(Math.random() * pool.length)];
-    const questionText = picked ? picked.question : "Aucune question de révision disponible pour ce chapitre.";
+    // Génère une première question via l'IA sur ce chapitre
+    const firstQ = await base44.integrations.Core.InvokeLLM({
+      prompt: `Tu es un professeur expert en BTS Banque, matière ${subject}. 
+Pose UNE seule question de révision précise et pertinente sur le chapitre : "${chapter}".
+La question doit porter sur un point clé du programme BTS Banque.
+Réponds UNIQUEMENT avec la question, sans introduction ni numérotation.`,
+    });
 
-    setCurrentQuestion(questionText);
-    setMessages([{ role: "assistant", content: `📖 **${course.title}**\n\n${questionText}` }]);
+    setMessages([{ role: "assistant", content: firstQ }]);
     setLoadingQuestion(false);
   };
 
@@ -58,23 +117,10 @@ export default function FreeAnswer({ subject }) {
     setSending(true);
     setMessages((m) => [...m, { role: "user", content: userMsg }]);
 
-    const course = selectedChapter;
     const history = messages.map((m) => `${m.role === "user" ? "Étudiant" : "Professeur"}: ${m.content}`).join("\n");
 
-    // Cherche une nouvelle question de révision différente
-    const allRevQuestions = await base44.entities.RevisionQuestion.filter({ subject });
-    const usedQuestions = messages.filter(m => m.role === "assistant").map(m => m.content);
-    const available = allRevQuestions.filter(q =>
-      q.chapter && course.title &&
-      (course.title.toLowerCase().includes(q.chapter.split(" - ").slice(1).join(" - ").toLowerCase()) ||
-       q.chapter.toLowerCase().includes(course.title.toLowerCase().replace(/chapitre \d+ - /i, "")))
-    ).filter(q => !usedQuestions.some(u => u.includes(q.question)));
-    const pool = available.length > 0 ? available : allRevQuestions.filter(q => !usedQuestions.some(u => u.includes(q.question)));
-    const nextQ = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
-    const nextQuestion = nextQ ? nextQ.question : null;
-
     const feedback = await base44.integrations.Core.InvokeLLM({
-      prompt: `T'es le meilleur pote de l'étudiant, et t'es un crack en BTS Banque. Tu parles EXACTEMENT comme un pote IRL — naturel, familier, direct, sans chichis ni langue de bois. Tu tutoies toujours. Matière : ${subject} — Chapitre : "${course.title}"
+      prompt: `T'es le meilleur pote de l'étudiant, et t'es un crack en BTS Banque. Tu parles EXACTEMENT comme un pote IRL — naturel, familier, direct, sans chichis ni langue de bois. Tu tutoies toujours. Matière : ${subject} — Chapitre : "${selectedChapter}"
 
 Historique :
 ${history}
@@ -85,24 +131,22 @@ Ce que l'étudiant vient de dire : "${userMsg}"
 
 DÉTECTE D'ABORD ce que c'est :
 
-A) INSULTE / IRRESPECT → Recadre-le cash comme un vrai pote qui se défend, proportionnellement. Ferme, direct, pas de violence gratuite mais pas de faiblesse non plus.
+A) INSULTE / IRRESPECT → Recadre-le cash comme un vrai pote qui se défend, proportionnellement. Ferme, direct.
 
-B) QUESTION / PRÉCISION → Réponds direct, comme si t'expliquais à la cafét. Pas de verdict, juste la réponse claire et humaine.
+B) QUESTION / PRÉCISION → Réponds direct, comme si t'expliquais à la cafét. Juste la réponse claire.
 
 C) RÉPONSE À LA QUESTION POSÉE → Évalue :
-  - Correct : sa réponse couvre l'essentiel → confirme en une phrase naturelle. Si y'a des trucs bonus pas demandés → à la toute fin, préfixé de "**Tu aurais pu aussi glisser :**". JAMAIS dans les manques.
-  - Partiel : y'a du bon mais il manque un truc clé → va DIRECT à ce qui manque, répète pas ce qu'il a dit.
-  - Incorrect : c'est à côté → donne la bonne réponse en 2-3 phrases factuelles.
+  - Correct : confirme en une phrase naturelle. Si bonus → à la fin, préfixé de "**Tu aurais pu aussi glisser :**".
+  - Partiel : va DIRECT à ce qui manque, répète pas ce qu'il a dit.
+  - Incorrect : donne la bonne réponse en 2-3 phrases factuelles.
 
 RÈGLES DE FORME ABSOLUES :
 - Commence par le verdict naturel : "Ouais c'est bon ✅", "Presque —", "Nan là c'est pas ça ❌", etc.
-- Structure ta réponse avec des **titres courts en gras** quand c'est nécessaire (ex: **Ce qui manque :**, **À retenir :**, **La réponse :**). C'est obligatoire pour que ce soit lisible.
+- Structure avec des **titres courts en gras** si nécessaire.
 - Utilise des listes à puces (- item) pour les énumérations.
-- Max 6 lignes de contenu. Tranche. Sois chirurgical.
-- Zéro blabla motivationnel, zéro "bien essayé". Parle VRAI.
-- NE DEMANDE JAMAIS à l'étudiant d'écrire une méthode, un plan ou une structure — tu es dans une révision par questions/réponses, pas dans un exercice de rédaction.
-- Une métaphore de pote si ça aide vraiment à comprendre.
-${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "${nextQuestion}"` : "- Dis-lui qu'on a fait le tour du chapitre, façon pote."}`,
+- Max 6 lignes de contenu. Sois chirurgical.
+- Zéro blabla motivationnel.
+- Termine avec "---" puis pose une NOUVELLE question différente sur le même chapitre "${selectedChapter}".`,
     });
 
     setMessages((m) => [...m, { role: "assistant", content: feedback }]);
@@ -111,7 +155,6 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "$
 
   const reset = () => {
     setSelectedChapter(null);
-    setCurrentQuestion(null);
     setMessages([]);
     setAnswer("");
   };
@@ -119,124 +162,111 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "$
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-stone-500">
-        <Loader2 className="w-4 h-4 animate-spin" /> Chargement des cours…
+        <Loader2 className="w-4 h-4 animate-spin" /> Chargement des thèmes…
       </div>
     );
   }
 
-  if (courses.length === 0) {
+  if (chapters.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-6 text-center text-stone-600">
-        Aucun cours disponible. Ajoute-les depuis l'admin.
+        Aucun chapitre disponible. Ajoute des questions QCM Pareto depuis l'espace admin.
       </div>
     );
   }
 
-  // Sélection du chapitre
+  // ── Sélection du chapitre ──
   if (!selectedChapter) {
-    // Structure CESBF avec groupes
-    const CESBF_GROUPS = [
-      { title: "OUVERTURE DE COMPTE", chapters: ["Chap 1 : Procéder à l'ouverture de compte", "Chap 2 : Mettre en place des produits et services liés au compte"] },
-      { title: "SUIVI DES COMPTES BANCAIRES", chapters: ["Chap 1 : Comprendre les opérations au débit et au crédit (agios)", "Chap 2 : Prévenir et gérer les risques de blanchiment", "Chap 3 : Gérer les événements exceptionnels sur le compte", "Chap 4 : Gérer le risque débiteur", "Chap 5 : Gérer la clôture de compte"] },
-      { title: "MISE À DISPOSITION DES MOYENS DE PAIEMENT", chapters: ["Chap 1 : Identifier les différents moyens de paiement", "Chap 2 : Proposer et gérer l'équipement en chéquier et carte bancaire", "Chap 3 : Adapter les moyens de paiement à la situation du client"] },
-      { title: "ÉLABORATION D'UNE SOLUTION D'ÉPARGNE", chapters: ["Chap 1 & 2 : Épargne bancaire disponible et logement", "Chap 3 : Épargne non bancaire (Assurance-vie & PER)", "Chap 4, 5, 6 : Instruments financiers et marchés"] },
-      { title: "ÉLABORATION D'UNE SOLUTION D'ASSURANCE", chapters: ["Chap 1 & 2 : Marché et vie d'un contrat d'assurance", "Chap 3 : Identifier les produits d'assurance adaptés"] },
-      { title: "ÉLABORATION D'UNE SOLUTION DE FINANCEMENT", chapters: ["Chap 1 : Monter un dossier de crédit", "Chap 2 : Identifier les types de crédits adaptés", "Chap 3 : Suivre la vie d'un contrat de prêt"] },
-    ];
+    const accentColor = subject === "CESBF" ? "orange" : "purple";
+    const accentClasses = subject === "CESBF"
+      ? { badge: "text-orange-600/60", card: "border-orange-200", icon: "bg-orange-100 text-orange-600" }
+      : { badge: "text-purple-600/60", card: "border-purple-200", icon: "bg-purple-100 text-purple-600" };
 
-    const orderedCourses = subject === "CESBF" 
-      ? CESBF_GROUPS.map(group => ({
-          title: group.title,
-          chapters: group.chapters.map(chapterName => 
-            courses.find(c => c.title?.includes(chapterName.split(" : ")[0]) || c.title?.includes(chapterName))
-          ).filter(Boolean),
-        })).filter(g => g.chapters.length > 0)
-      : null;
+    if (subject === "CESBF") {
+      const groupsWithChapters = CESBF_GROUPS.map(g => ({
+        ...g,
+        chapters: g.chapters.filter(ch => chapters.includes(ch)),
+      })).filter(g => g.chapters.length > 0);
 
-    return (
-      <div>
-        <div className="mb-5">
-          <h2 className="font-display text-2xl font-bold text-stone-900">Choisis un thème à réviser</h2>
-          <p className="text-stone-500 text-sm mt-1">L'IA te posera une question sur le cours et évaluera ta réponse.</p>
-        </div>
-
-        {/* CESBF : structure par groupe */}
-        {subject === "CESBF" && orderedCourses ? (
+      return (
+        <div>
+          <div className="mb-5">
+            <h2 className="font-display text-2xl font-bold text-stone-900">Choisis un thème à réviser</h2>
+            <p className="text-stone-500 text-sm mt-1">L'IA t'interrogera sur le chapitre choisi avec des questions pertinentes.</p>
+          </div>
           <div className="space-y-5">
-            {orderedCourses.map((group) => (
+            {groupsWithChapters.map((group) => (
               <div key={group.title}>
-                <div className="text-[9px] font-extrabold uppercase tracking-widest text-orange-600/60 px-1 mb-2">{group.title}</div>
+                <div className={`text-[9px] font-extrabold uppercase tracking-widest ${accentClasses.badge} px-1 mb-2`}>{group.title}</div>
                 <div className="grid gap-2">
-                  {group.chapters.map((c, i) => (
+                  {group.chapters.map((ch, i) => (
                     <motion.button
-                      key={c.id}
+                      key={ch}
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.03 }}
-                      onClick={() => selectChapter(c)}
-                      className="bg-white rounded-2xl p-4 shadow-duo border-b-4 border-orange-200 text-left hover:-translate-y-0.5 transition-transform flex items-center gap-3"
+                      onClick={() => selectChapter(ch)}
+                      className={`bg-white rounded-2xl p-4 shadow-duo border-b-4 ${accentClasses.card} text-left hover:-translate-y-0.5 transition-transform flex items-center gap-3`}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
-                        <BookOpen className="w-4 h-4 text-orange-600" />
+                      <div className={`w-8 h-8 rounded-lg ${accentClasses.icon} flex items-center justify-center shrink-0`}>
+                        <BookOpen className="w-4 h-4" />
                       </div>
-                      <div className="flex-1">
-                        <div className="font-bold text-sm text-stone-900">{c.title}</div>
-                      </div>
+                      <div className="font-bold text-sm text-stone-900">{ch}</div>
                     </motion.button>
                   ))}
                 </div>
               </div>
             ))}
           </div>
-        ) : (
-          /* VOJES : simple list */
-          <div className="grid gap-3">
-            {[
-              ...courses.filter(c => c.title?.toLowerCase().includes("méthodologie pratique")),
-              ...courses.filter(c => c.title?.toLowerCase().includes("méthodologie") && !c.title?.toLowerCase().includes("méthodologie pratique")),
-              ...courses.filter(c => !c.title?.toLowerCase().includes("méthodologie")),
-            ].filter((c, idx, arr) => arr.findIndex(x => x.id === c.id) === idx).map((c, i) => (
-              <motion.button
-                key={c.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => selectChapter(c)}
-                className="bg-white rounded-2xl p-5 shadow-duo border-b-4 border-teal-200 text-left hover:-translate-y-0.5 transition-transform flex items-center gap-4"
-              >
-                <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center shrink-0">
-                  <BookOpen className="w-5 h-5 text-teal-600" />
-                </div>
-                <div>
-                  <div className="font-bold text-stone-900">{c.title}</div>
-                  <div className="text-xs text-stone-500 mt-0.5">{subject}</div>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        )}
+        </div>
+      );
+    }
+
+    // VOJES
+    return (
+      <div>
+        <div className="mb-5">
+          <h2 className="font-display text-2xl font-bold text-stone-900">Choisis un thème à réviser</h2>
+          <p className="text-stone-500 text-sm mt-1">L'IA t'interrogera sur le chapitre choisi avec des questions pertinentes.</p>
+        </div>
+        <div className="grid gap-3">
+          {chapters.map((ch, i) => (
+            <motion.button
+              key={ch}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
+              onClick={() => selectChapter(ch)}
+              className={`bg-white rounded-2xl p-4 shadow-duo border-b-4 ${accentClasses.card} text-left hover:-translate-y-0.5 transition-transform flex items-center gap-3`}
+            >
+              <div className={`w-8 h-8 rounded-lg ${accentClasses.icon} flex items-center justify-center shrink-0`}>
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <div className="font-bold text-sm text-stone-900">{ch}</div>
+            </motion.button>
+          ))}
+        </div>
       </div>
     );
   }
 
-  // Interface conversation
+  // ── Interface conversation ──
   return (
     <div className="flex flex-col h-[calc(100vh-160px)] min-h-[500px]">
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="text-xs font-bold uppercase tracking-widest text-teal-600">Révision interactive</div>
-          <div className="font-display font-bold text-lg">{selectedChapter.title}</div>
+          <div className="font-display font-bold text-lg">{selectedChapter}</div>
         </div>
         <button onClick={reset} className="flex items-center gap-1 text-sm text-stone-500 hover:text-stone-900 font-bold">
           <RotateCcw className="w-4 h-4" /> Changer
         </button>
       </div>
 
-      {/* Zone messages */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-2">
         {loadingQuestion && (
           <div className="flex items-center gap-2 text-teal-600 text-sm font-bold">
-            <Loader2 className="w-4 h-4 animate-spin" /> Ton professeur prépare une question…
+            <Loader2 className="w-4 h-4 animate-spin" /> L'IA prépare une question…
           </div>
         )}
         <AnimatePresence>
@@ -250,13 +280,11 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "$
               <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center ${msg.role === "user" ? "bg-teal-500" : "bg-stone-800"}`}>
                 {msg.role === "user" ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
               </div>
-              <div
-                className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-teal-500 text-white rounded-tr-sm"
-                    : "bg-white border border-stone-200 shadow-sm text-stone-800 rounded-tl-sm"
-                }`}
-              >
+              <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                msg.role === "user"
+                  ? "bg-teal-500 text-white rounded-tr-sm"
+                  : "bg-white border border-stone-200 shadow-sm text-stone-800 rounded-tl-sm"
+              }`}>
                 {msg.role === "user" ? (
                   <div className="whitespace-pre-wrap">{msg.content}</div>
                 ) : (
@@ -265,15 +293,12 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "$
                       {pi === 1 && <div className="border-t border-stone-200 my-3" />}
                       <div className="whitespace-pre-wrap text-sm leading-relaxed">
                         {part.trim().split("\n").map((line, li) => {
-                          // Titre en gras **texte**
                           if (/^\*\*.+\*\*/.test(line.trim())) {
                             return <div key={li} className="font-bold text-stone-900 mt-2 mb-0.5">{line.replace(/\*\*/g, "")}</div>;
                           }
-                          // Puce
                           if (/^[-•]\s/.test(line.trim())) {
                             return <div key={li} className="flex gap-1.5 ml-1"><span className="text-stone-400 mt-0.5">·</span><span>{line.replace(/^[-•]\s/, "")}</span></div>;
                           }
-                          // Ligne vide
                           if (line.trim() === "") return <div key={li} className="h-1.5" />;
                           return <div key={li}>{line}</div>;
                         })}
@@ -298,7 +323,6 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "$
         <div ref={bottomRef} />
       </div>
 
-      {/* Zone saisie */}
       <div className="mt-3 flex gap-2 items-end">
         <textarea
           value={answer}
