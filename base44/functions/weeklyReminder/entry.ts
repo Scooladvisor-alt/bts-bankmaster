@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
         ${cesbfHtml}
 
         <div style="text-align:center;margin-top:32px;">
-          <a href="https://www.app.base44.com" style="display:inline-block;background:#4ade80;color:white;font-weight:800;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:16px;border-bottom:4px solid #16a34a;">
+          <a href="https://bts-banque.base44.app" style="display:inline-block;background:#4ade80;color:white;font-weight:800;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:16px;border-bottom:4px solid #16a34a;">
             ✨ Réviser maintenant →
           </a>
         </div>

@@ -14,6 +14,7 @@ import Resources from "@/components/modules/Resources";
 import AssistantLauncher from "@/components/modules/AssistantLauncher";
 import VraiOuFaux from "@/components/modules/VraiOuFaux";
 import DrawRevision from "@/components/modules/DrawRevision";
+import LoginGate from "@/components/auth/LoginGate";
 
 const SUBJECT_LABEL = { vojes: "VOJES", cesbf: "CESBF" };
 
@@ -72,23 +73,31 @@ export default function Module() {
 
   // Ces modules gèrent leur propre layout plein écran
   if (method === "pareto" || method === "dessin") {
-    return <Comp subject={subjectLabel} />;
+    return (
+      <LoginGate>
+        <Comp subject={subjectLabel} />
+      </LoginGate>
+    );
   }
 
   // Le jeu voiture a besoin d'un layout compact sans scroll superflu sur mobile
   if (method === "jeu") {
     return (
-      <div className={`${config.bg} min-h-screen`}>
-        <div className="max-w-3xl mx-auto px-3 md:px-6 pt-3 md:pt-5 pb-4 md:pb-24">
-          <Comp subject={subjectLabel} />
+      <LoginGate>
+        <div className={`${config.bg} min-h-screen`}>
+          <div className="max-w-3xl mx-auto px-3 md:px-6 pt-3 md:pt-5 pb-4 md:pb-24">
+            <Comp subject={subjectLabel} />
+          </div>
         </div>
-      </div>
+      </LoginGate>
     );
   }
 
   return (
-    <ModuleShell subject={subjectLabel} title={config.title} emoji={config.emoji} bgClass={config.bg}>
-      <Comp subject={subjectLabel} />
-    </ModuleShell>
+    <LoginGate>
+      <ModuleShell subject={subjectLabel} title={config.title} emoji={config.emoji} bgClass={config.bg}>
+        <Comp subject={subjectLabel} />
+      </ModuleShell>
+    </LoginGate>
   );
 }
