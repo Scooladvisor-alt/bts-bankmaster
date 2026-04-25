@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
 import RoleModal from "@/components/landing/RoleModal";
-import { Sparkles, BarChart2, Landmark } from "lucide-react";
+import { BarChart2, Landmark } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 
 export default function Landing() {
@@ -27,7 +27,7 @@ export default function Landing() {
           className="text-center mb-12">
           
           <div className="inline-flex items-center gap-2 bg-yellow-200 text-yellow-900 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
-            <Sparkles className="w-4 h-4" /> Spécial BTS Banque
+            Spécial BTS Banque
           </div>
           <h1 className="font-display text-5xl md:text-7xl font-bold text-stone-900 leading-tight">
             Revise vite !

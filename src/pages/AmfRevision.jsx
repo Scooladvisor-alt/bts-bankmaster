@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Lock, CheckCircle2, XCircle, RotateCcw, Trophy, Star, TrendingUp, ShieldCheck, BarChart2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import InspecteurAmf from "@/components/admin/InspecteurAmf";
+import { trackProgress } from "@/lib/trackProgress";
 
 const THEME_EMOJIS = {
   1: "🏛️", 2: "⚖️", 3: "🕵️", 4: "🚫",
@@ -200,6 +201,8 @@ export default function AmfRevision() {
 
   useEffect(() => {
     setProgress(load());
+    // Tracker la visite du module AMF
+    trackProgress({ toolUsed: "amf", subject: "CESBF" });
     (async () => {
       const qs = await base44.entities.AmfQuestion.list("theme_number", 200);
       setAllQuestions(qs);

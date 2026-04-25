@@ -67,7 +67,9 @@ export default function Teacher() {
   const isAdmin = currentUser?.role === "admin";
   const teacherSubject = isAdmin ? null : currentUser?.teacherSubject;
   const subjectLabel = isAdmin ? adminSubject : teacherSubject;
-  const tabConfig = TABS.find((t) => t.key === tab);
+  // Les profs ne voient pas l'onglet "Utilisateurs" (réservé admin)
+  const visibleTabs = isAdmin ? TABS : TABS.filter((t) => t.key !== "users");
+  const tabConfig = visibleTabs.find((t) => t.key === tab) || visibleTabs[0];
   const Comp = tabConfig?.Comp;
   const needsSubject = !["popups", "assistant", "amf", "users"].includes(tab);
 
@@ -97,7 +99,7 @@ export default function Teacher() {
           </button>
         </div>
         <div className="max-w-6xl mx-auto px-2 pb-2 grid grid-cols-7 md:grid-cols-13 gap-1">
-          {TABS.map((t) => {
+          {visibleTabs.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
             return (
