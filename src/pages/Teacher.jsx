@@ -9,6 +9,7 @@ import AdminCourses from "@/components/admin/AdminCourses";
 import AdminResources from "@/components/admin/AdminResources";
 import AdminAssistant from "@/components/admin/AdminAssistant";
 import AdminPopups from "@/components/admin/AdminPopups";
+import AdminAmfQuestions from "@/components/admin/AdminAmfQuestions";
 
 const TABS = [
   { key: "pareto",     label: "🎯 QCM Pareto",        Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
@@ -20,6 +21,7 @@ const TABS = [
   { key: "ressources", label: "🔗 Ressources",          Comp: AdminResources },
   { key: "popups",     label: "💬 Pop-ups",             Comp: AdminPopups },
   { key: "assistant",  label: "🤖 Assistant IA",        Comp: AdminAssistant },
+  { key: "amf",        label: "🎯 Certif AMF",          Comp: AdminAmfQuestions },
 ];
 
 export default function Teacher() {
@@ -58,7 +60,7 @@ export default function Teacher() {
   const subjectLabel = isAdmin ? null : currentUser?.teacherSubject;
   const tabConfig = TABS.find((t) => t.key === tab);
   const Comp = tabConfig?.Comp;
-  const needsSubject = !["popups", "assistant"].includes(tab);
+  const needsSubject = !["popups", "assistant", "amf"].includes(tab);
 
   return (
     <div className="min-h-screen bg-stone-50">

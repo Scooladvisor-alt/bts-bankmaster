@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { checkIsAdmin } from "@/lib/isAdmin";
 import { base44 } from "@/api/base44Client";
-import { Loader2, ChevronLeft, LogOut, Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, Pencil, Users } from "lucide-react";
+import { Loader2, ChevronLeft, LogOut, Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, Pencil, Users, Award } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import AdminQuestions from "@/components/admin/AdminQuestions";
 import AdminQuestionsChapters from "@/components/admin/AdminQuestionsChapters";
@@ -15,6 +15,7 @@ import AdminAssistant from "@/components/admin/AdminAssistant";
 import AdminDrawQuestions from "@/components/admin/AdminDrawQuestions";
 import AdminUsers from "@/components/admin/AdminUsers";
 import DebugDataCheck from "@/components/admin/DebugDataCheck";
+import AdminAmfQuestions from "@/components/admin/AdminAmfQuestions";
 
 const TABS = [
   { key: "pareto",      label: "QCM Pareto",        icon: Target,       Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="pareto" /> },
@@ -29,6 +30,7 @@ const TABS = [
   { key: "assistant",   label: "Assistant",          icon: Bot,          Comp: AdminAssistant },
   { key: "memo",        label: "Mémo Dessin",        icon: Pencil,       Comp: AdminDrawQuestions },
   { key: "users",       label: "Utilisateurs",       icon: Users,        Comp: AdminUsers },
+  { key: "amf",         label: "Certif AMF",         icon: Award,        Comp: AdminAmfQuestions },
 ];
 
 const SUBJECTS = ["VOJES", "CESBF"];
@@ -77,7 +79,7 @@ export default function Admin() {
   const tabConfig = TABS.find((t) => t.key === tab);
   const Current = tabConfig?.Comp;
   // Teachers tab has no subject filter
-  const needsSubject = tab !== "popups" && tab !== "users";
+  const needsSubject = tab !== "popups" && tab !== "users" && tab !== "amf";
 
   return (
     <div className="min-h-screen bg-stone-50">
