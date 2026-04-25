@@ -269,7 +269,7 @@ export default function AmfRevision() {
               <div>
                 <div className="font-fredoka text-lg font-bold text-stone-900">Méthode Pareto — 80/20</div>
                 <div className="text-xs text-stone-500 leading-relaxed mt-0.5">
-                  12 thèmes clés de la certification AMF. Valide chaque balise avec 80% de bonnes réponses pour progresser.
+                  Les 12 thèmes clés de la certification AMF - version express. Valide chaque balise avec 80% de bonnes réponses pour avancer.
                 </div>
               </div>
             </div>
