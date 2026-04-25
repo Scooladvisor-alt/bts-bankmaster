@@ -253,8 +253,8 @@ export default function AmfRevision() {
             <ChevronLeft className="w-5 h-5 text-stone-600" />
           </Link>
           <div className="flex-1">
-            <div className="text-xs font-bold uppercase tracking-widest text-blue-600">Certification</div>
-            <h1 className="font-fredoka text-xl font-bold text-stone-900">Parcours AMF — Méthode Survie</h1>
+            <div className="text-xs font-bold uppercase tracking-widest text-blue-600">Certification AMF</div>
+            <h1 className="font-fredoka text-xl font-bold text-stone-900">Parcours AMF — Méthode Survie Paretomaxing</h1>
           </div>
           <div className="text-2xl">🇫🇷</div>
         </div>
