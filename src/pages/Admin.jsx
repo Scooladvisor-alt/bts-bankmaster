@@ -96,7 +96,7 @@ export default function Admin() {
             <LogOut className="w-4 h-4" /> Déconnexion
           </button>
         </div>
-        <div className="max-w-6xl mx-auto px-2 pb-2 grid grid-cols-6 md:grid-cols-12 gap-1">
+        <div className="max-w-6xl mx-auto px-2 pb-2 flex flex-wrap gap-1">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;

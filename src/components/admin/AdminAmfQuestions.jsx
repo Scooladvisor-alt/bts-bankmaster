@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Plus, ChevronDown, ChevronRight, Edit3, Trash2, X, Save } from "lucide-react";
+import { Loader2, Plus, ChevronDown, ChevronRight, Edit3, Trash2, X, Save, ShieldCheck } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
+import InspecteurAmf from "./InspecteurAmf";
 
 const THEME_EMOJIS = {
   1: "🏛️", 2: "⚖️", 3: "🕵️", 4: "🚫",
@@ -152,6 +153,7 @@ export default function AdminAmfQuestions() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewTheme, setShowNewTheme] = useState(false);
+  const [showInspecteur, setShowInspecteur] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -180,10 +182,21 @@ export default function AdminAmfQuestions() {
           <h2 className="font-display text-lg font-bold text-stone-900">Questions Certification AMF</h2>
           <p className="text-xs text-stone-500 mt-0.5">{questions.length} questions · {themes.length} thèmes</p>
         </div>
-        <DuoButton variant="primary" onClick={() => setShowNewTheme(true)}>
-          <Plus className="w-4 h-4 inline mr-1" /> Nouveau thème
-        </DuoButton>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowInspecteur(true)}
+            title="Mode Inspecteur AMF"
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+          >
+            🕵️
+          </button>
+          <DuoButton variant="primary" onClick={() => setShowNewTheme(true)}>
+            <Plus className="w-4 h-4 inline mr-1" /> Nouveau thème
+          </DuoButton>
+        </div>
       </div>
+
+      {showInspecteur && <InspecteurAmf onClose={() => setShowInspecteur(false)} />}
 
       {showNewTheme && (
         <QuestionModal
