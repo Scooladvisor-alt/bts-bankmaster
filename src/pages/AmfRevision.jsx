@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Lock, CheckCircle2, XCircle, RotateCcw, Trophy, Star } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import InspecteurAmf from "@/components/admin/InspecteurAmf";
 
 const THEME_EMOJIS = {
   1: "🏛️", 2: "⚖️", 3: "🕵️", 4: "🚫",
@@ -194,6 +195,7 @@ export default function AmfRevision() {
   const [loading, setLoading] = useState(true);
   const [activeTheme, setActiveTheme] = useState(null);
   const [progress, setProgress] = useState({});
+  const [showInspecteur, setShowInspecteur] = useState(false);
   const { load, save } = useAmfProgress();
 
   useEffect(() => {
@@ -261,20 +263,30 @@ export default function AmfRevision() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Intro banner */}
-        <div className="bg-gradient-to-r from-blue-600 via-white to-red-500 p-0.5 rounded-3xl mb-8 shadow-lg">
-          <div className="bg-white rounded-[22px] px-5 py-4">
-            <div className="flex items-center gap-3">
-              <div className="text-4xl">🎯</div>
-              <div>
-                <div className="font-fredoka text-lg font-bold text-stone-900">Méthode Pareto — 80/20</div>
-                <div className="text-xs text-stone-500 leading-relaxed mt-0.5">
-                  Les 12 thèmes clés de la certification AMF - version express. Valide chaque balise avec 80% de bonnes réponses pour avancer.
+        {/* Intro banner + bouton Inspecteur */}
+        <div className="flex gap-3 mb-8 items-stretch">
+          <div className="flex-1 bg-gradient-to-r from-blue-600 via-white to-red-500 p-0.5 rounded-3xl shadow-lg">
+            <div className="bg-white rounded-[22px] px-5 py-4 h-full">
+              <div className="flex items-center gap-3">
+                <div className="text-4xl">🎯</div>
+                <div>
+                  <div className="font-fredoka text-lg font-bold text-stone-900">Méthode Pareto — 80/20</div>
+                  <div className="text-xs text-stone-500 leading-relaxed mt-0.5">
+                    Les 12 thèmes clés de la certification AMF - version express. Valide chaque balise avec 80% de bonnes réponses pour avancer.
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          <button
+            onClick={() => setShowInspecteur(true)}
+            className="flex flex-col items-center justify-center gap-1.5 px-4 py-3 bg-gradient-to-br from-slate-700 to-slate-900 text-white rounded-3xl shadow-lg hover:scale-105 transition-transform shrink-0"
+          >
+            <span className="text-2xl">🕵️</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide leading-tight text-center">Mode<br/>Inspecteur</span>
+          </button>
         </div>
+        {showInspecteur && <InspecteurAmf onClose={() => setShowInspecteur(false)} />}
 
         {/* Progress summary */}
         {themes.length > 0 && (
