@@ -72,7 +72,7 @@ export default function TopBar() {
                 onClick={() => { base44.auth.redirectToLogin(window.location.href); setOpen(false); }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-50 transition-colors"
               >
-                <span className="text-lg">📧</span> Se connecter par email
+                <span className="text-lg"></span> Se connecter par email
               </button>
             </>
           ) : (
