@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Lock, CheckCircle2, XCircle, RotateCcw, Trophy, Star } from "lucide-react";
+import { ChevronLeft, Lock, CheckCircle2, XCircle, RotateCcw, Trophy, Star, TrendingUp } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import InspecteurAmf from "@/components/admin/InspecteurAmf";
 
@@ -346,6 +346,15 @@ export default function AmfRevision() {
           </motion.div>
         )}
       </div>
+
+      {/* Widget flottant Trading Desk */}
+      <Link to="/cesbf/amf/trading"
+        className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-1.5 px-4 py-3 rounded-2xl shadow-2xl hover:scale-105 transition-transform"
+        style={{ background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)", border: "1px solid #374151" }}>
+        <span className="text-2xl">📈</span>
+        <span className="text-[10px] font-bold uppercase tracking-wide leading-tight text-center text-green-400">Trading<br/>Desk</span>
+        <span className="text-[9px] text-yellow-400 font-bold">Daily 🪙</span>
+      </Link>
     </div>
   );
 }

@@ -1,0 +1,30 @@
+{
+  "name": "BtsCoinScore",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "ID utilisateur"
+    },
+    "userEmail": {
+      "type": "string"
+    },
+    "userName": {
+      "type": "string",
+      "description": "Nom affich\u00e9"
+    },
+    "coins": {
+      "type": "number",
+      "default": 500,
+      "description": "Solde total de BTS Coins"
+    },
+    "lastPlayedDate": {
+      "type": "string",
+      "description": "Date ISO du dernier daily jou\u00e9 (YYYY-MM-DD)"
+    }
+  },
+  "required": [
+    "userId",
+    "coins"
+  ]
+}
