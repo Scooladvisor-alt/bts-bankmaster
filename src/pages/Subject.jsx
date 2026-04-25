@@ -115,14 +115,27 @@ export default function Subject() {
         </div>
       </div>
 
-      {/* Bouton Assistant flottant en bas à droite */}
-      <Link
-        to={`/${subject}/assistant`}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-stone-800 shadow-lg flex items-center justify-center hover:bg-stone-700 transition-colors border-b-4 border-black/30 active:border-b-0 active:translate-y-1"
-        title="Assistant — Pose tes questions"
-      >
-        <Bot className="w-6 h-6 text-white" />
-      </Link>
+      {/* Widget AMF (CESBF uniquement) + Bouton Assistant */}
+      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+        {subject === "cesbf" && (
+          <Link
+            to="/cesbf/amf"
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg border-b-4 border-b-blue-900 active:border-b-0 active:translate-y-1 transition-all text-white font-bold text-xs"
+            style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #f8fafc 50%, #dc2626 100%)" }}
+            title="Certification AMF — Méthode Survie"
+          >
+            <span className="text-lg">🎯</span>
+            <span className="text-stone-900 drop-shadow-sm">Certif AMF</span>
+          </Link>
+        )}
+        <Link
+          to={`/${subject}/assistant`}
+          className="w-14 h-14 rounded-full bg-stone-800 shadow-lg flex items-center justify-center hover:bg-stone-700 transition-colors border-b-4 border-black/30 active:border-b-0 active:translate-y-1"
+          title="Assistant — Pose tes questions"
+        >
+          <Bot className="w-6 h-6 text-white" />
+        </Link>
+      </div>
     </div>
   );
 }

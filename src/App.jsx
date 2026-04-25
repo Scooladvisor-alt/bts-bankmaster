@@ -10,6 +10,7 @@ import Subject from '@/pages/Subject';
 import Module from '@/pages/Module';
 import Admin from '@/pages/Admin';
 import Teacher from '@/pages/Teacher';
+import AmfRevision from '@/pages/AmfRevision';
 
 
 const AuthenticatedApp = () => {
@@ -42,6 +43,7 @@ const AuthenticatedApp = () => {
       <Route path="/admin" element={<Admin />} />
       <Route path="/teacher/:subject" element={<Teacher />} />
       <Route path="/teacher" element={<Teacher />} />
+      <Route path="/cesbf/amf" element={<AmfRevision />} />
 
       <Route path="/:subject" element={<Subject />} />
       <Route path="/:subject/:method" element={<Module />} />

@@ -1,0 +1,37 @@
+{
+  "name": "AmfQuestion",
+  "type": "object",
+  "properties": {
+    "theme_number": {
+      "type": "number",
+      "description": "Num\u00e9ro du th\u00e8me (1-12)"
+    },
+    "theme_label": {
+      "type": "string",
+      "description": "Libell\u00e9 du th\u00e8me"
+    },
+    "question": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "correct_index": {
+      "type": "number",
+      "description": "Index 0-based de la bonne r\u00e9ponse"
+    },
+    "explanation": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "theme_number",
+    "theme_label",
+    "question",
+    "options",
+    "correct_index"
+  ]
+}
