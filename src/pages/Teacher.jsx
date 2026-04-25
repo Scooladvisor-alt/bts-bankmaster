@@ -3,25 +3,32 @@ import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Loader2, LogOut } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import AdminQuestions from "@/components/admin/AdminQuestions";
+import AdminQuestionsChapters from "@/components/admin/AdminQuestionsChapters";
 import AdminRevision from "@/components/admin/AdminRevision";
 import AdminVraiOuFaux from "@/components/admin/AdminVraiOuFaux";
 import AdminCourses from "@/components/admin/AdminCourses";
 import AdminResources from "@/components/admin/AdminResources";
 import AdminAssistant from "@/components/admin/AdminAssistant";
 import AdminPopups from "@/components/admin/AdminPopups";
+import AdminDrawQuestions from "@/components/admin/AdminDrawQuestions";
+import AdminUsers from "@/components/admin/AdminUsers";
 import AdminAmfQuestions from "@/components/admin/AdminAmfQuestions";
+import { Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, Pencil, Users, Award } from "lucide-react";
 
 const TABS = [
-  { key: "pareto",     label: "🎯 QCM Pareto",        Comp: (p) => <AdminQuestions {...p} modeFilter="pareto" /> },
-  { key: "jeu",        label: "🎮 QCM Jeu",            Comp: (p) => <AdminQuestions {...p} modeFilter="jeu" /> },
-  { key: "infini",     label: "🔥 QCM Infini",         Comp: (p) => <AdminQuestions {...p} modeFilter="infini" /> },
-  { key: "revision",   label: "📝 Questions révision", Comp: AdminRevision },
-  { key: "vraiofaux",  label: "✅ Vrai ou Faux",        Comp: AdminVraiOuFaux },
-  { key: "cours",      label: "📚 Cours",               Comp: AdminCourses },
-  { key: "ressources", label: "🔗 Ressources",          Comp: AdminResources },
-  { key: "popups",     label: "💬 Pop-ups",             Comp: AdminPopups },
-  { key: "assistant",  label: "🤖 Assistant IA",        Comp: AdminAssistant },
-  { key: "amf",        label: "🎯 Certif AMF",          Comp: AdminAmfQuestions },
+  { key: "pareto",      label: "QCM Pareto",        icon: Target,        Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="pareto" /> },
+  { key: "jeu",         label: "QCM Jeu",            icon: Gamepad2,      Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="jeu" /> },
+  { key: "infini",      label: "QCM Infini",         icon: Flame,         Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="infini" /> },
+  { key: "revision",    label: "Révision",           icon: FileQuestion,  Comp: AdminRevision },
+  { key: "vraiofaux",   label: "Vrai ou Faux",       icon: CheckSquare,   Comp: AdminVraiOuFaux },
+  { key: "voiefranche", label: "Réponse libre",      icon: BookOpen,      Comp: AdminRevision },
+  { key: "cours",       label: "Cours",              icon: BookMarked,    Comp: AdminCourses },
+  { key: "ressources",  label: "Ressources",         icon: Link2,         Comp: AdminResources },
+  { key: "popups",      label: "Pop-ups",            icon: MessageSquare, Comp: AdminPopups },
+  { key: "assistant",   label: "Assistant",          icon: Bot,           Comp: AdminAssistant },
+  { key: "memo",        label: "Mémo Dessin",        icon: Pencil,        Comp: AdminDrawQuestions },
+  { key: "users",       label: "Utilisateurs",       icon: Users,         Comp: AdminUsers },
+  { key: "amf",         label: "Certif AMF",         icon: Award,         Comp: AdminAmfQuestions },
 ];
 
 export default function Teacher() {
@@ -60,7 +67,7 @@ export default function Teacher() {
   const subjectLabel = isAdmin ? null : currentUser?.teacherSubject;
   const tabConfig = TABS.find((t) => t.key === tab);
   const Comp = tabConfig?.Comp;
-  const needsSubject = !["popups", "assistant", "amf"].includes(tab);
+  const needsSubject = !["popups", "assistant", "amf", "users"].includes(tab);
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -87,18 +94,24 @@ export default function Teacher() {
             <LogOut className="w-4 h-4" /> Déconnexion
           </button>
         </div>
-        <div className="max-w-6xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap ${
-                tab === t.key ? "bg-primary text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="max-w-6xl mx-auto px-2 pb-2 grid grid-cols-7 md:grid-cols-13 gap-1">
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                title={t.label}
+                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-xl text-[10px] font-bold transition-all ${
+                  active ? "bg-primary text-white shadow-sm" : "bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-800"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="truncate w-full text-center leading-tight">{t.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
