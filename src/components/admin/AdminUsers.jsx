@@ -11,9 +11,12 @@ const TOOL_CONFIG = {
   vraiouFaux: { label: "Vrai ou Faux",  color: "bg-rose-100 text-rose-700" },
   cours:      { label: "Cours",         color: "bg-emerald-100 text-emerald-700" },
   amf:        { label: "Certif AMF",    color: "bg-blue-100 text-blue-800" },
+  certifamf:  { label: "Certif AMF",    color: "bg-blue-100 text-blue-800" },
+  "certif-amf": { label: "Certif AMF", color: "bg-blue-100 text-blue-800" },
   connexion:  { label: "Connexion",     color: "bg-stone-100 text-stone-500" },
   ressources: { label: "Ressources",    color: "bg-indigo-100 text-indigo-700" },
   assistant:  { label: "Assistant",     color: "bg-slate-100 text-slate-700" },
+  memo:       { label: "Mémo Dessin",   color: "bg-violet-100 text-violet-700" },
 };
 
 const ROLE_CONFIG = {

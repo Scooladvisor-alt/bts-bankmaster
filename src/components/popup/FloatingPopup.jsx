@@ -57,22 +57,22 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
             className="pointer-events-auto relative overflow-hidden"
           >
-            {/* Fond discret */}
+            {/* Fond rouge/roux transparent brillant */}
             <div
-              className="flex items-center gap-0 bg-white/80 backdrop-blur border border-stone-200 rounded-xl px-4 py-2 shadow-sm"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
+              className="flex items-center bg-red-600/80 backdrop-blur border border-red-400/60 rounded-xl px-4 py-2"
+              style={{ boxShadow: "0 2px 12px rgba(220,38,38,0.35)" }}
             >
               {/* Texte sur une seule ligne, widget s'adapte à la largeur */}
-              <span className="text-xs font-semibold text-stone-600 whitespace-nowrap pr-6">
+              <span className="text-xs font-semibold text-white whitespace-nowrap pr-5">
                 {current.content}
               </span>
 
               {/* Bouton fermer */}
               <button
                 onClick={handleClose}
-                className="absolute top-1.5 right-1.5 w-4 h-4 flex items-center justify-center rounded-full bg-stone-100 hover:bg-stone-200 transition-colors shrink-0"
+                className="absolute top-1.5 right-1.5 w-4 h-4 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 transition-colors shrink-0"
               >
-                <X className="w-2.5 h-2.5 text-stone-500" />
+                <X className="w-2.5 h-2.5 text-white" />
               </button>
             </div>
 
