@@ -318,12 +318,10 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter: init
 
   const load = async () => {
     setLoading(true);
-    // QCM Jeu : afficher mode:"jeu" + mode:"pareto" (fusionnés, sans doublons, chacun garde son vrai mode)
-    // QCM Infini : afficher mode:"infini" + mode:"pareto" (idem)
     if (modeFilter === "jeu" || modeFilter === "infini") {
       const [specific, pareto] = await Promise.all([
-        base44.entities.Question.filter({ subject, mode: modeFilter }, null, 500),
-        base44.entities.Question.filter({ subject, mode: "pareto" }, null, 500),
+        base44.entities.Question.filter({ subject, mode: modeFilter }, "-created_date", 2000),
+        base44.entities.Question.filter({ subject, mode: "pareto" }, "-created_date", 2000),
       ]);
       const seen = new Set();
       const merged = [...specific, ...pareto].filter(q => {
@@ -333,7 +331,7 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter: init
       });
       setQuestions(merged);
     } else {
-      const list = await base44.entities.Question.filter({ subject, mode: modeFilter || "pareto" }, null, 500);
+      const list = await base44.entities.Question.filter({ subject, mode: modeFilter || "pareto" }, "-created_date", 2000);
       setQuestions(list || []);
     }
     setLoading(false);
