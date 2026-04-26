@@ -46,39 +46,43 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
   return (
     <div
       className={`fixed top-4 z-40 pointer-events-none ${alignRight ? "right-4" : "left-4"}`}
-      style={{ maxWidth: "320px" }}
     >
       <AnimatePresence>
         {visible && current && (
           <motion.div
             key={current.id}
-            initial={{ opacity: 0, y: -24, scale: 0.9 }}
+            initial={{ opacity: 0, y: -20, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -16, scale: 0.93 }}
+            exit={{ opacity: 0, y: -12, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
-            className="pointer-events-auto"
+            className="pointer-events-auto relative overflow-hidden"
           >
-            <div className="relative flex items-center gap-2 bg-yellow-50 border-2 border-yellow-300 rounded-2xl px-3 py-2.5 shadow-duo"
-              style={{ boxShadow: "0 4px 0 0 rgba(202,138,4,0.35)" }}
+            {/* Fond discret */}
+            <div
+              className="flex items-center gap-0 bg-white/80 backdrop-blur border border-stone-200 rounded-xl px-4 py-2 shadow-sm"
+              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
             >
-              {/* Label */}
-              <div className="text-[9px] font-extrabold uppercase tracking-widest text-yellow-700 shrink-0">
-                💡
-              </div>
-
-              {/* Contenu — une seule ligne avec ellipsis */}
-              <div className="text-sm font-semibold text-stone-800 whitespace-nowrap overflow-hidden text-ellipsis flex-1 pr-6">
+              {/* Texte sur une seule ligne, widget s'adapte à la largeur */}
+              <span className="text-xs font-semibold text-stone-600 whitespace-nowrap pr-6">
                 {current.content}
-              </div>
+              </span>
 
               {/* Bouton fermer */}
               <button
                 onClick={handleClose}
-                className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-yellow-200 hover:bg-yellow-300 transition-colors shrink-0"
+                className="absolute top-1.5 right-1.5 w-4 h-4 flex items-center justify-center rounded-full bg-stone-100 hover:bg-stone-200 transition-colors shrink-0"
               >
-                <X className="w-3 h-3 text-yellow-800" />
+                <X className="w-2.5 h-2.5 text-stone-500" />
               </button>
             </div>
+
+            {/* Effet brillance au montage */}
+            <motion.div
+              initial={{ x: "-100%", opacity: 0.7 }}
+              animate={{ x: "200%", opacity: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+              className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/70 to-transparent pointer-events-none skew-x-12"
+            />
           </motion.div>
         )}
       </AnimatePresence>
