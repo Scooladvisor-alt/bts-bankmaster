@@ -122,6 +122,16 @@ export default function Subject() {
 
       {/* Widget AMF (CESBF uniquement) + Bouton Assistant */}
       <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+        {subject === "vojes" && (
+          <Link
+            to="/vojes/analyseur"
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg border-b-4 border-b-purple-900 active:border-b-0 active:translate-y-1 transition-all bg-[#1e2a4a] text-white font-bold text-xs hover:bg-[#2a3a6a]"
+            title="Analyseur de sujets d'examen VOJES"
+          >
+            <BarChart2 className="w-4 h-4" />
+            <span>Analyseur E5</span>
+          </Link>
+        )}
         {subject === "cesbf" && (
           <Link
             to="/cesbf/amf"
