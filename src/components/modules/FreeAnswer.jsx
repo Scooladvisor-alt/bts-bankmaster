@@ -10,11 +10,14 @@ function getModuleKey(chapterName) {
 }
 
 export default function FreeAnswer({ subject }) {
-  const [chapters, setChapters] = useState([]); // liste de strings (noms de chapitres)
+  const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [currentExpectedAnswer, setCurrentExpectedAnswer] = useState(null); // réponse attendue de la question en cours
+  const [allChapterQuestions, setAllChapterQuestions] = useState([]); // toutes les questions du chapitre
+  const [usedQuestionIds, setUsedQuestionIds] = useState(new Set()); // IDs déjà posés
   const [answer, setAnswer] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
@@ -34,8 +37,8 @@ export default function FreeAnswer({ subject }) {
         });
         setChapters(ordered);
       } else {
-        // VOJES : chapitres des questions QCM Pareto
-        const questions = await base44.entities.Question.filter({ subject: "VOJES", mode: "pareto" }, null, 500);
+        // VOJES : chapitres depuis les RevisionQuestion (comme CESBF)
+        const questions = await base44.entities.RevisionQuestion.filter({ subject: "VOJES" }, null, 500);
         const seen = new Set();
         const ordered = [];
         questions.forEach(q => {
@@ -63,29 +66,32 @@ export default function FreeAnswer({ subject }) {
     setSelectedChapter(chapter);
     setMessages([]);
     setAnswer("");
+    setUsedQuestionIds(new Set());
+    setCurrentExpectedAnswer(null);
     setLoadingQuestion(true);
 
-    // Récupère les questions de révision du chapitre depuis la BDD
+    // Charge TOUTES les questions du chapitre depuis la BDD
     const allRevQ = await base44.entities.RevisionQuestion.filter({ subject }, null, 500);
     const chapterQ = allRevQ.filter(q => q.chapter === chapter);
-    const pool = chapterQ.length > 0 ? chapterQ : allRevQ;
-    const picked = pool[Math.floor(Math.random() * pool.length)];
+    setAllChapterQuestions(chapterQ);
 
-    const questionText = picked ? picked.question : null;
-
-    let firstQ;
-    if (questionText) {
-      firstQ = questionText;
-    } else {
-      // Fallback IA si aucune question en BDD
-      firstQ = await base44.integrations.Core.InvokeLLM({
+    if (chapterQ.length === 0) {
+      // Aucune question en BDD pour ce chapitre → fallback IA
+      const firstQ = await base44.integrations.Core.InvokeLLM({
         prompt: `Tu es un professeur expert en BTS Banque, matière ${subject}. 
 Pose UNE seule question de révision précise et pertinente sur le chapitre : "${chapter}".
 Réponds UNIQUEMENT avec la question, sans introduction ni numérotation.`,
       });
+      setMessages([{ role: "assistant", content: firstQ }]);
+      setCurrentExpectedAnswer(null);
+    } else {
+      // Pioche une question aléatoire du chapitre
+      const picked = chapterQ[Math.floor(Math.random() * chapterQ.length)];
+      setUsedQuestionIds(new Set([picked.id]));
+      setCurrentExpectedAnswer(picked.expected_answer || null);
+      setMessages([{ role: "assistant", content: picked.question }]);
     }
 
-    setMessages([{ role: "assistant", content: firstQ }]);
     setLoadingQuestion(false);
   };
 
@@ -97,47 +103,66 @@ Réponds UNIQUEMENT avec la question, sans introduction ni numérotation.`,
     setMessages((m) => [...m, { role: "user", content: userMsg }]);
 
     const history = messages.map((m) => `${m.role === "user" ? "Étudiant" : "Professeur"}: ${m.content}`).join("\n");
+    const lastQuestion = messages.filter(m => m.role === "assistant").slice(-1)[0]?.content || "";
 
-    // Prochaine question depuis la BDD
-    const allRevQ = await base44.entities.RevisionQuestion.filter({ subject }, null, 500);
-    const chapterQ = allRevQ.filter(q => q.chapter === selectedChapter);
-    const pool = chapterQ.length > 0 ? chapterQ : allRevQ;
-    const usedQ = messages.filter(m => m.role === "assistant").map(m => m.content);
-    const nextPool = pool.filter(q => !usedQ.some(u => u.includes(q.question)));
-    const nextQ = nextPool.length > 0
-      ? nextPool[Math.floor(Math.random() * nextPool.length)]
-      : pool[Math.floor(Math.random() * pool.length)];
-    const nextQuestion = nextQ ? nextQ.question : null;
+    // Pioche la prochaine question depuis la BDD (en excluant celles déjà posées)
+    const remaining = allChapterQuestions.filter(q => !usedQuestionIds.has(q.id));
+    let nextQuestion = null;
+    let nextExpectedAnswer = null;
+    let nextPicked = null;
+    const allExhausted = remaining.length === 0 && allChapterQuestions.length > 0;
+
+    if (remaining.length > 0) {
+      nextPicked = remaining[Math.floor(Math.random() * remaining.length)];
+      nextQuestion = nextPicked.question;
+      nextExpectedAnswer = nextPicked.expected_answer || null;
+    }
 
     const feedback = await base44.integrations.Core.InvokeLLM({
-      prompt: `T'es le meilleur pote de l'étudiant, et t'es un crack en BTS Banque. Tu parles EXACTEMENT comme un pote IRL — naturel, familier, direct, sans chichis ni langue de bois. Tu tutoies toujours. Matière : ${subject} — Chapitre : "${selectedChapter}"
+      prompt: `T'es le meilleur pote de l'étudiant, et t'es un crack en BTS Banque. Tu parles EXACTEMENT comme un pote IRL — naturel, familier, direct, sans chichis ni langue de bois. Tu tutoies toujours.
 
-Historique :
+Matière : ${subject} — Chapitre : "${selectedChapter}"
+
+HISTORIQUE DE LA CONVERSATION :
 ${history}
 
-Ce que l'étudiant vient de dire : "${userMsg}"
+LA QUESTION QUE TU VENAIS DE LUI POSER : "${lastQuestion}"
+${currentExpectedAnswer ? `LA RÉPONSE CORRECTE ATTENDUE (pour référence interne seulement, ne la révèle pas avant d'évaluer) : "${currentExpectedAnswer}"` : ""}
+
+CE QUE L'ÉTUDIANT VIENT DE RÉPONDRE : "${userMsg}"
 
 ---
 
-DÉTECTE D'ABORD ce que c'est :
+ÉTAPE 1 — DÉTECTE ce que c'est :
 
-A) INSULTE / IRRESPECT → Recadre-le cash comme un vrai pote qui se défend, proportionnellement. Ferme, direct.
+A) INSULTE / IRRESPECT → Recadre-le cash, proportionnellement. Ferme mais pote.
 
-B) QUESTION / PRÉCISION → Réponds direct, comme si t'expliquais à la cafét. Juste la réponse claire.
+B) QUESTION / DEMANDE DE PRÉCISION → Réponds directement et clairement, comme à la cafét.
 
-C) RÉPONSE À LA QUESTION POSÉE → Évalue :
-  - Correct : confirme en une phrase naturelle. Si bonus → à la fin, préfixé de "**Tu aurais pu aussi glisser :**".
-  - Partiel : va DIRECT à ce qui manque, répète pas ce qu'il a dit.
-  - Incorrect : donne la bonne réponse en 2-3 phrases factuelles.
+C) RÉPONSE À LA QUESTION POSÉE → Compare sa réponse à la réponse attendue :
+  - Correct (correspond à la réponse attendue) : valide en une phrase naturelle. Si des éléments bonus existent → "**Tu aurais pu aussi glisser :**" à la fin.
+  - Partiel (quelques éléments mais incomplet) : va DIRECT sur ce qui manque sans répéter ce qu'il a dit.
+  - Incorrect / hors sujet / n'importe quoi → sois direct : "Nan là c'est pas ça ❌" et donne la bonne réponse en 2-3 phrases factuelles.
 
-RÈGLES DE FORME ABSOLUES :
-- Commence par le verdict naturel : "Ouais c'est bon ✅", "Presque —", "Nan là c'est pas ça ❌", etc.
-- Structure avec des **titres courts en gras** si nécessaire.
-- Utilise des listes à puces (- item) pour les énumérations.
-- Max 6 lignes de contenu. Sois chirurgical.
+RÈGLES ABSOLUES :
+- Commence par un verdict naturel : "Ouais c'est bon ✅", "Presque —", "Nan là c'est pas ça ❌", etc.
+- Max 6 lignes de feedback. Sois chirurgical et précis.
 - Zéro blabla motivationnel.
-${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "${nextQuestion}"` : `- Termine avec "---" puis pose une nouvelle question différente sur le chapitre "${selectedChapter}".`}`,
+- Utilise des listes à puces (- item) pour les énumérations.
+- Après le feedback :
+${allExhausted
+  ? `  → Dis-lui qu'il a répondu à toutes les questions du chapitre "${selectedChapter}", et propose-lui soit de t'en inventer d'autres sur ce même cours, soit de changer de chapitre.`
+  : nextQuestion
+    ? `  → Termine avec "---" puis pose EXACTEMENT cette question (ne la modifie pas) : "${nextQuestion}"`
+    : `  → Termine avec "---" puis invente une nouvelle question cohérente sur le chapitre "${selectedChapter}" uniquement.`
+}`,
     });
+
+    // Met à jour les questions utilisées
+    if (nextPicked) {
+      setUsedQuestionIds(prev => new Set([...prev, nextPicked.id]));
+      setCurrentExpectedAnswer(nextExpectedAnswer);
+    }
 
     setMessages((m) => [...m, { role: "assistant", content: feedback }]);
     setSending(false);
@@ -147,6 +172,9 @@ ${nextQuestion ? `- Termine avec "---" puis pose cette question directement : "$
     setSelectedChapter(null);
     setMessages([]);
     setAnswer("");
+    setCurrentExpectedAnswer(null);
+    setAllChapterQuestions([]);
+    setUsedQuestionIds(new Set());
   };
 
   if (loading) {

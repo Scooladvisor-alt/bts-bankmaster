@@ -57,6 +57,7 @@ export default function Landing() {
             delay={0.2} />
           
         </div>
+        <p className="text-center text-stone-400 text-sm font-semibold mt-6">plate-forme de révision pour la classe d'Antonin 🐐</p>
       </div>
     {/* Bannière défilante pied de page */}
     <div className="bg-red-600 py-3 fixed bottom-0 left-0 right-0 z-50 overflow-hidden border-t-4 border-red-800">

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { X, Lightbulb } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
   const [popups, setPopups] = useState([]);
@@ -58,28 +58,23 @@ export default function FloatingPopup({ subject = "ALL", alignRight = false }) {
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
             className="pointer-events-auto"
           >
-            <div className="relative flex items-start gap-3 bg-yellow-50 border-2 border-yellow-300 rounded-2xl px-4 py-3 shadow-duo"
+            <div className="relative flex items-center gap-2 bg-yellow-50 border-2 border-yellow-300 rounded-2xl px-3 py-2.5 shadow-duo"
               style={{ boxShadow: "0 4px 0 0 rgba(202,138,4,0.35)" }}
             >
-              {/* Icône */}
-              <div className="w-8 h-8 rounded-xl bg-yellow-400 flex items-center justify-center shrink-0 mt-0.5">
-                <Lightbulb className="w-4 h-4 text-yellow-900" />
+              {/* Label */}
+              <div className="text-[9px] font-extrabold uppercase tracking-widest text-yellow-700 shrink-0">
+                💡
               </div>
 
-              {/* Contenu */}
-              <div className="flex-1 min-w-0 pr-5">
-                <div className="text-[9px] font-extrabold uppercase tracking-widest text-yellow-700 mb-0.5">
-                  Le savais-tu ?
-                </div>
-                <div className="text-sm font-semibold text-stone-800 leading-snug">
-                  {current.content}
-                </div>
+              {/* Contenu — une seule ligne avec ellipsis */}
+              <div className="text-sm font-semibold text-stone-800 whitespace-nowrap overflow-hidden text-ellipsis flex-1 pr-6">
+                {current.content}
               </div>
 
               {/* Bouton fermer */}
               <button
                 onClick={handleClose}
-                className="absolute top-2.5 right-2.5 w-5 h-5 flex items-center justify-center rounded-full bg-yellow-200 hover:bg-yellow-300 transition-colors"
+                className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-yellow-200 hover:bg-yellow-300 transition-colors shrink-0"
               >
                 <X className="w-3 h-3 text-yellow-800" />
               </button>
