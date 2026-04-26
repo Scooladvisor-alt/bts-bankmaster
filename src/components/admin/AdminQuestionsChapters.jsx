@@ -489,58 +489,117 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter: init
   }
 
   // ── CESBF : tous les groupes/chapitres dans l'ordre officiel + custom ──
-  const customInDBCesbf = [...chaptersInDB].filter(ch => !ALL_CESBF_CHAPTERS.includes(ch)).sort();
-  const customExtraCesbf = extraCustomChapters.filter(ch => !chaptersInDB.has(ch) && !ALL_CESBF_CHAPTERS.includes(ch));
+  const cesbfParetoQuestions = (modeFilter === "jeu" || modeFilter === "infini")
+    ? questions.filter(q => q.mode === "pareto")
+    : questions;
+  const cesbfExtraQuestions = (modeFilter === "jeu" || modeFilter === "infini")
+    ? questions.filter(q => q.mode === modeFilter)
+    : [];
 
+  const chaptersInDBCesbfPareto = new Set(cesbfParetoQuestions.map(q => q.chapter).filter(Boolean));
+  const chaptersInDBCesbfExtra = new Set(cesbfExtraQuestions.map(q => q.chapter).filter(Boolean));
+
+  const customInDBCesbf = [...chaptersInDBCesbfPareto].filter(ch => !ALL_CESBF_CHAPTERS.includes(ch)).sort();
+  const customExtraCesbf = extraCustomChapters.filter(ch => !chaptersInDB.has(ch) && !ALL_CESBF_CHAPTERS.includes(ch));
+  const cesbfExtraChaptersOrdered = [...chaptersInDBCesbfExtra].sort();
+
+  // Mode pareto classique CESBF
+  if (modeFilter !== "jeu" && modeFilter !== "infini") {
+    const chaptersInDBSimple = new Set(questions.map(q => q.chapter).filter(Boolean));
+    const customInDBSimple = [...chaptersInDBSimple].filter(ch => !ALL_CESBF_CHAPTERS.includes(ch)).sort();
+    const customExtraSimple = extraCustomChapters.filter(ch => !chaptersInDBSimple.has(ch) && !ALL_CESBF_CHAPTERS.includes(ch));
+    return (
+      <div>
+        <div className="flex items-center justify-end mb-4">
+          <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
+            <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
+          </button>
+        </div>
+        {showAddChapter && (
+          <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
+            <input className="flex-1 rounded-lg border border-green-200 px-3 py-1.5 text-sm focus:outline-none focus:border-green-400" placeholder="Nom du nouveau chapitre…" value={newChapterName} onChange={e => setNewChapterName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setShowAddChapter(false); }} autoFocus />
+            <button onClick={handleAddChapter} className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Créer</button>
+            <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
+          </div>
+        )}
+        {CESBF_GROUPS.map(group => {
+          const chaptersWithQ = group.chapters.filter(ch => chaptersInDBSimple.has(ch));
+          if (chaptersWithQ.length === 0) return null;
+          return (
+            <div key={group.title} className="mb-5">
+              <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">{group.title}</div>
+              {chaptersWithQ.map(ch => (
+                <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+              ))}
+            </div>
+          );
+        })}
+        {(customInDBSimple.length > 0 || customExtraSimple.length > 0) && (
+          <div className="mb-5">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
+            {customInDBSimple.map(ch => (<ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />))}
+            {customExtraSimple.map(ch => (<ChapterRow key={ch} chapter={ch} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={() => { setExtraCustomChapters(prev => prev.filter(c => c !== ch)); load(); }} isCustom={true} />))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Mode jeu/infini CESBF : deux sections séparées
   return (
     <div>
-      <div className="flex items-center justify-end mb-4">
-        <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
-          <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
-        </button>
+      {/* ── SECTION 1 : Questions QCM Pareto (partagées) ── */}
+      <div className="mb-6">
+        <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b-2 border-stone-300 pb-1">
+          📊 QUESTIONS QCM PARETO (partagées)
+        </div>
+        {CESBF_GROUPS.map(group => {
+          const chaptersWithQ = group.chapters.filter(ch => chaptersInDBCesbfPareto.has(ch));
+          if (chaptersWithQ.length === 0) return null;
+          return (
+            <div key={group.title} className="mb-4">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-stone-300 px-1 mb-1">{group.title}</div>
+              {chaptersWithQ.map(ch => (
+                <ChapterRow key={ch} chapter={ch} questions={cesbfParetoQuestions} subject={subject} modeFilter="pareto" onRefresh={load} isCustom={true} />
+              ))}
+            </div>
+          );
+        })}
+        {customInDBCesbf.map(ch => (
+          <ChapterRow key={ch} chapter={ch} questions={cesbfParetoQuestions} subject={subject} modeFilter="pareto" onRefresh={load} isCustom={true} />
+        ))}
       </div>
 
-      {showAddChapter && (
-        <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
-          <input
-            className="flex-1 rounded-lg border border-green-200 px-3 py-1.5 text-sm focus:outline-none focus:border-green-400"
-            placeholder="Nom du nouveau chapitre…"
-            value={newChapterName}
-            onChange={e => setNewChapterName(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setShowAddChapter(false); }}
-            autoFocus
-          />
-          <button onClick={handleAddChapter} className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Créer</button>
-          <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
-        </div>
-      )}
-
-      {/* Tous les groupes CESBF dans l'ordre officiel — masquer chapitres à 0 questions */}
-      {CESBF_GROUPS.map(group => {
-        const chaptersWithQ = group.chapters.filter(ch => chaptersInDB.has(ch));
-        if (chaptersWithQ.length === 0) return null;
-        return (
-          <div key={group.title} className="mb-5">
-            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">{group.title}</div>
-            {chaptersWithQ.map(ch => (
-              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
-            ))}
+      {/* ── SECTION 2 : Questions supplémentaires propres à ce mode ── */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2 border-b-2 border-blue-200 pb-1">
+          <div className="text-[10px] font-extrabold uppercase tracking-widest text-blue-500">
+            ➕ QUESTIONS SUPPLÉMENTAIRES ({modeFilter.toUpperCase()}) — {cesbfExtraQuestions.length} questions
           </div>
-        );
-      })}
-
-      {/* Chapitres personnalisés */}
-      {(customInDBCesbf.length > 0 || customExtraCesbf.length > 0) && (
-        <div className="mb-5">
-          <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
-          {customInDBCesbf.map(ch => (
-            <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
-          ))}
-          {customExtraCesbf.map(ch => (
-            <ChapterRow key={ch} chapter={ch} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={() => { setExtraCustomChapters(prev => prev.filter(c => c !== ch)); load(); }} isCustom={true} />
-          ))}
+          <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
+            <Plus className="w-3.5 h-3.5" /> Nouveau chapitre
+          </button>
         </div>
-      )}
+        {showAddChapter && (
+          <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
+            <input className="flex-1 rounded-lg border border-green-200 px-3 py-1.5 text-sm focus:outline-none focus:border-green-400" placeholder="Nom du nouveau chapitre…" value={newChapterName} onChange={e => setNewChapterName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setShowAddChapter(false); }} autoFocus />
+            <button onClick={handleAddChapter} className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Créer</button>
+            <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
+          </div>
+        )}
+        {cesbfExtraChaptersOrdered.length === 0 && customExtraCesbf.length === 0 ? (
+          <div className="text-sm text-stone-400 italic px-2 py-4 text-center">Aucune question supplémentaire pour ce mode.</div>
+        ) : (
+          <>
+            {cesbfExtraChaptersOrdered.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={cesbfExtraQuestions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+            ))}
+            {customExtraCesbf.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={() => { setExtraCustomChapters(prev => prev.filter(c => c !== ch)); load(); }} isCustom={true} />
+            ))}
+          </>
+        )}
+      </div>
     </div>
   );
 }
