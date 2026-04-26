@@ -362,58 +362,128 @@ export default function AdminQuestionsChapters({ subjectFilter, modeFilter: init
 
   // ── VOJES : tous les chapitres officiels dans l'ordre 1→31 + custom ──
   if (subject === "VOJES") {
-    // Chapitres officiels qui ont des questions en BDD
-    const officialWithQ = VOJES_CHAPTERS.filter(ch => chaptersInDB.has(ch));
-    // Tous les chapitres en BDD hors référentiel officiel → affichés comme "custom" (modifiables)
-    const customInDB = [...chaptersInDB].filter(ch => !VOJES_CHAPTERS.includes(ch)).sort();
-    // Custom ajoutés via le bouton mais pas encore en BDD
+    // Pour jeu/infini : séparer les questions pareto des questions jeu
+    const paretoQuestions = (modeFilter === "jeu" || modeFilter === "infini")
+      ? questions.filter(q => q.mode === "pareto")
+      : questions;
+    const extraQuestions = (modeFilter === "jeu" || modeFilter === "infini")
+      ? questions.filter(q => q.mode === modeFilter)
+      : [];
+
+    const chaptersInDBPareto = new Set(paretoQuestions.map(q => q.chapter).filter(Boolean));
+    const chaptersInDBExtra = new Set(extraQuestions.map(q => q.chapter).filter(Boolean));
+
+    // Section pareto : chapitres officiels + custom
+    const officialWithQPareto = VOJES_CHAPTERS.filter(ch => chaptersInDBPareto.has(ch));
+    const customInDBPareto = [...chaptersInDBPareto].filter(ch => !VOJES_CHAPTERS.includes(ch)).sort();
+
+    // Section extra (questions jeu/infini supplémentaires) : par chapitre
+    const extraChaptersOrdered = [...chaptersInDBExtra].sort();
     const customExtra = extraCustomChapters.filter(ch => !chaptersInDB.has(ch) && !VOJES_CHAPTERS.includes(ch));
 
+    // Mode pareto classique (pas jeu/infini) : comportement original
+    if (modeFilter !== "jeu" && modeFilter !== "infini") {
+      const officialWithQ = VOJES_CHAPTERS.filter(ch => chaptersInDB.has(ch));
+      const customInDB = [...chaptersInDB].filter(ch => !VOJES_CHAPTERS.includes(ch)).sort();
+      return (
+        <div>
+          <div className="flex items-center justify-end mb-4">
+            <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
+            </button>
+          </div>
+          {showAddChapter && (
+            <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
+              <input
+                className="flex-1 rounded-lg border border-green-200 px-3 py-1.5 text-sm focus:outline-none focus:border-green-400"
+                placeholder="Nom du nouveau chapitre…"
+                value={newChapterName}
+                onChange={e => setNewChapterName(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setShowAddChapter(false); }}
+                autoFocus
+              />
+              <button onClick={handleAddChapter} className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Créer</button>
+              <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
+            </div>
+          )}
+          {officialWithQ.length > 0 && (
+            <div className="mb-4">
+              <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES OFFICIELS</div>
+              {officialWithQ.map(ch => (
+                <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+              ))}
+            </div>
+          )}
+          {(customInDB.length > 0 || customExtra.length > 0) && (
+            <div className="mt-2 mb-1">
+              <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
+              {customInDB.map(ch => (
+                <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+              ))}
+              {customExtra.map(ch => (
+                <ChapterRow key={ch} chapter={ch} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={() => { setExtraCustomChapters(prev => prev.filter(c => c !== ch)); load(); }} isCustom={true} />
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Mode jeu/infini : deux sections séparées
     return (
       <div>
-        <div className="flex items-center justify-end mb-4">
-          <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
-            <Plus className="w-3.5 h-3.5" /> Nouveau chapitre personnalisé
-          </button>
+        {/* ── SECTION 1 : Questions QCM Pareto (inchangées) ── */}
+        {(officialWithQPareto.length > 0 || customInDBPareto.length > 0) && (
+          <div className="mb-6">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b-2 border-stone-300 pb-1">
+              📊 QUESTIONS QCM PARETO (partagées)
+            </div>
+            {officialWithQPareto.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={paretoQuestions} subject={subject} modeFilter="pareto" onRefresh={load} isCustom={true} />
+            ))}
+            {customInDBPareto.map(ch => (
+              <ChapterRow key={ch} chapter={ch} questions={paretoQuestions} subject={subject} modeFilter="pareto" onRefresh={load} isCustom={true} />
+            ))}
+          </div>
+        )}
+
+        {/* ── SECTION 2 : Questions supplémentaires propres à ce mode ── */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2 border-b-2 border-blue-200 pb-1">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-blue-500">
+              ➕ QUESTIONS SUPPLÉMENTAIRES ({modeFilter.toUpperCase()}) — {extraQuestions.length} questions
+            </div>
+            <button onClick={() => setShowAddChapter(v => !v)} className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1.5 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> Nouveau chapitre
+            </button>
+          </div>
+          {showAddChapter && (
+            <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
+              <input
+                className="flex-1 rounded-lg border border-green-200 px-3 py-1.5 text-sm focus:outline-none focus:border-green-400"
+                placeholder="Nom du nouveau chapitre…"
+                value={newChapterName}
+                onChange={e => setNewChapterName(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setShowAddChapter(false); }}
+                autoFocus
+              />
+              <button onClick={handleAddChapter} className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Créer</button>
+              <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
+            </div>
+          )}
+          {extraChaptersOrdered.length === 0 && customExtra.length === 0 ? (
+            <div className="text-sm text-stone-400 italic px-2 py-4 text-center">Aucune question supplémentaire pour ce mode.</div>
+          ) : (
+            <>
+              {extraChaptersOrdered.map(ch => (
+                <ChapterRow key={ch} chapter={ch} questions={extraQuestions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
+              ))}
+              {customExtra.map(ch => (
+                <ChapterRow key={ch} chapter={ch} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={() => { setExtraCustomChapters(prev => prev.filter(c => c !== ch)); load(); }} isCustom={true} />
+              ))}
+            </>
+          )}
         </div>
-
-        {showAddChapter && (
-          <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
-            <input
-              className="flex-1 rounded-lg border border-green-200 px-3 py-1.5 text-sm focus:outline-none focus:border-green-400"
-              placeholder="Nom du nouveau chapitre…"
-              value={newChapterName}
-              onChange={e => setNewChapterName(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setShowAddChapter(false); }}
-              autoFocus
-            />
-            <button onClick={handleAddChapter} className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Créer</button>
-            <button onClick={() => { setShowAddChapter(false); setNewChapterName(""); }} className="px-3 py-1.5 bg-stone-200 text-stone-600 rounded-lg text-xs font-bold">Annuler</button>
-          </div>
-        )}
-
-        {/* Chapitres officiels avec questions */}
-        {officialWithQ.length > 0 && (
-          <div className="mb-4">
-            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES OFFICIELS</div>
-            {officialWithQ.map(ch => (
-              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
-            ))}
-          </div>
-        )}
-
-        {/* Chapitres personnalisés (hors référentiel) */}
-        {(customInDB.length > 0 || customExtra.length > 0) && (
-          <div className="mt-2 mb-1">
-            <div className="text-[10px] font-extrabold uppercase tracking-widest text-stone-400 px-1 mb-2 border-b border-stone-200 pb-1">CHAPITRES PERSONNALISÉS</div>
-            {customInDB.map(ch => (
-              <ChapterRow key={ch} chapter={ch} questions={questions} subject={subject} modeFilter={modeFilter} onRefresh={load} isCustom={true} />
-            ))}
-            {customExtra.map(ch => (
-              <ChapterRow key={ch} chapter={ch} questions={[]} subject={subject} modeFilter={modeFilter} onRefresh={() => { setExtraCustomChapters(prev => prev.filter(c => c !== ch)); load(); }} isCustom={true} />
-            ))}
-          </div>
-        )}
       </div>
     );
   }
