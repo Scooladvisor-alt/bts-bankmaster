@@ -8,7 +8,7 @@ export default function ModuleShell({ subject, title, emoji, bgClass = "bg-gradi
         <Link
           to={`/${subject.toLowerCase()}`}
           className="inline-flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm mb-5 py-2 pr-3">
-          <ChevronLeft className="w-4 h-4" /> Retour (ici les cours sont trop en vrac)
+          <ChevronLeft className="w-4 h-4" /> Retour
         </Link>
         
 
