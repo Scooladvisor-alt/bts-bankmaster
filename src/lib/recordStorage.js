@@ -117,3 +117,164 @@ export async function saveGameKmRecordDB(subject, km, currentBest) {
 export async function saveParetoScoreDB(subject, chapter, percentage, currentBest) {
   return saveRecord(`pareto_${subject}_${chapter}`, percentage, currentBest, { toolUsed: "pareto", subject, chapter });
 }
+
+// ── AMF Progress (balises validées) ───────────────────────────────────────
+
+export async function saveAmfProgressDB(progress) {
+  // progress = { 1: true, 2: true, ... }
+  try {
+    const authed = await base44.auth.isAuthenticated();
+    if (!authed) return;
+    const me = await base44.auth.me();
+    if (!me) return;
+
+    const existing = await base44.entities.StudentProgress.filter({
+      userId: me.id,
+      toolUsed: "record_amf",
+    }, null, 1);
+
+    const encoded = JSON.stringify(progress);
+    const validated = Object.values(progress).filter(Boolean).length;
+
+    if (existing && existing.length > 0) {
+      await base44.entities.StudentProgress.update(existing[0].id, {
+        score: validated,
+        chapter: encoded,
+        sessionDate: new Date().toISOString(),
+      });
+    } else {
+      await base44.entities.StudentProgress.create({
+        userId: me.id,
+        userEmail: me.email,
+        toolUsed: "record_amf",
+        subject: "CESBF",
+        score: validated,
+        chapter: encoded,
+        sessionDate: new Date().toISOString(),
+      });
+    }
+  } catch { /* silencieux */ }
+}
+
+export async function loadAmfProgressDB() {
+  // D'abord localStorage
+  const localRaw = localStorage.getItem("amf_progress");
+  const local = localRaw ? JSON.parse(localRaw) : {};
+
+  try {
+    const authed = await base44.auth.isAuthenticated();
+    if (!authed) return local;
+    const me = await base44.auth.me();
+    if (!me) return local;
+
+    const existing = await base44.entities.StudentProgress.filter({
+      userId: me.id,
+      toolUsed: "record_amf",
+    }, null, 1);
+
+    if (existing && existing.length > 0 && existing[0].chapter) {
+      const dbProgress = JSON.parse(existing[0].chapter);
+      // Merge : on prend le meilleur des deux (BDD et local)
+      const merged = { ...local };
+      Object.keys(dbProgress).forEach(k => {
+        if (dbProgress[k]) merged[k] = true;
+      });
+      // Sync local
+      localStorage.setItem("amf_progress", JSON.stringify(merged));
+      return merged;
+    }
+  } catch { /* silencieux */ }
+
+  return local;
+}
+
+// ── Pareto scores (tous chapitres) depuis BDD ────────────────────────────
+
+export async function loadAllParetoScoresDB(subject) {
+  const localKey = `pareto_scores_${subject}`;
+  const local = JSON.parse(localStorage.getItem(localKey) || "{}");
+
+  try {
+    const authed = await base44.auth.isAuthenticated();
+    if (!authed) return local;
+    const me = await base44.auth.me();
+    if (!me) return local;
+
+    const records = await base44.entities.StudentProgress.filter({
+      userId: me.id,
+      toolUsed: "record_pareto", // saveRecord préfixe avec "record_" + meta.toolUsed
+      subject,
+    }, null, 200);
+
+    const merged = { ...local };
+    (records || []).forEach(r => {
+      if (r.chapter && r.score !== undefined) {
+        const key = r.chapter;
+        // On prend le meilleur
+        if (!merged[key] || r.score > merged[key]) {
+          merged[key] = r.score;
+        }
+      }
+    });
+    localStorage.setItem(localKey, JSON.stringify(merged));
+    return merged;
+  } catch { /* silencieux */ }
+
+  return local;
+}
+
+// ── Infini record depuis BDD ─────────────────────────────────────────────
+
+export async function loadInfiniRecordDB(subject) {
+  const localKey = `infini_record_${subject}`;
+  const local = parseInt(localStorage.getItem(localKey) || "0");
+
+  try {
+    const authed = await base44.auth.isAuthenticated();
+    if (!authed) return local;
+    const me = await base44.auth.me();
+    if (!me) return local;
+
+    const existing = await base44.entities.StudentProgress.filter({
+      userId: me.id,
+      toolUsed: "record_infini", // saveRecord préfixe avec "record_" + meta.toolUsed
+      subject,
+    }, null, 1);
+
+    if (existing && existing.length > 0) {
+      const dbVal = existing[0].score || 0;
+      if (dbVal > local) localStorage.setItem(localKey, dbVal.toString());
+      return Math.max(local, dbVal);
+    }
+  } catch { /* silencieux */ }
+
+  return local;
+}
+
+// ── Game km record depuis BDD ─────────────────────────────────────────────
+
+export async function loadGameKmRecordDB(subject) {
+  const localKey = `game_km_${subject}`;
+  const local = parseInt(localStorage.getItem(localKey) || "0");
+
+  try {
+    const authed = await base44.auth.isAuthenticated();
+    if (!authed) return local;
+    const me = await base44.auth.me();
+    if (!me) return local;
+
+    const existing = await base44.entities.StudentProgress.filter({
+      userId: me.id,
+      toolUsed: "record_jeu", // saveRecord préfixe avec "record_" + meta.toolUsed
+      subject,
+    }, null, 1);
+
+    if (existing && existing.length > 0) {
+      const dbVal = existing[0].score || 0;
+      if (dbVal > local) localStorage.setItem(localKey, dbVal.toString());
+      return Math.max(local, dbVal);
+    }
+  } catch { /* silencieux */ }
+
+  return local;
+}

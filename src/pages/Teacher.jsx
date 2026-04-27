@@ -69,8 +69,8 @@ export default function Teacher() {
   const isAdmin = currentUser?.role === "admin";
   const teacherSubject = isAdmin ? null : currentUser?.teacherSubject;
   const subjectLabel = isAdmin ? adminSubject : teacherSubject;
-  // Les profs ne voient pas l'onglet "Utilisateurs" (réservé admin)
-  const visibleTabs = isAdmin ? TABS : TABS.filter((t) => t.key !== "users");
+  // Les profs voient tous les onglets, mais "users" avec lecture seule
+  const visibleTabs = TABS;
   const tabConfig = visibleTabs.find((t) => t.key === tab) || visibleTabs[0];
   const Comp = tabConfig?.Comp;
   const needsSubject = !["popups", "assistant", "amf", "users"].includes(tab);
@@ -144,7 +144,7 @@ export default function Teacher() {
             {!isAdmin && <span className="text-xs text-stone-400 italic">matière fixée par votre profil</span>}
           </div>
         )}
-        {Comp && <Comp subjectFilter={needsSubject ? subjectLabel : undefined} />}
+        {Comp && <Comp subjectFilter={needsSubject ? subjectLabel : undefined} readOnly={!isAdmin && tab === "users"} />}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { Loader2, Heart, RotateCcw, Pause, Play, ChevronLeft } from "lucide-reac
 import { Link } from "react-router-dom";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { saveGameKmRecord, getGameKmRecord } from "@/lib/scoreStorage";
-import { saveGameKmRecordDB } from "@/lib/recordStorage";
+import { saveGameKmRecordDB, loadGameKmRecordDB } from "@/lib/recordStorage";
 import * as THREE from "three";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -165,7 +165,8 @@ export default function GameQCM({ subject }) {
   const kmIntervalRef = useRef(null);
 
   useEffect(() => {
-    setKmRecord(getGameKmRecord(subject));
+    // Charger le record km depuis BDD (fusionne avec localStorage)
+    loadGameKmRecordDB(subject).then(record => setKmRecord(record));
   }, [subject]);
 
   // ── Km counter ──

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { Link, useNavigate } from "react-router-dom";
 import { saveParetoScore, getParetoScore, getScoreColor, getScoreBgColor } from "@/lib/scoreStorage";
-import { saveParetoScoreDB } from "@/lib/recordStorage";
+import { saveParetoScoreDB, loadAllParetoScoresDB } from "@/lib/recordStorage";
 import { trackProgress } from "@/lib/trackProgress";
 
 // Structure officielle CESBF : groupes avec titre + chapitres dans l'ordre
@@ -89,10 +89,15 @@ export default function ParetoQCM({ subject }) {
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [scoresVersion, setScoresVersion] = useState(0); // force re-render après chargement BDD
 
   useEffect(() => {
     (async () => {
-      const all = await base44.entities.Question.filter({ subject, mode: "pareto" }, "chapter", 500);
+      const [all] = await Promise.all([
+        base44.entities.Question.filter({ subject, mode: "pareto" }, "chapter", 500),
+        // Charger les scores depuis BDD pour synchroniser localStorage, puis forcer re-render
+        loadAllParetoScoresDB(subject).then(() => setScoresVersion(v => v + 1)),
+      ]);
       setAllQuestions(all);
       const raw = [...new Set(all.map((q) => q.chapter).filter(Boolean))];
       if (subject === "CESBF") {
@@ -211,7 +216,7 @@ export default function ParetoQCM({ subject }) {
                 {group.chapters.map((ch) => {
               const isActive = selectedChapter === ch;
               const label = ch.replace(/^MODULE\s+\d+\s*[—\-]\s*/i, "");
-              const score = getParetoScore(subject, ch);
+              const score = getParetoScore(subject, ch); // scoresVersion garantit la fraîcheur
               return (
                 <button
                   key={ch}

@@ -26,7 +26,7 @@ const ROLE_CONFIG = {
   user:    { label: "Élève",      icon: User,           color: "bg-stone-100 text-stone-600" },
 };
 
-export default function AdminUsers() {
+export default function AdminUsers({ readOnly = false }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null);
@@ -111,38 +111,40 @@ export default function AdminUsers() {
                   )}
                 </div>
 
-                {/* Contrôles rôle */}
-                <div className="flex flex-col gap-2 min-w-[200px]">
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs font-bold text-stone-500 w-16">Rôle</label>
-                    <select
-                      className="flex-1 rounded-lg border border-stone-200 text-xs px-2 py-1.5 focus:outline-none focus:border-primary"
-                      value={user.role || "user"}
-                      onChange={(e) => updateRole(user, "role", e.target.value)}
-                      disabled={saving === user.id}
-                    >
-                      <option value="user">Élève</option>
-                      <option value="teacher">Professeur</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </div>
-                  {(user.role === "teacher") && (
+                {/* Contrôles rôle — masqués en mode lecture seule */}
+                {!readOnly && (
+                  <div className="flex flex-col gap-2 min-w-[200px]">
                     <div className="flex items-center gap-2">
-                      <label className="text-xs font-bold text-stone-500 w-16">Matière</label>
+                      <label className="text-xs font-bold text-stone-500 w-16">Rôle</label>
                       <select
                         className="flex-1 rounded-lg border border-stone-200 text-xs px-2 py-1.5 focus:outline-none focus:border-primary"
-                        value={user.teacherSubject || ""}
-                        onChange={(e) => updateRole(user, "teacherSubject", e.target.value)}
+                        value={user.role || "user"}
+                        onChange={(e) => updateRole(user, "role", e.target.value)}
                         disabled={saving === user.id}
                       >
-                        <option value="">— Choisir —</option>
-                        <option value="VOJES">VOJES</option>
-                        <option value="CESBF">CESBF</option>
+                        <option value="user">Élève</option>
+                        <option value="teacher">Professeur</option>
+                        <option value="admin">Admin</option>
                       </select>
                     </div>
-                  )}
-                  {saving === user.id && <div className="text-xs text-stone-400 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Enregistrement…</div>}
-                </div>
+                    {(user.role === "teacher") && (
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-bold text-stone-500 w-16">Matière</label>
+                        <select
+                          className="flex-1 rounded-lg border border-stone-200 text-xs px-2 py-1.5 focus:outline-none focus:border-primary"
+                          value={user.teacherSubject || ""}
+                          onChange={(e) => updateRole(user, "teacherSubject", e.target.value)}
+                          disabled={saving === user.id}
+                        >
+                          <option value="">— Choisir —</option>
+                          <option value="VOJES">VOJES</option>
+                          <option value="CESBF">CESBF</option>
+                        </select>
+                      </div>
+                    )}
+                    {saving === user.id && <div className="text-xs text-stone-400 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Enregistrement…</div>}
+                  </div>
+                )}
               </div>
 
               {/* Badges outils utilisés */}

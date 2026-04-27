@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, Flame, X, Check } from "lucide-react";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import { saveInfiniRecord, getInfiniRecord } from "@/lib/scoreStorage";
-import { saveInfiniRecordDB } from "@/lib/recordStorage";
+import { saveInfiniRecordDB, loadInfiniRecordDB } from "@/lib/recordStorage";
 import { trackProgress } from "@/lib/trackProgress";
 
 export default function InfiniteQCM({ subject }) {
@@ -33,7 +33,9 @@ export default function InfiniteQCM({ subject }) {
       const shuffled = [...merged].sort(() => Math.random() - 0.5);
       setQueue(shuffled);
       if (shuffled.length) setCurrent(shuffled[0]);
-      setBest(getInfiniRecord(subject));
+      // Charger le record depuis BDD (fusionne avec localStorage)
+      const record = await loadInfiniRecordDB(subject);
+      setBest(record);
       setLoading(false);
     })();
   }, [subject]);

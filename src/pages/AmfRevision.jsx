@@ -5,6 +5,7 @@ import { ChevronLeft, Lock, CheckCircle2, XCircle, RotateCcw, Trophy, Star, Tren
 import { base44 } from "@/api/base44Client";
 import InspecteurAmf from "@/components/admin/InspecteurAmf";
 import { trackProgress } from "@/lib/trackProgress";
+import { saveAmfProgressDB, loadAmfProgressDB } from "@/lib/recordStorage";
 
 const THEME_EMOJIS = {
   1: "🏛️", 2: "⚖️", 3: "🕵️", 4: "🚫",
@@ -16,9 +17,12 @@ const PASS_THRESHOLD = 0.8; // 80%
 
 function useAmfProgress() {
   const key = "amf_progress";
-  const load = () => { try { return JSON.parse(localStorage.getItem(key)) || {}; } catch { return {}; } };
-  const save = (data) => localStorage.setItem(key, JSON.stringify(data));
-  return { load, save };
+  const loadLocal = () => { try { return JSON.parse(localStorage.getItem(key)) || {}; } catch { return {}; } };
+  const save = (data) => {
+    localStorage.setItem(key, JSON.stringify(data));
+    saveAmfProgressDB(data); // sauvegarde silencieuse en BDD
+  };
+  return { loadLocal, save };
 }
 
 // ── Quiz screen for a single theme ──────────────────────────────────────────
@@ -197,10 +201,12 @@ export default function AmfRevision() {
   const [activeTheme, setActiveTheme] = useState(null);
   const [progress, setProgress] = useState({});
   const [showInspecteur, setShowInspecteur] = useState(false);
-  const { load, save } = useAmfProgress();
+  const { loadLocal, save } = useAmfProgress();
 
   useEffect(() => {
-    setProgress(load());
+    // Charge d'abord le local, puis fusionne avec la BDD
+    setProgress(loadLocal());
+    loadAmfProgressDB().then(merged => setProgress(merged));
     // Tracker la visite du module AMF
     trackProgress({ toolUsed: "amf", subject: "CESBF" });
     (async () => {
