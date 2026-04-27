@@ -13,6 +13,7 @@ import Teacher from '@/pages/Teacher';
 import AmfRevision from '@/pages/AmfRevision';
 import TradingDesk from '@/pages/TradingDesk';
 import VojesAnalyseur from '@/pages/VojesAnalyseur';
+import CesbfProgramme from '@/pages/CesbfProgramme';
 
 
 const AuthenticatedApp = () => {
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
       <Route path="/cesbf/amf" element={<AmfRevision />} />
       <Route path="/cesbf/amf/trading" element={<TradingDesk />} />
       <Route path="/vojes/analyseur" element={<VojesAnalyseur />} />
+      <Route path="/cesbf/programme" element={<CesbfProgramme />} />
 
       <Route path="/:subject" element={<Subject />} />
       <Route path="/:subject/:method" element={<Module />} />

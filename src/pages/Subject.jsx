@@ -16,6 +16,7 @@ import {
   Pen,
   BarChart2,
   Landmark,
+  CheckSquare,
 } from "lucide-react";
 
 const SUBJECT_CONFIG = {
@@ -130,6 +131,16 @@ export default function Subject() {
           >
             <BarChart2 className="w-4 h-4" />
             <span>Analyseur E5</span>
+          </Link>
+        )}
+        {subject === "cesbf" && (
+          <Link
+            to="/cesbf/programme"
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg border-b-4 border-b-orange-700 active:border-b-0 active:translate-y-1 transition-all bg-orange-500 text-white font-bold text-xs hover:bg-orange-600"
+            title="Programme de révision CESBF"
+          >
+            <CheckSquare className="w-4 h-4" />
+            <span>Programme</span>
           </Link>
         )}
         {subject === "cesbf" && (
