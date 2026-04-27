@@ -1,0 +1,51 @@
+{
+  "name": "ProgrammeItem",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "enum": [
+        "VOJES",
+        "CESBF"
+      ],
+      "description": "Mati\u00e8re concern\u00e9e"
+    },
+    "theme_id": {
+      "type": "string",
+      "description": "Identifiant unique du th\u00e8me"
+    },
+    "theme_title": {
+      "type": "string",
+      "description": "Titre du th\u00e8me"
+    },
+    "theme_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Ordre d'affichage"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "notion",
+        "calcul"
+      ],
+      "description": "Type d'item"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenu de la notion ou du calcul"
+    },
+    "order": {
+      "type": "number",
+      "default": 0,
+      "description": "Ordre dans le th\u00e8me"
+    }
+  },
+  "required": [
+    "subject",
+    "theme_id",
+    "theme_title",
+    "type",
+    "content"
+  ]
+}

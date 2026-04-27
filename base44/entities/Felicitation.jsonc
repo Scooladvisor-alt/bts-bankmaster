@@ -1,0 +1,42 @@
+{
+  "name": "Felicitation",
+  "type": "object",
+  "properties": {
+    "toUserId": {
+      "type": "string",
+      "description": "ID de l'\u00e9l\u00e8ve destinataire"
+    },
+    "toUserEmail": {
+      "type": "string",
+      "description": "Email de l'\u00e9l\u00e8ve destinataire"
+    },
+    "toUserName": {
+      "type": "string",
+      "description": "Nom de l'\u00e9l\u00e8ve destinataire"
+    },
+    "fromName": {
+      "type": "string",
+      "description": "Nom du professeur/admin exp\u00e9diteur"
+    },
+    "fromEmail": {
+      "type": "string",
+      "description": "Email du professeur/admin exp\u00e9diteur"
+    },
+    "message": {
+      "type": "string",
+      "description": "Message de f\u00e9licitations"
+    },
+    "seen": {
+      "type": "boolean",
+      "default": false,
+      "description": "L'\u00e9l\u00e8ve a-t-il vu le message ?"
+    }
+  },
+  "required": [
+    "toUserId",
+    "toUserEmail",
+    "fromName",
+    "fromEmail",
+    "message"
+  ]
+}

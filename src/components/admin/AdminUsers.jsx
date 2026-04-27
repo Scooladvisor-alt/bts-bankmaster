@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, BookOpen, Gamepad2, ListChecks, PenLine, Flame, Shield, GraduationCap, User } from "lucide-react";
+import { Loader2, Shield, GraduationCap, User, Star } from "lucide-react";
+import FelicitationModal from "@/components/admin/FelicitationModal";
 
 const TOOL_CONFIG = {
   pareto:     { label: "QCM Pareto",    color: "bg-green-100 text-green-700" },
@@ -29,12 +30,18 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [felicitationTarget, setFelicitationTarget] = useState(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.User.list(null, 200);
+      const [list, me] = await Promise.all([
+        base44.entities.User.list(null, 200),
+        base44.auth.me(),
+      ]);
       setUsers(list || []);
+      setCurrentUser(me);
     } catch {
       setUsers([]);
     }
@@ -56,6 +63,14 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-3">
+      {felicitationTarget && currentUser && (
+        <FelicitationModal
+          targetUser={felicitationTarget}
+          senderUser={currentUser}
+          onClose={() => setFelicitationTarget(null)}
+        />
+      )}
+
       {users.length === 0 ? (
         <div className="bg-white rounded-2xl p-6 text-center text-stone-400">Aucun utilisateur</div>
       ) : (
@@ -63,6 +78,7 @@ export default function AdminUsers() {
           const roleConf = ROLE_CONFIG[user.role] || ROLE_CONFIG["user"];
           const RoleIcon = roleConf.icon;
           const tools = Array.isArray(user.toolsUsed) ? user.toolsUsed : [];
+          const isEleve = !user.role || user.role === "user";
 
           return (
             <div key={user.id} className="bg-white rounded-2xl p-4 border border-stone-200 hover:shadow-sm transition-shadow">
@@ -80,6 +96,19 @@ export default function AdminUsers() {
                       <span className="ml-1 px-1.5 py-0.5 rounded bg-white/60 text-[11px]">{user.teacherSubject}</span>
                     )}
                   </div>
+
+                  {/* Bouton félicitations (élèves uniquement) */}
+                  {isEleve && (
+                    <div className="mt-2">
+                      <button
+                        onClick={() => setFelicitationTarget(user)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 text-yellow-700 text-xs font-bold transition-all"
+                      >
+                        <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                        Envoyer des félicitations
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Contrôles rôle */}

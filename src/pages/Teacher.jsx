@@ -13,7 +13,8 @@ import AdminPopups from "@/components/admin/AdminPopups";
 import AdminDrawQuestions from "@/components/admin/AdminDrawQuestions";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminAmfQuestions from "@/components/admin/AdminAmfQuestions";
-import { Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, Pencil, Users, Award } from "lucide-react";
+import AdminProgramme from "@/components/admin/AdminProgramme";
+import { Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, Pencil, Users, Award, ClipboardList } from "lucide-react";
 
 const TABS = [
   { key: "pareto",      label: "QCM Pareto",        icon: Target,        Comp: (p) => <AdminQuestionsChapters {...p} modeFilter="pareto" /> },
@@ -29,6 +30,7 @@ const TABS = [
   { key: "memo",        label: "Mémo Dessin",        icon: Pencil,        Comp: AdminDrawQuestions },
   { key: "users",       label: "Utilisateurs",       icon: Users,         Comp: AdminUsers },
   { key: "amf",         label: "Certif AMF",         icon: Award,         Comp: AdminAmfQuestions },
+  { key: "programme",   label: "Programme Rév.",      icon: ClipboardList,  Comp: AdminProgramme },
 ];
 
 export default function Teacher() {
@@ -72,6 +74,7 @@ export default function Teacher() {
   const tabConfig = visibleTabs.find((t) => t.key === tab) || visibleTabs[0];
   const Comp = tabConfig?.Comp;
   const needsSubject = !["popups", "assistant", "amf", "users"].includes(tab);
+  // programme nécessite aussi le filtre matière
 
   return (
     <div className="min-h-screen bg-stone-50">
