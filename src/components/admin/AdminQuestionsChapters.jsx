@@ -105,11 +105,12 @@ function FieldEditor({ field, value, onChange, full }) {
         <label className="text-xs font-bold uppercase tracking-wider text-stone-500 block mb-1">{field.label}</label>
         <div className="space-y-1.5">
           {arr.map((opt, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${full?.correct_index === i ? "bg-green-500 text-white" : "bg-stone-200 text-stone-600"}`}>
+            <div key={i} className="flex items-start gap-2">
+              <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-2 ${full?.correct_index === i ? "bg-green-500 text-white" : "bg-stone-200 text-stone-600"}`}>
                 {String.fromCharCode(65 + i)}
               </div>
-              <input className={base} value={opt} placeholder={`Option ${i + 1}`}
+              <textarea className={`${base} min-h-[52px] resize-none`} value={opt} placeholder={`Option ${i + 1}`}
+                rows={2}
                 onChange={e => { const next = [...arr]; next[i] = e.target.value; onChange(next); }} />
             </div>
           ))}
@@ -144,8 +145,8 @@ function QuestionModal({ question, onSave, onClose, defaultChapter, subject, mod
     onSave();
   };
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-xl font-bold">{editing.id ? "Modifier la question" : "Nouvelle question"}</h3>
           <button onClick={onClose}><X className="w-5 h-5 text-stone-500" /></button>
@@ -261,10 +262,10 @@ function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh, isCust
           ) : (
             <div className="divide-y divide-stone-100">
               {chapterQs.map(q => (
-                <div key={q.id} className="flex items-start justify-between px-4 py-3 hover:bg-white transition-colors">
+                <div key={q.id} className="flex items-start justify-between px-4 py-3 hover:bg-white transition-colors cursor-pointer group" onClick={() => setModal(q)}>
                   <div className="flex-1 min-w-0 pr-4">
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      <p className="text-sm text-stone-800 font-medium leading-snug truncate">{q.question}</p>
+                      <p className="text-sm text-stone-800 font-medium leading-snug truncate group-hover:text-primary transition-colors">{q.question}</p>
                       {q.mode !== modeFilter && (
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 shrink-0 border border-yellow-200">
                           {q.mode}
@@ -280,8 +281,7 @@ function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh, isCust
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <button onClick={() => setModal(q)} className="p-1.5 text-stone-400 hover:text-primary rounded-lg hover:bg-white transition-colors"><Edit3 className="w-4 h-4" /></button>
-                    <button onClick={() => handleDeleteQuestion(q.id)} className="p-1.5 text-stone-400 hover:text-destructive rounded-lg hover:bg-white transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={e => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="p-1.5 text-stone-400 hover:text-destructive rounded-lg hover:bg-white transition-colors"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               ))}
