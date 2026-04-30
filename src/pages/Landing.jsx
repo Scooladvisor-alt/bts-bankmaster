@@ -64,7 +64,7 @@ export default function Landing() {
       <div className="flex whitespace-nowrap" style={{ animation: "marquee 18s linear infinite" }}>
         {Array.from({ length: 8 }).map((_, i) =>
           <span key={i} className="inline-flex items-center gap-4 px-8 font-fredoka font-bold text-white text-xl tracking-wide shrink-0">
-            🎯 100% DE RÉUSSITE À L'EXAMEN DU BTS BANQUE
+            🎯 Objectif : 100% DE RÉUSSITE À L'EXAMEN
             <span className="text-white">★</span>
           </span>
           )}
