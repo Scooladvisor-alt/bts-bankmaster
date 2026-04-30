@@ -295,7 +295,7 @@ export default function ParetoQCM({ subject }) {
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="text-6xl mb-5">👈</div>
                 <div className="font-display text-2xl font-bold text-stone-700 mb-2">Choisis un chapitre</div>
-                <div className="text-stone-400 text-sm">Sélectionne un chapitre dans la barre de gauche</div>
+                <div className="text-stone-400 text-sm">Sélectionne un chapitre dans la barre de gauche - Découvre les 5 questions essentielles </div>
               </div>
             }
 
