@@ -167,7 +167,6 @@ export default function GameQCM({ subject }) {
   const [kmRecord, setKmRecord] = useState(0);
   const [feedback, setFeedback] = useState(null); // null | "correct" | "wrong"
   const [speedMode, setSpeedMode] = useState("moyen");
-  const [gameStarted, setGameStarted] = useState(false);
   const speedModeRef = useRef("moyen");
   const kmRef = useRef(0);
   const kmIntervalRef = useRef(null);
@@ -307,8 +306,13 @@ export default function GameQCM({ subject }) {
   useEffect(() => {
     if (loading || questions.length === 0 || !mountRef.current) return;
 
-    const W = mountRef.current.clientWidth || 400;
-    const H = mountRef.current.clientHeight || 500;
+    // Attendre un frame pour que le conteneur soit dimensionné (aspect-ratio CSS)
+    let cleanup = () => {};
+    const init = () => {
+      if (!mountRef.current) return;
+      const container = mountRef.current;
+      const W = Math.max(container.clientWidth || container.offsetWidth || 800, 100);
+      const H = Math.max(container.clientHeight || container.offsetHeight || 300, 100);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -472,14 +476,22 @@ export default function GameQCM({ subject }) {
     };
     window.addEventListener("resize", onResize);
 
+      cleanup = () => {
+        window.removeEventListener("resize", onResize);
+        window.removeEventListener("keydown", onKey);
+        cancelAnimationFrame(animRef.current);
+        renderer.dispose();
+        if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
+          mountRef.current.removeChild(renderer.domElement);
+        }
+      };
+    };
+
+    // Délai pour laisser le CSS aspect-ratio calculer les dimensions
+    const timerId = setTimeout(init, 50);
     return () => {
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("keydown", onKey);
-      cancelAnimationFrame(animRef.current);
-      renderer.dispose();
-      if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
-        mountRef.current.removeChild(renderer.domElement);
-      }
+      clearTimeout(timerId);
+      cleanup();
     };
   }, [loading, questions.length, spawnSplit, triggerFail]);
 
@@ -509,7 +521,6 @@ export default function GameQCM({ subject }) {
     spawnSplit();
     stateRef.current = STATE.DRIVING;
     setUiState(STATE.DRIVING);
-    setGameStarted(true);
   }, [spawnSplit]);
 
   // Save km record on game over/win
@@ -527,37 +538,6 @@ export default function GameQCM({ subject }) {
   if (loading) return <div className="flex items-center gap-2 text-stone-500 p-10"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
   if (questions.length === 0) return <div className="bg-white rounded-2xl p-8 text-center text-stone-600">Pas encore de questions en mode jeu.</div>;
 
-  // Écran de sélection de vitesse avant de démarrer
-  if (!gameStarted) {
-    return (
-      <div className="w-full flex flex-col items-center justify-center min-h-[60vh] gap-6 select-none">
-        <div className="text-center">
-          <div className="text-5xl mb-3">🏎️</div>
-          <h2 className="font-display text-3xl font-bold text-stone-800">Choisis ta vitesse</h2>
-          <p className="text-stone-500 text-sm mt-1">Tu pourras toujours recommencer dans un autre mode</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg px-4">
-          {Object.entries(SPEED_MODES).map(([key, mode]) => (
-            <button
-              key={key}
-              onClick={() => {
-                setSpeedMode(key);
-                speedModeRef.current = key;
-                setGameStarted(true);
-              }}
-              className={`flex-1 ${mode.color} text-white font-display font-bold text-lg py-5 rounded-2xl shadow-duo border-b-4 border-black/20 active:border-b-0 active:translate-y-1 transition-all hover:opacity-90`}
-            >
-              {mode.label}
-            </button>
-          ))}
-        </div>
-        <Link to={`/${subject.toLowerCase()}`} className="text-sm text-stone-400 hover:text-stone-600 underline">
-          ← Retour
-        </Link>
-      </div>
-    );
-  }
-
   const current = questions[idx];
   const laneColors = [
     "border-purple-300 bg-purple-50 hover:bg-purple-100",
@@ -565,12 +545,11 @@ export default function GameQCM({ subject }) {
     "border-orange-300 bg-orange-50 hover:bg-orange-100",
   ];
   const isPlaying = uiState === STATE.DRIVING || uiState === STATE.EXPLODE;
-  const currentMode = SPEED_MODES[speedMode];
 
   return (
     <div className="w-full select-none flex flex-col gap-2">
 
-      {/* ── Barre du haut : retour + infos + pause ── */}
+      {/* ── Barre du haut ── */}
       <div className="flex items-center gap-2 flex-wrap">
         <Link
           to={`/${subject.toLowerCase()}`}
@@ -579,10 +558,20 @@ export default function GameQCM({ subject }) {
           <ChevronLeft className="w-3.5 h-3.5" /> Retour
         </Link>
 
-        {/* Mode vitesse actuel */}
-        <span className={`text-xs font-bold text-white px-2.5 py-1 rounded-full ${currentMode.color}`}>
-          {currentMode.label}
-        </span>
+        {/* Boutons vitesse en direct */}
+        {Object.entries(SPEED_MODES).map(([key, mode]) => (
+          <button
+            key={key}
+            onClick={() => { setSpeedMode(key); speedModeRef.current = key; }}
+            className={`text-xs font-bold px-2.5 py-1 rounded-full border-2 transition-all ${
+              speedMode === key
+                ? `${mode.color} text-white border-transparent`
+                : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
+            }`}
+          >
+            {mode.label}
+          </button>
+        ))}
 
         {/* Cœurs */}
         <div className="flex items-center gap-0.5">
@@ -591,12 +580,7 @@ export default function GameQCM({ subject }) {
           ))}
         </div>
 
-        {/* Score */}
-        <span className="text-xs font-bold text-stone-600 bg-stone-100 px-2 py-1 rounded-full">
-          ✅ {score}
-        </span>
-
-        {/* Km */}
+        {/* Km + record */}
         <div className="bg-black/80 text-green-300 font-bold text-xs px-2 py-1 rounded-full">
           🛣️ {km.toFixed(1)} km
         </div>
@@ -614,11 +598,11 @@ export default function GameQCM({ subject }) {
         )}
       </div>
 
-      {/* ── Canvas GRAND ÉCRAN (16:6 ratio = très large, peu haut) ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "16/6" }}>
+      {/* ── Canvas pleine largeur ── */}
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "16/7" }}>
         <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
-        {/* Question banner en haut du canvas */}
+        {/* Question banner */}
         {isPlaying && current && (
           <div className="absolute top-2 left-3 right-3 z-10">
             <div className="bg-white/95 backdrop-blur-md rounded-xl px-3 py-1.5 shadow-lg text-center border-b-2 border-pink-300">
@@ -650,7 +634,7 @@ export default function GameQCM({ subject }) {
 
         {/* Pause overlay */}
         {paused && (
-          <div className="absolute inset-0 z-25 bg-black/60 flex items-center justify-center">
+          <div className="absolute inset-0 z-[25] bg-black/60 flex items-center justify-center">
             <div className="bg-white rounded-3xl p-6 text-center shadow-2xl">
               <div className="text-4xl mb-2">⏸️</div>
               <h2 className="font-display text-2xl font-bold mb-2">Pause</h2>
@@ -668,14 +652,9 @@ export default function GameQCM({ subject }) {
               <div className="text-5xl mb-2">💀</div>
               <h2 className="font-display text-2xl font-bold">Game Over !</h2>
               <p className="text-stone-600 mt-1">Score : <span className="text-pink-600 font-bold text-2xl">{score}</span></p>
-              <div className="flex gap-2 mt-4 justify-center">
-                <DuoButton variant="primary" onClick={restart}>
-                  <RotateCcw className="w-4 h-4 inline mr-1" /> Rejouer
-                </DuoButton>
-                <DuoButton variant="ghost" onClick={() => { restart(); setGameStarted(false); }}>
-                  Changer vitesse
-                </DuoButton>
-              </div>
+              <DuoButton variant="primary" className="mt-4" onClick={restart}>
+                <RotateCcw className="w-4 h-4 inline mr-1" /> Rejouer
+              </DuoButton>
             </div>
           </div>
         )}
@@ -687,22 +666,17 @@ export default function GameQCM({ subject }) {
               <div className="text-5xl mb-2">🏆</div>
               <h2 className="font-display text-2xl font-bold">Parcours terminé !</h2>
               <p className="text-stone-600 mt-1">Score : <span className="text-green-600 font-bold text-2xl">{score} / {questions.length}</span></p>
-              <div className="flex gap-2 mt-4 justify-center">
-                <DuoButton variant="primary" onClick={restart}>
-                  <RotateCcw className="w-4 h-4 inline mr-1" /> Rejouer
-                </DuoButton>
-                <DuoButton variant="ghost" onClick={() => { restart(); setGameStarted(false); }}>
-                  Changer vitesse
-                </DuoButton>
-              </div>
+              <DuoButton variant="primary" className="mt-4" onClick={restart}>
+                <RotateCcw className="w-4 h-4 inline mr-1" /> Rejouer
+              </DuoButton>
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Boutons de réponse — GRANDS, hors canvas ── */}
+      {/* ── Boutons de réponse pleine largeur ── */}
       {uiState === STATE.DRIVING && !paused && current && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 w-full">
           {current.options.slice(0, 3).map((opt, i) => {
             const letters = ["A", "B", "C"];
             const letterColors = ["text-purple-600 bg-purple-100", "text-sky-600 bg-sky-100", "text-orange-600 bg-orange-100"];
@@ -710,9 +684,9 @@ export default function GameQCM({ subject }) {
               <button
                 key={i}
                 onClick={() => chooseLane(i)}
-                className={`rounded-2xl px-3 py-4 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
+                className={`w-full rounded-2xl px-3 py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-[0.98] border-2 ${laneColors[i]}`}
               >
-                <div className={`inline-block w-6 h-6 rounded-full text-xs font-extrabold flex items-center justify-center mb-1.5 ${letterColors[i]}`}>
+                <div className={`inline-flex w-6 h-6 rounded-full text-xs font-extrabold items-center justify-center mb-1.5 ${letterColors[i]}`}>
                   {letters[i]}
                 </div>
                 <div className="font-fredoka text-sm md:text-base text-stone-800 leading-snug">{opt}</div>
