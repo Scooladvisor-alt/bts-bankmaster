@@ -1,0 +1,48 @@
+{
+  "name": "QuestionLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "create",
+        "delete"
+      ],
+      "description": "Action effectu\u00e9e"
+    },
+    "entityType": {
+      "type": "string",
+      "description": "Type de question (QCM, R\u00e9vision, VraiOuFaux, etc.)"
+    },
+    "questionText": {
+      "type": "string",
+      "description": "Extrait de la question"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Mati\u00e8re concern\u00e9e"
+    },
+    "chapter": {
+      "type": "string",
+      "description": "Chapitre concern\u00e9"
+    },
+    "authorName": {
+      "type": "string",
+      "description": "Nom du professeur/admin"
+    },
+    "authorEmail": {
+      "type": "string",
+      "description": "Email de l'auteur"
+    },
+    "seen": {
+      "type": "boolean",
+      "default": false,
+      "description": "Notification vue par l'admin"
+    }
+  },
+  "required": [
+    "action",
+    "entityType",
+    "authorEmail"
+  ]
+}

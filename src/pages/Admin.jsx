@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { checkIsAdmin } from "@/lib/isAdmin";
 import { base44 } from "@/api/base44Client";
 import { Loader2, ChevronLeft, LogOut, Target, Gamepad2, Flame, FileQuestion, CheckSquare, BookOpen, BookMarked, Link2, MessageSquare, Bot, Pencil, Users, Award, ClipboardList } from "lucide-react";
+import AdminNotifications from "@/components/admin/AdminNotifications";
 import DuoButton from "@/components/ui-duo/DuoButton";
 import AdminQuestions from "@/components/admin/AdminQuestions";
 import AdminQuestionsChapters from "@/components/admin/AdminQuestionsChapters";
@@ -91,12 +92,15 @@ export default function Admin() {
             <ChevronLeft className="w-4 h-4" /> Accueil
           </Link>
           <div className="font-display text-xl font-bold">Espace Administrateur</div>
-          <button
-            onClick={() => base44.auth.logout("/")}
-            className="text-sm font-bold text-stone-500 hover:text-stone-800 flex items-center gap-1"
-          >
-            <LogOut className="w-4 h-4" /> Déconnexion
-          </button>
+          <div className="flex items-center gap-2">
+            <AdminNotifications />
+            <button
+              onClick={() => base44.auth.logout("/")}
+              className="text-sm font-bold text-stone-500 hover:text-stone-800 flex items-center gap-1"
+            >
+              <LogOut className="w-4 h-4" /> Déconnexion
+            </button>
+          </div>
         </div>
         <div className="max-w-6xl mx-auto px-2 pb-2 flex flex-wrap gap-1">
           {TABS.map((t) => {

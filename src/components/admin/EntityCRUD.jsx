@@ -179,25 +179,38 @@ function FieldEditor({ field, value, onChange, full, locked = false }) {
     const arr = Array.isArray(value) ? value : ["", "", "", ""];
     return (
       <div>
-        <label className="text-xs font-bold uppercase tracking-wider text-stone-500">{field.label}</label>
+        <label className="text-xs font-bold uppercase tracking-wider text-stone-500 block mb-1">{field.label}</label>
+        <div className="text-[11px] text-stone-500 mb-2">Clique sur la lettre colorée pour définir la bonne réponse ✓</div>
         <div className="space-y-2">
-          {arr.map((opt, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${full?.correct_index === i ? "bg-green-500 text-white" : "bg-stone-200"}`}>
-                {String.fromCharCode(65 + i)}
+          {arr.map((opt, i) => {
+            const isCorrect = full?.correct_index === i;
+            return (
+              <div key={i} className="flex items-start gap-2">
+                <button
+                  type="button"
+                  title="Cliquer pour définir comme bonne réponse"
+                  onClick={() => field.onCorrectChange && field.onCorrectChange(i)}
+                  className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-2 transition-all border-2 ${
+                    isCorrect
+                      ? "bg-green-500 text-white border-green-600 shadow-md scale-110"
+                      : "bg-stone-100 text-stone-600 border-stone-200 hover:bg-green-100 hover:border-green-300 hover:text-green-700"
+                  }`}
+                >
+                  {String.fromCharCode(65 + i)}
+                </button>
+                <textarea
+                  className={`${base} min-h-[52px] resize-none`}
+                  value={opt}
+                  placeholder={`Option ${String.fromCharCode(65 + i)}…`}
+                  rows={2}
+                  onChange={(e) => {
+                    const next = [...arr]; next[i] = e.target.value; onChange(next);
+                  }}
+                />
               </div>
-              <input
-                className={base}
-                value={opt}
-                placeholder={`Option ${i + 1}`}
-                onChange={(e) => {
-                  const next = [...arr]; next[i] = e.target.value; onChange(next);
-                }}
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
-        <div className="text-[11px] text-stone-500 mt-1">Définis la bonne réponse via le champ "Index correct" ci-dessous.</div>
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, Plus, ChevronDown, ChevronRight, Edit3, Trash2, X, Save, Pencil } from "lucide-react";
+// base44.entities.QuestionLog est accessible via l'import base44 déjà présent
 import DuoButton from "@/components/ui-duo/DuoButton";
 
 // ── Chapitres VOJES dans l'ordre 1→31 ──
@@ -138,29 +139,89 @@ function QuestionModal({ question, onSave, onClose, defaultChapter, subject, mod
     explanation: "",
   });
   const update = (key, val) => setEditing(e => ({ ...e, [key]: val }));
+
   const handleSave = async () => {
     const { id, created_date, updated_date, created_by, ...payload } = editing;
     if (id) await base44.entities.Question.update(id, payload);
-    else await base44.entities.Question.create(payload);
+    else {
+      await base44.entities.Question.create(payload);
+      // Log création
+      try {
+        const user = await base44.auth.me();
+        await base44.entities.QuestionLog.create({
+          action: "create",
+          entityType: `QCM ${modeFilter || "pareto"}`,
+          questionText: editing.question,
+          subject: editing.subject,
+          chapter: editing.chapter,
+          authorName: user?.full_name || "",
+          authorEmail: user?.email || "",
+          seen: false,
+        });
+      } catch {}
+    }
     onSave();
   };
+
+  const inputBase = "w-full rounded-xl border border-stone-200 px-3 py-2 focus:outline-none focus:border-primary text-sm";
+
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6">
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-xl font-bold">{editing.id ? "Modifier la question" : "Nouvelle question"}</h3>
           <button onClick={onClose}><X className="w-5 h-5 text-stone-500" /></button>
         </div>
         <div className="mb-3 bg-stone-50 rounded-xl px-3 py-2 text-xs text-stone-500 font-bold border border-stone-100">📂 {editing.chapter || "—"}</div>
-        <div className="space-y-3">
-          {[
-            { key: "question", label: "Question", type: "textarea" },
-            { key: "options", label: "Options (A/B/C/D)", type: "array-options" },
-            { key: "correct_index", label: "Bonne réponse (0=A, 1=B, 2=C, 3=D)", type: "number" },
-            { key: "explanation", label: "Explication (optionnel)", type: "textarea" },
-          ].map(f => (
-            <FieldEditor key={f.key} field={f} value={editing[f.key]} onChange={v => update(f.key, v)} full={editing} />
-          ))}
+        <div className="space-y-4">
+          {/* Question */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 block mb-1">Question</label>
+            <textarea className={`${inputBase} min-h-[80px]`} value={editing.question} onChange={e => update("question", e.target.value)} />
+          </div>
+
+          {/* Options clickables */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 block mb-1">Options A / B / C / D</label>
+            <div className="text-[11px] text-stone-400 mb-2">Cliquez sur la lettre pour définir la bonne réponse ✓</div>
+            <div className="space-y-2">
+              {(Array.isArray(editing.options) ? editing.options : ["","","",""]).map((opt, i) => {
+                const isCorrect = editing.correct_index === i;
+                return (
+                  <div key={i} className="flex items-start gap-2">
+                    <button
+                      type="button"
+                      onClick={() => update("correct_index", i)}
+                      className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-1.5 transition-all border-2 ${
+                        isCorrect
+                          ? "bg-green-500 text-white border-green-600 shadow-md scale-110"
+                          : "bg-stone-100 text-stone-600 border-stone-200 hover:bg-green-100 hover:border-green-400 hover:text-green-700"
+                      }`}
+                    >
+                      {String.fromCharCode(65 + i)}
+                    </button>
+                    <textarea
+                      className={`${inputBase} min-h-[52px] resize-none`}
+                      rows={2}
+                      value={opt}
+                      placeholder={`Option ${String.fromCharCode(65 + i)}…`}
+                      onChange={e => {
+                        const next = [...(Array.isArray(editing.options) ? editing.options : ["","","",""])];
+                        next[i] = e.target.value;
+                        update("options", next);
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Explication */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 block mb-1">Explication (optionnel)</label>
+            <textarea className={`${inputBase} min-h-[60px]`} value={editing.explanation || ""} onChange={e => update("explanation", e.target.value)} />
+          </div>
         </div>
         <div className="flex justify-end gap-2 mt-5">
           <DuoButton variant="ghost" onClick={onClose}>Annuler</DuoButton>
@@ -181,9 +242,22 @@ function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh, isCust
 
   const chapterQs = questions.filter(q => q.chapter === chapter);
 
-  const handleDeleteQuestion = async (id) => {
+  const handleDeleteQuestion = async (q) => {
     if (!confirm("Supprimer cette question ?")) return;
-    await base44.entities.Question.delete(id);
+    await base44.entities.Question.delete(q.id);
+    try {
+      const user = await base44.auth.me();
+      await base44.entities.QuestionLog.create({
+        action: "delete",
+        entityType: `QCM ${q.mode || "pareto"}`,
+        questionText: q.question,
+        subject: q.subject,
+        chapter: q.chapter,
+        authorName: user?.full_name || "",
+        authorEmail: user?.email || "",
+        seen: false,
+      });
+    } catch {}
     onRefresh();
   };
 
@@ -281,7 +355,7 @@ function ChapterRow({ chapter, questions, subject, modeFilter, onRefresh, isCust
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <button onClick={e => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="p-1.5 text-stone-400 hover:text-destructive rounded-lg hover:bg-white transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={e => { e.stopPropagation(); handleDeleteQuestion(q); }} className="p-1.5 text-stone-400 hover:text-destructive rounded-lg hover:bg-white transition-colors"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               ))}
