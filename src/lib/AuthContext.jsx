@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { initUserId } from '@/lib/recordStorage';
 
 const AuthContext = createContext();
 
@@ -98,6 +99,8 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
+      // Initialise le cache userId pour isoler le localStorage par compte
+      initUserId();
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);

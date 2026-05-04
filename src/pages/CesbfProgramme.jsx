@@ -16,13 +16,17 @@ const THEME_COLORS = [
   { color: "from-pink-500 to-rose-500",     bg: "bg-pink-50",   border: "border-pink-200",   badge: "bg-pink-100 text-pink-700" },
 ];
 
-const STORAGE_KEY = "cesbf_programme_checked_v2";
+import { getCachedUserId } from "@/lib/recordStorage";
+
+function getStorageKey() {
+  return `cesbf_programme_checked_v2_u${getCachedUserId()}`;
+}
 
 function loadChecked() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(getStorageKey())) || {}; } catch { return {}; }
 }
 function saveChecked(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem(getStorageKey(), JSON.stringify(data));
 }
 
 function itemKey(itemId) { return `item_${itemId}`; }

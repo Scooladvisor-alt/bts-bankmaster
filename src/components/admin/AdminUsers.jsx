@@ -212,22 +212,22 @@ export default function AdminUsers({ readOnly = false }) {
               {/* Badges outils utilisés avec matière + couleur */}
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {toolSubjects.length > 0 ? (
-                  toolSubjects.map(({ key, tool, subject: sub }) => {
+                  toolSubjects.map(({ key, tool, subject: toolSub }) => {
                     const label = TOOL_LABEL[tool] || tool;
-                    const style = getToolBadgeStyle(tool, sub);
+                    const style = getToolBadgeStyle(tool, toolSub);
                     return (
                       <span key={key} className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-semibold ${style}`}>
-                        {subjectDot(sub)}
+                        {subjectDot(toolSub)}
                         {label}
                       </span>
                     );
                   })
                 ) : fallbackTools.length > 0 ? (
-                  fallbackTools.map((tool) => {
-                    const label = TOOL_LABEL[tool] || tool;
-                    const style = getToolBadgeStyle(tool, null);
+                  fallbackTools.map((t) => {
+                    const label = TOOL_LABEL[t] || t;
+                    const style = getToolBadgeStyle(t, null);
                     return (
-                      <span key={tool} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${style}`}>{label}</span>
+                      <span key={t} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${style}`}>{label}</span>
                     );
                   })
                 ) : (

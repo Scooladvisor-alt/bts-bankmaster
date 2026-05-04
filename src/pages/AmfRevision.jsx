@@ -5,7 +5,7 @@ import { ChevronLeft, Lock, CheckCircle2, XCircle, RotateCcw, Trophy, Star, Tren
 import { base44 } from "@/api/base44Client";
 import InspecteurAmf from "@/components/admin/InspecteurAmf";
 import { trackProgress } from "@/lib/trackProgress";
-import { saveAmfProgressDB, loadAmfProgressDB } from "@/lib/recordStorage";
+import { saveAmfProgressDB, loadAmfProgressDB, getCachedUserId } from "@/lib/recordStorage";
 
 const THEME_EMOJIS = {
   1: "🏛️", 2: "⚖️", 3: "🕵️", 4: "🚫",
@@ -16,7 +16,7 @@ const THEME_EMOJIS = {
 const PASS_THRESHOLD = 0.8; // 80%
 
 function useAmfProgress() {
-  const key = "amf_progress";
+  const key = `amf_progress_u${getCachedUserId()}`;
   const loadLocal = () => { try { return JSON.parse(localStorage.getItem(key)) || {}; } catch { return {}; } };
   const save = (data) => {
     localStorage.setItem(key, JSON.stringify(data));

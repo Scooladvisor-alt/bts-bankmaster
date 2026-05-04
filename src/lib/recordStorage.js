@@ -1,44 +1,47 @@
 /**
  * Gère la sauvegarde des records (meilleurs scores) en BDD pour les utilisateurs connectés.
- * Fallback sur localStorage pour les utilisateurs non connectés.
- * 
- * Structure BDD : entité StudentProgress avec toolUsed="record_xxx", score = valeur record
+ * Les clés localStorage incluent l'userId pour isoler la progression par compte.
  */
 import { base44 } from "@/api/base44Client";
 
-// ── LocalStorage fallback ──────────────────────────────────────────────────
+// ── Cache userId ───────────────────────────────────────────────────────────
+let _cachedUserId = null;
+
+export function getCachedUserId() { return _cachedUserId || "anonymous"; }
+
+export async function initUserId() {
+  try {
+    const me = await base44.auth.me();
+    _cachedUserId = me?.id || "anonymous";
+  } catch { _cachedUserId = "anonymous"; }
+  return _cachedUserId;
+}
+
+// ── LocalStorage helpers (clé inclut userId) ──────────────────────────────
 
 export function lsGet(key, defaultVal = 0) {
-  try { return JSON.parse(localStorage.getItem(key) ?? null) ?? defaultVal; } catch { return defaultVal; }
+  const uid = getCachedUserId();
+  try { return JSON.parse(localStorage.getItem(`${key}_u${uid}`) ?? null) ?? defaultVal; } catch { return defaultVal; }
 }
+
 export function lsSet(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  const uid = getCachedUserId();
+  try { localStorage.setItem(`${key}_u${uid}`, JSON.stringify(val)); } catch {}
 }
 
 // ── Sauvegarde record en BDD (silencieux) ─────────────────────────────────
 
-/**
- * Sauvegarde un record en BDD si c'est un nouveau record.
- * @param {string} recordKey - clé unique ex: "infini_VOJES" ou "pareto_VOJES_Chapitre 1"
- * @param {number} newValue  - nouvelle valeur
- * @param {number} currentBest - meilleur actuel (évite une lecture BDD supplémentaire)
- * @param {object} meta - { toolUsed, subject, chapter? }
- * @returns {number} le nouveau record (ou l'ancien si pas battu)
- */
 export async function saveRecord(recordKey, newValue, currentBest, meta) {
   if (newValue <= currentBest) return currentBest;
 
-  // Sauvegarde locale immédiate
   lsSet(`record_${recordKey}`, newValue);
 
-  // Sauvegarde BDD silencieuse
   try {
     const authed = await base44.auth.isAuthenticated();
     if (!authed) return newValue;
     const me = await base44.auth.me();
     if (!me) return newValue;
 
-    // Chercher un enregistrement existant pour ce record
     const existing = await base44.entities.StudentProgress.filter({
       userId: me.id,
       toolUsed: `record_${meta.toolUsed}`,
@@ -47,7 +50,6 @@ export async function saveRecord(recordKey, newValue, currentBest, meta) {
     }, null, 1);
 
     if (existing && existing.length > 0) {
-      // Update seulement si nouveau record
       if (newValue > (existing[0].score || 0)) {
         await base44.entities.StudentProgress.update(existing[0].id, {
           score: newValue,
@@ -71,13 +73,7 @@ export async function saveRecord(recordKey, newValue, currentBest, meta) {
   return newValue;
 }
 
-/**
- * Charge le record depuis BDD (si connecté) ou localStorage.
- * @param {string} recordKey
- * @param {object} meta - { toolUsed, subject, chapter? }
- */
 export async function loadRecord(recordKey, meta) {
-  // D'abord localStorage
   const local = lsGet(`record_${recordKey}`, 0);
 
   try {
@@ -95,7 +91,6 @@ export async function loadRecord(recordKey, meta) {
 
     if (existing && existing.length > 0) {
       const dbVal = existing[0].score || 0;
-      // Sync local si BDD est meilleur
       if (dbVal > local) lsSet(`record_${recordKey}`, dbVal);
       return Math.max(local, dbVal);
     }
@@ -118,10 +113,9 @@ export async function saveParetoScoreDB(subject, chapter, percentage, currentBes
   return saveRecord(`pareto_${subject}_${chapter}`, percentage, currentBest, { toolUsed: "pareto", subject, chapter });
 }
 
-// ── AMF Progress (balises validées) ───────────────────────────────────────
+// ── AMF Progress ───────────────────────────────────────────────────────────
 
 export async function saveAmfProgressDB(progress) {
-  // progress = { 1: true, 2: true, ... }
   try {
     const authed = await base44.auth.isAuthenticated();
     if (!authed) return;
@@ -157,8 +151,7 @@ export async function saveAmfProgressDB(progress) {
 }
 
 export async function loadAmfProgressDB() {
-  // D'abord localStorage
-  const localRaw = localStorage.getItem("amf_progress");
+  const localRaw = localStorage.getItem(`amf_progress_u${getCachedUserId()}`);
   const local = localRaw ? JSON.parse(localRaw) : {};
 
   try {
@@ -174,13 +167,9 @@ export async function loadAmfProgressDB() {
 
     if (existing && existing.length > 0 && existing[0].chapter) {
       const dbProgress = JSON.parse(existing[0].chapter);
-      // Merge : on prend le meilleur des deux (BDD et local)
       const merged = { ...local };
-      Object.keys(dbProgress).forEach(k => {
-        if (dbProgress[k]) merged[k] = true;
-      });
-      // Sync local
-      localStorage.setItem("amf_progress", JSON.stringify(merged));
+      Object.keys(dbProgress).forEach(k => { if (dbProgress[k]) merged[k] = true; });
+      localStorage.setItem(`amf_progress_u${me.id}`, JSON.stringify(merged));
       return merged;
     }
   } catch { /* silencieux */ }
@@ -191,7 +180,8 @@ export async function loadAmfProgressDB() {
 // ── Pareto scores (tous chapitres) depuis BDD ────────────────────────────
 
 export async function loadAllParetoScoresDB(subject) {
-  const localKey = `pareto_scores_${subject}`;
+  const uid = getCachedUserId();
+  const localKey = `pareto_scores_${subject}_u${uid}`;
   const local = JSON.parse(localStorage.getItem(localKey) || "{}");
 
   try {
@@ -202,17 +192,15 @@ export async function loadAllParetoScoresDB(subject) {
 
     const records = await base44.entities.StudentProgress.filter({
       userId: me.id,
-      toolUsed: "record_pareto", // saveRecord préfixe avec "record_" + meta.toolUsed
+      toolUsed: "record_pareto",
       subject,
     }, null, 200);
 
     const merged = { ...local };
     (records || []).forEach(r => {
       if (r.chapter && r.score !== undefined) {
-        const key = r.chapter;
-        // On prend le meilleur
-        if (!merged[key] || r.score > merged[key]) {
-          merged[key] = r.score;
+        if (!merged[r.chapter] || r.score > merged[r.chapter]) {
+          merged[r.chapter] = r.score;
         }
       }
     });
@@ -226,8 +214,7 @@ export async function loadAllParetoScoresDB(subject) {
 // ── Infini record depuis BDD ─────────────────────────────────────────────
 
 export async function loadInfiniRecordDB(subject) {
-  const localKey = `infini_record_${subject}`;
-  const local = parseInt(localStorage.getItem(localKey) || "0");
+  const local = lsGet(`record_infini_${subject}`, 0);
 
   try {
     const authed = await base44.auth.isAuthenticated();
@@ -237,13 +224,13 @@ export async function loadInfiniRecordDB(subject) {
 
     const existing = await base44.entities.StudentProgress.filter({
       userId: me.id,
-      toolUsed: "record_infini", // saveRecord préfixe avec "record_" + meta.toolUsed
+      toolUsed: "record_infini",
       subject,
     }, null, 1);
 
     if (existing && existing.length > 0) {
       const dbVal = existing[0].score || 0;
-      if (dbVal > local) localStorage.setItem(localKey, dbVal.toString());
+      if (dbVal > local) lsSet(`record_infini_${subject}`, dbVal);
       return Math.max(local, dbVal);
     }
   } catch { /* silencieux */ }
@@ -254,8 +241,7 @@ export async function loadInfiniRecordDB(subject) {
 // ── Game km record depuis BDD ─────────────────────────────────────────────
 
 export async function loadGameKmRecordDB(subject) {
-  const localKey = `game_km_${subject}`;
-  const local = parseInt(localStorage.getItem(localKey) || "0");
+  const local = lsGet(`record_jeu_${subject}`, 0);
 
   try {
     const authed = await base44.auth.isAuthenticated();
@@ -265,13 +251,13 @@ export async function loadGameKmRecordDB(subject) {
 
     const existing = await base44.entities.StudentProgress.filter({
       userId: me.id,
-      toolUsed: "record_jeu", // saveRecord préfixe avec "record_" + meta.toolUsed
+      toolUsed: "record_jeu",
       subject,
     }, null, 1);
 
     if (existing && existing.length > 0) {
       const dbVal = existing[0].score || 0;
-      if (dbVal > local) localStorage.setItem(localKey, dbVal.toString());
+      if (dbVal > local) lsSet(`record_jeu_${subject}`, dbVal);
       return Math.max(local, dbVal);
     }
   } catch { /* silencieux */ }
