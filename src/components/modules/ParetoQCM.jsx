@@ -313,12 +313,14 @@ export default function ParetoQCM({ subject }) {
             <div>
                 {/* Progress */}
                 <div className="mb-5">
-                  
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-stone-400 font-semibold">Progression</span>
+                    <span className="text-xs font-bold text-stone-600">{current + 1} / {questions.length}</span>
+                  </div>
                   <div className="h-2 bg-yellow-100 rounded-full overflow-hidden">
                     <div
                     className="h-full bg-yellow-400 rounded-full transition-all duration-500"
                     style={{ width: `${current / questions.length * 100}%` }} />
-                  
                   </div>
                 </div>
 

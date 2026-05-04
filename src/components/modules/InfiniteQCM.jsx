@@ -16,6 +16,7 @@ export default function InfiniteQCM({ subject }) {
   const [streak, setStreak] = useState(0);
   const [over, setOver] = useState(false);
   const [best, setBest] = useState(0);
+  const [lastQuestion, setLastQuestion] = useState(null); // question au moment du game over
 
   useEffect(() => {
     (async () => {
@@ -72,6 +73,7 @@ export default function InfiniteQCM({ subject }) {
       saveInfiniRecordDB(subject, score, getInfiniRecord(subject));
       trackProgress({ toolUsed: "infini", subject, score, totalQuestions: score + 1 });
       setBest(newRecord);
+      setLastQuestion(current); // sauvegarder la question pour l'afficher au game over
       setTimeout(() => setOver(true), 1200);
     }
   };
@@ -88,14 +90,32 @@ export default function InfiniteQCM({ subject }) {
 
   if (over) {
     return (
-      <div className="bg-white border-2 border-red-200 rounded-3xl p-10 text-center shadow-sm" style={{ fontFamily: "Arial, sans-serif" }}>
-        <div className="text-6xl mb-3">💀</div>
-        <h2 className="text-3xl font-bold text-stone-800">Session terminée</h2>
-        <div className="mt-3 text-stone-600">Score final : <span className="font-bold text-2xl text-red-500">{score}</span></div>
-        <div className="text-sm text-stone-400 mt-1">Meilleur record : <span className="font-bold text-stone-600">{Math.max(best, score)}</span></div>
+      <div className="bg-white border-2 border-red-200 rounded-3xl p-8 shadow-sm" style={{ fontFamily: "Arial, sans-serif" }}>
+        <div className="text-center mb-6">
+          <div className="text-6xl mb-3">💀</div>
+          <h2 className="text-3xl font-bold text-stone-800">Session terminée</h2>
+          <div className="mt-3 text-stone-600">Score final : <span className="font-bold text-2xl text-red-500">{score}</span></div>
+          <div className="text-sm text-stone-400 mt-1">Meilleur record : <span className="font-bold text-stone-600">{Math.max(best, score)}</span></div>
+        </div>
+
+        {/* Affichage de la question fatale + bonne réponse */}
+        {lastQuestion && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 text-left">
+            <div className="text-xs font-bold uppercase tracking-widest text-red-500 mb-2">❌ La question qui t'a éliminé</div>
+            <p className="font-semibold text-stone-800 text-sm leading-snug mb-3">{lastQuestion.question}</p>
+            <div className="text-xs font-bold text-stone-500 mb-1.5">✅ La bonne réponse était :</div>
+            <div className="bg-green-100 border border-green-300 rounded-xl px-3 py-2 text-sm font-bold text-green-800">
+              {lastQuestion.options[lastQuestion.correct_index]}
+            </div>
+            {lastQuestion.explanation && (
+              <div className="mt-2 text-xs text-stone-500 leading-relaxed italic">{lastQuestion.explanation}</div>
+            )}
+          </div>
+        )}
+
         <button
           onClick={restart}
-          className="mt-6 bg-red-500 text-white font-bold px-8 py-3 rounded-2xl border-b-4 border-red-700 hover:bg-red-400 active:translate-y-1 active:border-b-0 transition-all"
+          className="w-full bg-red-500 text-white font-bold px-8 py-3 rounded-2xl border-b-4 border-red-700 hover:bg-red-400 active:translate-y-1 active:border-b-0 transition-all"
         >
           Réessayer
         </button>

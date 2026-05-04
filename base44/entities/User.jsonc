@@ -28,5 +28,17 @@
       "default": [],
       "description": "Liste des outils/modules utilis\u00e9s"
     }
+  },
+  "required": [],
+  "rls": {
+    "read": {
+      "rule": "auth != null && (user.role == 'admin' || user.role == 'teacher' || resource.id == user.id)"
+    },
+    "update": {
+      "rule": "user.role == 'admin' || resource.id == user.id"
+    },
+    "delete": {
+      "rule": "user.role == 'admin'"
+    }
   }
 }

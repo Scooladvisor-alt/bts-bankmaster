@@ -15,6 +15,7 @@ import TradingDesk from '@/pages/TradingDesk';
 import VojesAnalyseur from '@/pages/VojesAnalyseur';
 import CesbfProgramme from '@/pages/CesbfProgramme';
 import FelicitationToast from '@/components/felicitations/FelicitationToast';
+import GlobalLoginGate from '@/components/GlobalLoginGate';
 
 
 const AuthenticatedApp = () => {
@@ -68,6 +69,7 @@ function App() {
         <Router>
           <AuthenticatedApp />
           <FelicitationToast />
+          <GlobalLoginGate />
         </Router>
         <Toaster />
       </QueryClientProvider>
