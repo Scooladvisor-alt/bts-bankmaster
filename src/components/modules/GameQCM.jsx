@@ -598,8 +598,8 @@ export default function GameQCM({ subject }) {
         )}
       </div>
 
-      {/* ── Canvas pleine largeur ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "16/7" }}>
+      {/* ── Canvas — grand écran desktop ── */}
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "16/6" }}>
         <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
         {/* Question banner */}
@@ -674,22 +674,23 @@ export default function GameQCM({ subject }) {
         )}
       </div>
 
-      {/* ── Boutons de réponse pleine largeur ── */}
+      {/* ── Boutons de réponse — larges, lisibles ── */}
       {uiState === STATE.DRIVING && !paused && current && (
-        <div className="grid grid-cols-3 gap-2 w-full">
+        <div className="grid grid-cols-3 gap-3 w-full">
           {current.options.slice(0, 3).map((opt, i) => {
             const letters = ["A", "B", "C"];
-            const letterColors = ["text-purple-600 bg-purple-100", "text-sky-600 bg-sky-100", "text-orange-600 bg-orange-100"];
+            const letterColors = ["text-purple-700 bg-purple-200", "text-sky-700 bg-sky-200", "text-orange-700 bg-orange-200"];
+            const borderActive = ["border-purple-400", "border-sky-400", "border-orange-400"];
             return (
               <button
                 key={i}
                 onClick={() => chooseLane(i)}
-                className={`w-full rounded-2xl px-3 py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-[0.98] border-2 ${laneColors[i]}`}
+                className={`w-full rounded-2xl px-4 py-4 md:py-6 text-left transition-all shadow-md hover:shadow-xl active:scale-[0.97] border-2 ${laneColors[i]} ${borderActive[i]}`}
               >
-                <div className={`inline-flex w-6 h-6 rounded-full text-xs font-extrabold items-center justify-center mb-1.5 ${letterColors[i]}`}>
+                <div className={`inline-flex w-7 h-7 rounded-full text-sm font-extrabold items-center justify-center mb-2 ${letterColors[i]}`}>
                   {letters[i]}
                 </div>
-                <div className="font-fredoka text-sm md:text-base text-stone-800 leading-snug">{opt}</div>
+                <div className="font-fredoka text-base md:text-lg text-stone-800 leading-snug">{opt}</div>
               </button>
             );
           })}

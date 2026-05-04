@@ -172,12 +172,7 @@ export default function GlobalLoginGate() {
                   Se connecter →
                 </motion.button>
 
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="mt-3 text-xs text-stone-400 hover:text-stone-600 transition-colors underline"
-                >
-                  Continuer sans compte (fonctionnalités limitées)
-                </button>
+
               </div>
             </div>
           </motion.div>

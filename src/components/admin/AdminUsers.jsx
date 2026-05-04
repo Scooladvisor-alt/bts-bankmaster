@@ -22,12 +22,20 @@ const TOOL_LABEL = {
 };
 
 // Couleur selon matière : VOJES = violet, CESBF = orange, sans matière = gris
-function getToolBadgeColor(tool, subject) {
-  if (tool === "connexion") return "bg-stone-100 text-stone-500";
-  if (tool === "amf" || tool === "certifamf" || tool === "certif-amf") return "bg-blue-100 text-blue-800";
-  if (subject === "VOJES") return "bg-purple-100 text-purple-700";
-  if (subject === "CESBF") return "bg-orange-100 text-orange-700";
-  return "bg-stone-100 text-stone-600";
+// Retourne { bg, text, border } pour un affichage coloré distinct
+function getToolBadgeStyle(tool, subject) {
+  if (tool === "connexion") return "bg-stone-100 text-stone-500 border border-stone-200";
+  if (tool === "amf" || tool === "certifamf" || tool === "certif-amf") return "bg-blue-100 text-blue-800 border border-blue-300";
+  if (subject === "VOJES") return "bg-purple-100 text-purple-800 border border-purple-300";
+  if (subject === "CESBF") return "bg-orange-100 text-orange-800 border border-orange-300";
+  return "bg-stone-100 text-stone-600 border border-stone-200";
+}
+
+// Icône matière
+function subjectDot(subject) {
+  if (subject === "VOJES") return <span className="inline-block w-2 h-2 rounded-full bg-purple-500 mr-1" />;
+  if (subject === "CESBF") return <span className="inline-block w-2 h-2 rounded-full bg-orange-500 mr-1" />;
+  return null;
 }
 
 const ROLE_CONFIG = {
@@ -201,24 +209,25 @@ export default function AdminUsers({ readOnly = false }) {
                 )}
               </div>
 
-              {/* Badges outils utilisés avec matière */}
+              {/* Badges outils utilisés avec matière + couleur */}
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {toolSubjects.length > 0 ? (
-                  toolSubjects.map(({ key, tool, subject }) => {
+                  toolSubjects.map(({ key, tool, subject: sub }) => {
                     const label = TOOL_LABEL[tool] || tool;
-                    const color = getToolBadgeColor(tool, subject);
+                    const style = getToolBadgeStyle(tool, sub);
                     return (
-                      <span key={key} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${color}`}>
-                        {label}{subject ? ` · ${subject}` : ""}
+                      <span key={key} className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-semibold ${style}`}>
+                        {subjectDot(sub)}
+                        {label}
                       </span>
                     );
                   })
                 ) : fallbackTools.length > 0 ? (
                   fallbackTools.map((tool) => {
                     const label = TOOL_LABEL[tool] || tool;
-                    const color = getToolBadgeColor(tool, null);
+                    const style = getToolBadgeStyle(tool, null);
                     return (
-                      <span key={tool} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${color}`}>{label}</span>
+                      <span key={tool} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${style}`}>{label}</span>
                     );
                   })
                 ) : (
