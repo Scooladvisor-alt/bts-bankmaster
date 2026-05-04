@@ -2,9 +2,64 @@ import React, { useEffect, useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Chrono global de 20 secondes — actif partout sur le site
-// Si l'utilisateur n'est pas connecté après 20s, affiche une modale de connexion
 const DELAY_MS = 20000;
+const CONFETTI_COLORS = ["#f59e0b", "#ef4444", "#22c55e", "#3b82f6", "#ec4899", "#8b5cf6"];
+const CONFETTI_KEY = "bts_confetti_shown";
+
+// Lance une pluie de confettis colorés
+function launchConfetti() {
+  const canvas = document.createElement("canvas");
+  canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = Array.from({ length: 120 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20,
+    r: Math.random() * 7 + 4,
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    vx: (Math.random() - 0.5) * 4,
+    vy: Math.random() * 3 + 2,
+    angle: Math.random() * Math.PI * 2,
+    spin: (Math.random() - 0.5) * 0.15,
+    shape: Math.random() > 0.5 ? "rect" : "circle",
+  }));
+
+  let frame = 0;
+  const MAX_FRAMES = 150;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p) => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, 1 - frame / MAX_FRAMES);
+      if (p.shape === "rect") {
+        ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.5);
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      p.x += p.vx;
+      p.y += p.vy;
+      p.angle += p.spin;
+      p.vy += 0.05;
+    });
+    frame++;
+    if (frame < MAX_FRAMES) {
+      requestAnimationFrame(draw);
+    } else {
+      document.body.removeChild(canvas);
+    }
+  }
+  requestAnimationFrame(draw);
+}
 
 export default function GlobalLoginGate() {
   const [showModal, setShowModal] = useState(false);
@@ -14,6 +69,18 @@ export default function GlobalLoginGate() {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
+
+    // Lance les confettis si l'utilisateur est connecté et que c'est la première visite du jour
+    base44.auth.isAuthenticated().then((authed) => {
+      if (authed) {
+        const today = new Date().toISOString().slice(0, 10);
+        const lastSeen = sessionStorage.getItem(CONFETTI_KEY);
+        if (lastSeen !== today) {
+          sessionStorage.setItem(CONFETTI_KEY, today);
+          setTimeout(launchConfetti, 800);
+        }
+      }
+    });
 
     timerRef.current = setTimeout(async () => {
       const authed = await base44.auth.isAuthenticated();

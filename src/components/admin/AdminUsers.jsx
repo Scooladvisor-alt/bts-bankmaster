@@ -36,12 +36,18 @@ export default function AdminUsers({ readOnly = false }) {
   const load = async () => {
     setLoading(true);
     try {
-      const [list, me] = await Promise.all([
-        base44.entities.User.list(null, 200),
-        base44.auth.me(),
-      ]);
-      setUsers(list || []);
+      const me = await base44.auth.me();
       setCurrentUser(me);
+      // Les teachers ne peuvent pas lister les users via la RLS → on passe par la fonction backend
+      let list = [];
+      if (me?.role === "admin") {
+        list = await base44.entities.User.list(null, 200);
+      } else {
+        // teacher : on passe par la fonction backend listAllUsers
+        const res = await base44.functions.invoke("listAllUsers", {});
+        list = res?.data?.users || [];
+      }
+      setUsers(list);
     } catch {
       setUsers([]);
     }

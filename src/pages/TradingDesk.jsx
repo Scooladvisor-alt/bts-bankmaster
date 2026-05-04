@@ -69,9 +69,7 @@ function BetSlider({ label, value, onChange, color, disabled }) {
 // ── TradeCard ────────────────────────────────────────────────────────────────
 function TradeCard({ question, qIndex, total, onResult, coins }) {
   const n = (question.options || []).length;
-  const initBets = Array(n).fill(0);
-  initBets[0] = BUDGET;
-  const [bets, setBets] = useState(initBets);
+  const [bets, setBets] = useState(Array(n).fill(0));
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState(null);
 

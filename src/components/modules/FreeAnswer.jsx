@@ -76,13 +76,7 @@ export default function FreeAnswer({ subject }) {
     setAllChapterQuestions(chapterQ);
 
     if (chapterQ.length === 0) {
-      // Aucune question en BDD pour ce chapitre → fallback IA
-      const firstQ = await base44.integrations.Core.InvokeLLM({
-        prompt: `Tu es un professeur expert en BTS Banque, matière ${subject}. 
-Pose UNE seule question de révision précise et pertinente sur le chapitre : "${chapter}".
-Réponds UNIQUEMENT avec la question, sans introduction ni numérotation.`,
-      });
-      setMessages([{ role: "assistant", content: firstQ }]);
+      setMessages([{ role: "assistant", content: "Aucune question disponible pour ce chapitre pour l'instant. Reviens plus tard quand les profs auront ajouté du contenu ! 💪" }]);
       setCurrentExpectedAnswer(null);
     } else {
       // Pioche une question aléatoire du chapitre
@@ -119,7 +113,7 @@ Réponds UNIQUEMENT avec la question, sans introduction ni numérotation.`,
     }
 
     const feedback = await base44.integrations.Core.InvokeLLM({
-      prompt: `T'es le meilleur pote de l'étudiant, et t'es un crack en BTS Banque. Tu parles EXACTEMENT comme un pote IRL — naturel, familier, direct, sans chichis ni langue de bois. Tu tutoies toujours.
+      prompt: `T'es le meilleur pote de l'étudiant, et t'es un crack en BTS Banque. Tu parles EXACTEMENT comme un pote IRL — naturel, familier, direct, sans chichis ni langue de bois. Tu tutoies toujours. Tu réponds toujours de manière cohérente avec ce que l'étudiant vient de dire.
 
 Matière : ${subject} — Chapitre : "${selectedChapter}"
 
@@ -135,9 +129,9 @@ CE QUE L'ÉTUDIANT VIENT DE RÉPONDRE : "${userMsg}"
 
 ÉTAPE 1 — DÉTECTE ce que c'est :
 
-A) INSULTE / IRRESPECT → Recadre-le CASH et sans pitié, comme un pote qui en a marre. Utilise des phrases du style : "Ferme la guignol ! tu crois c'est comme ça tu vas avoir ton BTS ??" ou "T'as que ça à faire ou quoi ?" ou "T'es vraiment faible pour insulter une IA 😂" ou "Calme toi boloss, t'as un exam qui arrive" ou "C'est ça ton niveau ? Sérieux ?" ou "Wesh redescends, t'as pas le temps de faire le mariole". Sois mordant, taquin, légèrement moqueur — mais recentre TOUJOURS sur le boulot à faire à la fin (une phrase du genre "bon allez, on reprend" ou "focus, t'as un BTS à passer").
+A) INSULTE / IRRESPECT → Recadre-le CASH et sans pitié, comme un pote qui en a marre. Utilise des phrases du style : "Ferme la guignol ! tu crois c'est comme ça tu vas avoir ton BTS ??" ou "T'as que ça à faire ou quoi ?" ou "T'es vraiment faible pour insulter une IA 😂" ou "Calme toi boloss, t'as un exam qui arrive" ou "C'est ça ton niveau ? Sérieux ?" ou "Wesh redescends, t'as pas le temps de faire le mariole". Sois mordant, taquin, légèrement moqueur — mais recentre TOUJOURS sur le boulot à faire à la fin (une phrase du genre "bon allez, on reprend" ou "focus, t'as un BTS à passer"). Après le recadrage, continue avec la question suivante si il y en a une.
 
-B) QUESTION / DEMANDE DE PRÉCISION → Réponds directement et clairement, comme à la cafét.
+B) QUESTION / DEMANDE DE PRÉCISION → Réponds directement et clairement, comme à la cafét. Sois précis sur le contenu BTS Banque. Réponds à ce qu'il demande VRAIMENT, puis reprends la question posée si besoin.
 
 C) RÉPONSE À LA QUESTION POSÉE → Compare sa réponse à la réponse attendue :
   - Correct (correspond à la réponse attendue) : valide en une phrase naturelle. Si des éléments bonus existent → "**Tu aurais pu aussi glisser :**" à la fin.
@@ -145,16 +139,17 @@ C) RÉPONSE À LA QUESTION POSÉE → Compare sa réponse à la réponse attendu
   - Incorrect / hors sujet / n'importe quoi → sois direct : "Nan là c'est pas ça ❌" et donne la bonne réponse en 2-3 phrases factuelles.
 
 RÈGLES ABSOLUES :
-- Commence par un verdict naturel : "Ouais c'est bon ✅", "Presque —", "Nan là c'est pas ça ❌", etc.
+- Commence par un verdict naturel cohérent avec ce que l'étudiant a dit : "Ouais c'est bon ✅", "Presque —", "Nan là c'est pas ça ❌", etc.
 - Max 6 lignes de feedback. Sois chirurgical et précis.
 - Zéro blabla motivationnel.
 - Utilise des listes à puces (- item) pour les énumérations.
+- N'invente JAMAIS de nouvelles questions de toi-même. Utilise UNIQUEMENT les questions fournies.
 - Après le feedback :
 ${allExhausted
-  ? `  → Dis-lui qu'il a répondu à toutes les questions du chapitre "${selectedChapter}", et propose-lui soit de t'en inventer d'autres sur ce même cours, soit de changer de chapitre.`
+  ? `  → Dis-lui qu'il a épuisé toutes les questions disponibles pour le chapitre "${selectedChapter}". Félicite-le et propose-lui de changer de chapitre pour continuer.`
   : nextQuestion
-    ? `  → Termine avec "---" puis pose EXACTEMENT cette question (ne la modifie pas) : "${nextQuestion}"`
-    : `  → Termine avec "---" puis invente une nouvelle question cohérente sur le chapitre "${selectedChapter}" uniquement.`
+    ? `  → Termine avec "---" puis pose EXACTEMENT cette question sans la modifier : "${nextQuestion}"`
+    : `  → Dis-lui qu'il a épuisé toutes les questions disponibles pour ce chapitre. Félicite-le et propose-lui de changer de chapitre.`
 }`,
     });
 
