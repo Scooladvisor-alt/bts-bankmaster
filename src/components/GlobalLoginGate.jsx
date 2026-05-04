@@ -3,10 +3,10 @@ import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 
 const DELAY_MS = 20000;
-const CONFETTI_COLORS = ["#f59e0b", "#ef4444", "#22c55e", "#3b82f6", "#ec4899", "#8b5cf6"];
-const CONFETTI_KEY = "bts_confetti_shown";
+const CONFETTI_COLORS = ["#f59e0b", "#ef4444", "#22c55e", "#3b82f6", "#ec4899", "#8b5cf6", "#ffffff", "#ff6b35", "#a855f7", "#06b6d4"];
+const CONFETTI_KEY = "bts_confetti_first_login";
 
-// Lance une pluie de confettis colorés
+// Lance une explosion massive de confettis de tous les côtés
 function launchConfetti() {
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999";
@@ -15,47 +15,82 @@ function launchConfetti() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const particles = Array.from({ length: 120 }, () => ({
-    x: Math.random() * canvas.width,
-    y: -20,
-    r: Math.random() * 7 + 4,
-    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-    vx: (Math.random() - 0.5) * 4,
-    vy: Math.random() * 3 + 2,
-    angle: Math.random() * Math.PI * 2,
-    spin: (Math.random() - 0.5) * 0.15,
-    shape: Math.random() > 0.5 ? "rect" : "circle",
-  }));
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // 400 particules qui partent de partout : haut, bas, gauche, droite, coins, centre
+  const particles = Array.from({ length: 400 }, (_, i) => {
+    const origin = i % 8; // 8 points d'émission
+    let x, y, vx, vy;
+    const speed = 8 + Math.random() * 14;
+    const angle = Math.random() * Math.PI * 2;
+    
+    if (origin < 2) { // haut
+      x = Math.random() * W; y = -10;
+      vx = (Math.random() - 0.5) * 10; vy = speed * 0.6 + Math.random() * 4;
+    } else if (origin < 4) { // côtés
+      x = origin === 2 ? -10 : W + 10; y = Math.random() * H;
+      vx = (origin === 2 ? 1 : -1) * (speed * 0.5 + Math.random() * 4);
+      vy = (Math.random() - 0.5) * 8;
+    } else if (origin < 6) { // coins bas
+      x = origin === 4 ? 0 : W; y = H;
+      vx = (origin === 4 ? 1 : -1) * (Math.random() * 12 + 4);
+      vy = -(Math.random() * 14 + 6);
+    } else { // centre - explosif
+      x = W / 2 + (Math.random() - 0.5) * 100;
+      y = H / 2 + (Math.random() - 0.5) * 100;
+      vx = Math.cos(angle) * speed;
+      vy = Math.sin(angle) * speed;
+    }
+
+    return {
+      x, y, vx, vy,
+      r: Math.random() * 10 + 4,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      angle: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.25,
+      shape: ["rect", "circle", "tri"][Math.floor(Math.random() * 3)],
+      alpha: 1,
+    };
+  });
 
   let frame = 0;
-  const MAX_FRAMES = 150;
+  const MAX_FRAMES = 240;
 
   function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, W, H);
     particles.forEach((p) => {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.angle);
       ctx.fillStyle = p.color;
-      ctx.globalAlpha = Math.max(0, 1 - frame / MAX_FRAMES);
+      ctx.globalAlpha = Math.max(0, frame < 60 ? 1 : 1 - (frame - 60) / (MAX_FRAMES - 60));
       if (p.shape === "rect") {
-        ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.5);
-      } else {
+        ctx.fillRect(-p.r / 2, -p.r * 0.3, p.r, p.r * 0.6);
+      } else if (p.shape === "circle") {
         ctx.beginPath();
         ctx.arc(0, 0, p.r / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(0, -p.r / 2);
+        ctx.lineTo(p.r / 2, p.r / 2);
+        ctx.lineTo(-p.r / 2, p.r / 2);
+        ctx.closePath();
         ctx.fill();
       }
       ctx.restore();
       p.x += p.vx;
       p.y += p.vy;
       p.angle += p.spin;
-      p.vy += 0.05;
+      p.vy += 0.18; // gravité
+      p.vx *= 0.99; // friction
     });
     frame++;
     if (frame < MAX_FRAMES) {
       requestAnimationFrame(draw);
     } else {
-      document.body.removeChild(canvas);
+      if (canvas.parentNode) document.body.removeChild(canvas);
     }
   }
   requestAnimationFrame(draw);
@@ -70,14 +105,13 @@ export default function GlobalLoginGate() {
     if (checkedRef.current) return;
     checkedRef.current = true;
 
-    // Lance les confettis si l'utilisateur est connecté et que c'est la première visite du jour
+    // Lance les confettis uniquement à la TOUTE PREMIÈRE connexion (localStorage permanent)
     base44.auth.isAuthenticated().then((authed) => {
       if (authed) {
-        const today = new Date().toISOString().slice(0, 10);
-        const lastSeen = sessionStorage.getItem(CONFETTI_KEY);
-        if (lastSeen !== today) {
-          sessionStorage.setItem(CONFETTI_KEY, today);
-          setTimeout(launchConfetti, 800);
+        const alreadySeen = localStorage.getItem(CONFETTI_KEY);
+        if (!alreadySeen) {
+          localStorage.setItem(CONFETTI_KEY, "1");
+          setTimeout(launchConfetti, 600);
         }
       }
     });

@@ -12,7 +12,12 @@ const ROAD_W = 9;
 const TILE_LEN = 30;
 const NUM_TILES = 6;
 const LANE_SPREAD = 3.2;
-const CAR_SPEED = 0.20;
+const SPEED_MODES = {
+  facile:  { label: "🐢 Facile",  multiplier: 0.60, color: "bg-green-500" },
+  moyen:   { label: "🚗 Moyen",   multiplier: 1.00, color: "bg-yellow-500" },
+  difficile: { label: "🔥 Difficile", multiplier: 1.40, color: "bg-red-500" },
+};
+const BASE_SPEED = 0.20;
 // How far ahead (world units) to spawn split signs
 const SPLIT_AHEAD = 55;
 // How far past signs before auto-fail
@@ -161,6 +166,9 @@ export default function GameQCM({ subject }) {
   const [km, setKm] = useState(0);
   const [kmRecord, setKmRecord] = useState(0);
   const [feedback, setFeedback] = useState(null); // null | "correct" | "wrong"
+  const [speedMode, setSpeedMode] = useState("moyen");
+  const [gameStarted, setGameStarted] = useState(false);
+  const speedModeRef = useRef("moyen");
   const kmRef = useRef(0);
   const kmIntervalRef = useRef(null);
 
@@ -399,12 +407,14 @@ export default function GameQCM({ subject }) {
       const car = carRef.current;
 
       if (state === STATE.DRIVING) {
-        carZRef.current -= CAR_SPEED;
+        const carSpeed = BASE_SPEED * SPEED_MODES[speedModeRef.current].multiplier;
+        carZRef.current -= carSpeed;
         // Lerp X toward target lane (0 = center normally)
         carXRef.current += (targetXRef.current - carXRef.current) * 0.06;
         car.position.z = carZRef.current;
         car.position.x = carXRef.current;
-        wheelAngleRef.current += CAR_SPEED * 0.55;
+        const carSpeed2 = BASE_SPEED * SPEED_MODES[speedModeRef.current].multiplier;
+        wheelAngleRef.current += carSpeed2 * 0.55;
         [3, 4, 5, 6].forEach((ci) => { if (car.children[ci]) car.children[ci].rotation.x = wheelAngleRef.current; });
 
         // Auto-fail: if car passes split signs without choosing
@@ -499,6 +509,7 @@ export default function GameQCM({ subject }) {
     spawnSplit();
     stateRef.current = STATE.DRIVING;
     setUiState(STATE.DRIVING);
+    setGameStarted(true);
   }, [spawnSplit]);
 
   // Save km record on game over/win
@@ -516,117 +527,123 @@ export default function GameQCM({ subject }) {
   if (loading) return <div className="flex items-center gap-2 text-stone-500 p-10"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
   if (questions.length === 0) return <div className="bg-white rounded-2xl p-8 text-center text-stone-600">Pas encore de questions en mode jeu.</div>;
 
+  // Écran de sélection de vitesse avant de démarrer
+  if (!gameStarted) {
+    return (
+      <div className="w-full flex flex-col items-center justify-center min-h-[60vh] gap-6 select-none">
+        <div className="text-center">
+          <div className="text-5xl mb-3">🏎️</div>
+          <h2 className="font-display text-3xl font-bold text-stone-800">Choisis ta vitesse</h2>
+          <p className="text-stone-500 text-sm mt-1">Tu pourras toujours recommencer dans un autre mode</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg px-4">
+          {Object.entries(SPEED_MODES).map(([key, mode]) => (
+            <button
+              key={key}
+              onClick={() => {
+                setSpeedMode(key);
+                speedModeRef.current = key;
+                setGameStarted(true);
+              }}
+              className={`flex-1 ${mode.color} text-white font-display font-bold text-lg py-5 rounded-2xl shadow-duo border-b-4 border-black/20 active:border-b-0 active:translate-y-1 transition-all hover:opacity-90`}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+        <Link to={`/${subject.toLowerCase()}`} className="text-sm text-stone-400 hover:text-stone-600 underline">
+          ← Retour
+        </Link>
+      </div>
+    );
+  }
+
   const current = questions[idx];
   const laneColors = [
-    "border-purple-200 bg-purple-50/50 hover:border-purple-300",
-    "border-sky-200 bg-sky-50/50 hover:border-sky-300",
-    "border-orange-200 bg-orange-50/50 hover:border-orange-300",
+    "border-purple-300 bg-purple-50 hover:bg-purple-100",
+    "border-sky-300 bg-sky-50 hover:bg-sky-100",
+    "border-orange-300 bg-orange-50 hover:bg-orange-100",
   ];
   const isPlaying = uiState === STATE.DRIVING || uiState === STATE.EXPLODE;
+  const currentMode = SPEED_MODES[speedMode];
 
   return (
     <div className="w-full select-none flex flex-col gap-2">
 
-      {/* ── HUD mobile : retour + cœurs + pause + km ── */}
-      <div className="flex md:hidden items-center gap-1.5">
-        {/* Bouton retour */}
+      {/* ── Barre du haut : retour + infos + pause ── */}
+      <div className="flex items-center gap-2 flex-wrap">
         <Link
           to={`/${subject.toLowerCase()}`}
           className="flex items-center gap-0.5 bg-white border border-stone-200 text-stone-600 font-bold text-xs px-2 py-1.5 rounded-xl shrink-0"
         >
           <ChevronLeft className="w-3.5 h-3.5" /> Retour
         </Link>
-        {/* Séparateur */}
-        <div className="w-px h-5 bg-stone-200 shrink-0" />
+
+        {/* Mode vitesse actuel */}
+        <span className={`text-xs font-bold text-white px-2.5 py-1 rounded-full ${currentMode.color}`}>
+          {currentMode.label}
+        </span>
+
         {/* Cœurs */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {Array.from({ length: 3 }).map((_, i) => (
             <Heart key={i} className={`w-4 h-4 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-stone-300"}`} />
           ))}
         </div>
+
+        {/* Score */}
+        <span className="text-xs font-bold text-stone-600 bg-stone-100 px-2 py-1 rounded-full">
+          ✅ {score}
+        </span>
+
+        {/* Km */}
+        <div className="bg-black/80 text-green-300 font-bold text-xs px-2 py-1 rounded-full">
+          🛣️ {km.toFixed(1)} km
+        </div>
+        {kmRecord > 0 && (
+          <div className="bg-stone-800 text-yellow-300 font-bold text-xs px-2 py-1 rounded-full">
+            🏆 {kmRecord}
+          </div>
+        )}
+
         {/* Pause */}
         {isPlaying && (
-          <button onClick={togglePause} className="bg-stone-200 rounded-full p-1 text-stone-700 shrink-0">
+          <button onClick={togglePause} className="ml-auto bg-stone-200 rounded-full p-1.5 text-stone-700 shrink-0">
             {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
           </button>
         )}
-        {/* Km + record — poussés à droite */}
-        <div className="flex items-center gap-1.5 ml-auto">
-          <div className="bg-black/80 text-green-300 font-bold text-xs px-2 py-1 rounded-full">
-            🛣️ {km.toFixed(1)}
-          </div>
-          {kmRecord > 0 && (
-            <div className="bg-stone-800 text-yellow-300 font-bold text-xs px-2 py-1 rounded-full">
-              🏆 {kmRecord}
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* ── HUD desktop : retour + record ── */}
-      <div className="hidden md:flex items-center justify-between gap-3">
-        <Link
-          to={`/${subject.toLowerCase()}`}
-          className="flex items-center gap-1 text-stone-600 hover:text-stone-900 font-bold text-sm py-2 px-2 rounded-lg active:bg-stone-200 transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" /> Retour
-        </Link>
-        {kmRecord > 0 && (
-          <div className="inline-block bg-stone-800 text-yellow-300 font-bold text-sm px-4 py-2 rounded-full">
-            🏆 {kmRecord} km
-          </div>
-        )}
-      </div>
-
-      {/* ── Canvas ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg game-canvas-wrap mobile-game-canvas">
+      {/* ── Canvas GRAND ÉCRAN (16:6 ratio = très large, peu haut) ── */}
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "16/6" }}>
         <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
-        {/* Question banner — tout en haut */}
+        {/* Question banner en haut du canvas */}
         {isPlaying && current && (
           <div className="absolute top-2 left-3 right-3 z-10">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl px-3 py-2 shadow-lg text-center border-b-4 border-pink-300">
-              {current.chapter && <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-pink-400 mb-0.5 opacity-70">{current.chapter}</div>}
-              <div className="font-fredoka font-normal text-sm md:text-base leading-snug">{current.question}</div>
+            <div className="bg-white/95 backdrop-blur-md rounded-xl px-3 py-1.5 shadow-lg text-center border-b-2 border-pink-300">
+              {current.chapter && <div className="text-[8px] font-bold uppercase tracking-widest text-pink-400 opacity-70">{current.chapter}</div>}
+              <div className="font-fredoka text-sm md:text-base leading-snug">{current.question}</div>
             </div>
           </div>
         )}
-
-        {/* HUD desktop dans le canvas : cœurs + km + pause — adaptative */}
-         {isPlaying && current && (
-           <div className="hidden md:flex absolute left-0 right-0 z-10 items-center justify-between px-4" style={{ top: `max(calc(68px + max(0px, 100vh - 900px)), 80px)`, paddingTop: "0.375rem", paddingBottom: "0.375rem" }}>
-              <div className="flex gap-1">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Heart key={i} className={`w-5 h-5 drop-shadow ${i < lives ? "fill-red-400 text-red-400" : "text-white/30"}`} />
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 text-sm font-bold text-green-300">🛣️ {km.toFixed(1)} km</div>
-                {isPlaying && (
-                  <button onClick={togglePause} className="bg-white/20 backdrop-blur rounded-full p-1.5 text-white hover:bg-white/30 transition-colors">
-                    {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-                  </button>
-                )}
-              </div>
-            </div>
-         )}
 
         {/* Feedback overlays */}
         {feedback === "correct" && current && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <div className="bg-green-500/90 backdrop-blur-sm text-white rounded-3xl px-8 py-5 text-center shadow-2xl">
-              <div className="text-4xl mb-1">✅</div>
-              <div className="font-display text-2xl font-bold">Bonne voie !</div>
-              {current.explanation && <div className="text-sm opacity-90 mt-1 max-w-[280px]">{current.explanation}</div>}
+            <div className="bg-green-500/90 backdrop-blur-sm text-white rounded-3xl px-6 py-4 text-center shadow-2xl">
+              <div className="text-3xl mb-1">✅</div>
+              <div className="font-display text-xl font-bold">Bonne voie !</div>
+              {current.explanation && <div className="text-xs opacity-90 mt-1 max-w-[260px]">{current.explanation}</div>}
             </div>
           </div>
         )}
         {feedback === "wrong" && current && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <div className="bg-red-600/90 backdrop-blur-sm text-white rounded-3xl px-8 py-5 text-center shadow-2xl">
-              <div className="text-4xl mb-1">💥</div>
-              <div className="font-display text-2xl font-bold">Mauvais chemin !</div>
-              <div className="text-sm mt-1 opacity-90">Réponse : <span className="font-bold">{current.options[current.correct_index]}</span></div>
+            <div className="bg-red-600/90 backdrop-blur-sm text-white rounded-3xl px-6 py-4 text-center shadow-2xl">
+              <div className="text-3xl mb-1">💥</div>
+              <div className="font-display text-xl font-bold">Mauvais chemin !</div>
+              <div className="text-xs mt-1 opacity-90">Réponse : <span className="font-bold">{current.options[current.correct_index]}</span></div>
             </div>
           </div>
         )}
@@ -634,10 +651,9 @@ export default function GameQCM({ subject }) {
         {/* Pause overlay */}
         {paused && (
           <div className="absolute inset-0 z-25 bg-black/60 flex items-center justify-center">
-            <div className="bg-white rounded-3xl p-8 text-center shadow-2xl">
-              <div className="text-5xl mb-3">⏸️</div>
-              <h2 className="font-display text-3xl font-bold mb-2">Pause</h2>
-              <p className="text-stone-500 text-sm mb-5">La route t'attend…</p>
+            <div className="bg-white rounded-3xl p-6 text-center shadow-2xl">
+              <div className="text-4xl mb-2">⏸️</div>
+              <h2 className="font-display text-2xl font-bold mb-2">Pause</h2>
               <DuoButton variant="primary" onClick={togglePause}>
                 <Play className="w-4 h-4 inline mr-2" /> Reprendre
               </DuoButton>
@@ -648,13 +664,18 @@ export default function GameQCM({ subject }) {
         {/* Game Over */}
         {uiState === STATE.GAMEOVER && (
           <div className="absolute inset-0 z-30 bg-black/75 flex items-center justify-center">
-            <div className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-sm mx-4">
-              <div className="text-6xl mb-3">💀</div>
-              <h2 className="font-display text-3xl font-bold">Game Over !</h2>
-              <p className="text-stone-600 mt-2">Score : <span className="text-pink-600 font-bold text-2xl">{score}</span></p>
-              <DuoButton variant="primary" className="mt-5" onClick={restart}>
-                <RotateCcw className="w-4 h-4 inline mr-2" /> Rejouer
-              </DuoButton>
+            <div className="bg-white rounded-3xl p-6 text-center shadow-2xl max-w-sm mx-4">
+              <div className="text-5xl mb-2">💀</div>
+              <h2 className="font-display text-2xl font-bold">Game Over !</h2>
+              <p className="text-stone-600 mt-1">Score : <span className="text-pink-600 font-bold text-2xl">{score}</span></p>
+              <div className="flex gap-2 mt-4 justify-center">
+                <DuoButton variant="primary" onClick={restart}>
+                  <RotateCcw className="w-4 h-4 inline mr-1" /> Rejouer
+                </DuoButton>
+                <DuoButton variant="ghost" onClick={() => { restart(); setGameStarted(false); }}>
+                  Changer vitesse
+                </DuoButton>
+              </div>
             </div>
           </div>
         )}
@@ -662,30 +683,42 @@ export default function GameQCM({ subject }) {
         {/* Win */}
         {uiState === STATE.WIN && (
           <div className="absolute inset-0 z-30 bg-black/65 flex items-center justify-center">
-            <div className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-sm mx-4">
-              <div className="text-6xl mb-3">🏆</div>
-              <h2 className="font-display text-3xl font-bold">Parcours terminé !</h2>
-              <p className="text-stone-600 mt-2">Score : <span className="text-green-600 font-bold text-2xl">{score} / {questions.length}</span></p>
-              <DuoButton variant="primary" className="mt-5" onClick={restart}>
-                <RotateCcw className="w-4 h-4 inline mr-2" /> Rejouer
-              </DuoButton>
+            <div className="bg-white rounded-3xl p-6 text-center shadow-2xl max-w-sm mx-4">
+              <div className="text-5xl mb-2">🏆</div>
+              <h2 className="font-display text-2xl font-bold">Parcours terminé !</h2>
+              <p className="text-stone-600 mt-1">Score : <span className="text-green-600 font-bold text-2xl">{score} / {questions.length}</span></p>
+              <div className="flex gap-2 mt-4 justify-center">
+                <DuoButton variant="primary" onClick={restart}>
+                  <RotateCcw className="w-4 h-4 inline mr-1" /> Rejouer
+                </DuoButton>
+                <DuoButton variant="ghost" onClick={() => { restart(); setGameStarted(false); }}>
+                  Changer vitesse
+                </DuoButton>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Boutons de réponse — hors canvas ── */}
+      {/* ── Boutons de réponse — GRANDS, hors canvas ── */}
       {uiState === STATE.DRIVING && !paused && current && (
-        <div className="grid grid-cols-3 gap-2 md:gap-3 md:-mx-8">
-          {current.options.slice(0, 3).map((opt, i) => (
-            <button
-              key={i}
-              onClick={() => chooseLane(i)}
-              className={`rounded-2xl px-2 md:px-4 py-3 md:py-5 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
-            >
-              <div className="font-fredoka text-xs md:text-base text-stone-800 leading-snug">{opt}</div>
-            </button>
-          ))}
+        <div className="grid grid-cols-3 gap-3">
+          {current.options.slice(0, 3).map((opt, i) => {
+            const letters = ["A", "B", "C"];
+            const letterColors = ["text-purple-600 bg-purple-100", "text-sky-600 bg-sky-100", "text-orange-600 bg-orange-100"];
+            return (
+              <button
+                key={i}
+                onClick={() => chooseLane(i)}
+                className={`rounded-2xl px-3 py-4 text-left transition-all shadow-sm hover:shadow-md active:scale-95 border-2 ${laneColors[i]}`}
+              >
+                <div className={`inline-block w-6 h-6 rounded-full text-xs font-extrabold flex items-center justify-center mb-1.5 ${letterColors[i]}`}>
+                  {letters[i]}
+                </div>
+                <div className="font-fredoka text-sm md:text-base text-stone-800 leading-snug">{opt}</div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

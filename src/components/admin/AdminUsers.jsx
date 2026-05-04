@@ -3,22 +3,32 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, Shield, GraduationCap, User, Star } from "lucide-react";
 import FelicitationModal from "@/components/admin/FelicitationModal";
 
-const TOOL_CONFIG = {
-  pareto:     { label: "QCM Pareto",    color: "bg-green-100 text-green-700" },
-  jeu:        { label: "Jeu voiture",   color: "bg-pink-100 text-pink-700" },
-  infini:     { label: "QCM Infini",    color: "bg-red-100 text-red-700" },
-  questions:  { label: "Révision",      color: "bg-blue-100 text-blue-700" },
-  libre:      { label: "Réponse libre", color: "bg-teal-100 text-teal-700" },
-  vraiouFaux: { label: "Vrai ou Faux",  color: "bg-rose-100 text-rose-700" },
-  cours:      { label: "Cours",         color: "bg-emerald-100 text-emerald-700" },
-  amf:        { label: "Certif AMF",    color: "bg-blue-100 text-blue-800" },
-  certifamf:  { label: "Certif AMF",    color: "bg-blue-100 text-blue-800" },
-  "certif-amf": { label: "Certif AMF", color: "bg-blue-100 text-blue-800" },
-  connexion:  { label: "Connexion",     color: "bg-stone-100 text-stone-500" },
-  ressources: { label: "Ressources",    color: "bg-indigo-100 text-indigo-700" },
-  assistant:  { label: "Assistant",     color: "bg-slate-100 text-slate-700" },
-  memo:       { label: "Mémo Dessin",   color: "bg-violet-100 text-violet-700" },
+// Couleurs par outil + matière
+const TOOL_LABEL = {
+  pareto:     "QCM Pareto",
+  jeu:        "Jeu voiture",
+  infini:     "QCM Infini",
+  questions:  "Révision",
+  libre:      "Réponse libre",
+  vraiouFaux: "Vrai ou Faux",
+  cours:      "Cours",
+  amf:        "Certif AMF",
+  certifamf:  "Certif AMF",
+  "certif-amf": "Certif AMF",
+  connexion:  "Connexion",
+  ressources: "Ressources",
+  assistant:  "Assistant",
+  memo:       "Mémo Dessin",
 };
+
+// Couleur selon matière : VOJES = violet, CESBF = orange, sans matière = gris
+function getToolBadgeColor(tool, subject) {
+  if (tool === "connexion") return "bg-stone-100 text-stone-500";
+  if (tool === "amf" || tool === "certifamf" || tool === "certif-amf") return "bg-blue-100 text-blue-800";
+  if (subject === "VOJES") return "bg-purple-100 text-purple-700";
+  if (subject === "CESBF") return "bg-orange-100 text-orange-700";
+  return "bg-stone-100 text-stone-600";
+}
 
 const ROLE_CONFIG = {
   admin:   { label: "Admin",      icon: Shield,         color: "bg-red-100 text-red-700" },
@@ -26,28 +36,51 @@ const ROLE_CONFIG = {
   user:    { label: "Élève",      icon: User,           color: "bg-stone-100 text-stone-600" },
 };
 
+// Badge prof CESBF = orange, prof VOJES = violet
+function getTeacherBadgeColor(subject) {
+  if (subject === "CESBF") return "bg-orange-100 text-orange-700";
+  if (subject === "VOJES") return "bg-purple-100 text-purple-700";
+  return "bg-purple-100 text-purple-700";
+}
+
 export default function AdminUsers({ readOnly = false }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [felicitationTarget, setFelicitationTarget] = useState(null);
+  // Map userId → list of { tool, subject }
+  const [userToolSubjects, setUserToolSubjects] = useState({});
 
   const load = async () => {
     setLoading(true);
     try {
       const me = await base44.auth.me();
       setCurrentUser(me);
-      // Les teachers ne peuvent pas lister les users via la RLS → on passe par la fonction backend
       let list = [];
       if (me?.role === "admin") {
         list = await base44.entities.User.list(null, 200);
       } else {
-        // teacher : on passe par la fonction backend listAllUsers
         const res = await base44.functions.invoke("listAllUsers", {});
         list = res?.data?.users || [];
       }
       setUsers(list);
+
+      // Charger les StudentProgress pour avoir outil + matière par user
+      try {
+        const progList = await base44.entities.StudentProgress.list("-sessionDate", 2000);
+        // Construire map userId → Set de "tool|subject"
+        const map = {};
+        (progList || []).forEach((p) => {
+          if (!p.userId || !p.toolUsed) return;
+          if (!map[p.userId]) map[p.userId] = [];
+          const key = `${p.toolUsed}|${p.subject || ""}`;
+          if (!map[p.userId].find(e => e.key === key)) {
+            map[p.userId].push({ key, tool: p.toolUsed, subject: p.subject || null });
+          }
+        });
+        setUserToolSubjects(map);
+      } catch {}
     } catch {
       setUsers([]);
     }
@@ -81,10 +114,25 @@ export default function AdminUsers({ readOnly = false }) {
         <div className="bg-white rounded-2xl p-6 text-center text-stone-400">Aucun utilisateur</div>
       ) : (
         users.map((user) => {
-          const roleConf = ROLE_CONFIG[user.role] || ROLE_CONFIG["user"];
-          const RoleIcon = roleConf.icon;
-          const tools = Array.isArray(user.toolsUsed) ? user.toolsUsed : [];
+          const isTeacher = user.role === "teacher";
           const isEleve = !user.role || user.role === "user";
+
+          // Badge rôle : prof CESBF = orange, prof VOJES = violet, admin = rouge
+          let roleConf;
+          if (user.role === "admin") {
+            roleConf = ROLE_CONFIG["admin"];
+          } else if (isTeacher) {
+            const teacherColor = getTeacherBadgeColor(user.teacherSubject);
+            roleConf = { label: "Professeur", icon: GraduationCap, color: teacherColor };
+          } else {
+            roleConf = ROLE_CONFIG["user"];
+          }
+          const RoleIcon = roleConf.icon;
+
+          // Badges outils avec matière
+          const toolSubjects = userToolSubjects[user.id] || [];
+          // Fallback: si pas de StudentProgress, utiliser toolsUsed sans matière
+          const fallbackTools = Array.isArray(user.toolsUsed) ? user.toolsUsed : [];
 
           return (
             <div key={user.id} className="bg-white rounded-2xl p-4 border border-stone-200 hover:shadow-sm transition-shadow">
@@ -98,8 +146,8 @@ export default function AdminUsers({ readOnly = false }) {
                   <div className={`inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg text-xs font-semibold ${roleConf.color}`}>
                     <RoleIcon className="w-3.5 h-3.5" />
                     {roleConf.label}
-                    {user.role === "teacher" && user.teacherSubject && (
-                      <span className="ml-1 px-1.5 py-0.5 rounded bg-white/60 text-[11px]">{user.teacherSubject}</span>
+                    {isTeacher && user.teacherSubject && (
+                      <span className="ml-1 px-1.5 py-0.5 rounded bg-white/60 text-[11px] font-bold">{user.teacherSubject}</span>
                     )}
                   </div>
 
@@ -117,7 +165,7 @@ export default function AdminUsers({ readOnly = false }) {
                   )}
                 </div>
 
-                {/* Contrôles rôle — masqués en mode lecture seule */}
+                {/* Contrôles rôle */}
                 {!readOnly && (
                   <div className="flex flex-col gap-2 min-w-[200px]">
                     <div className="flex items-center gap-2">
@@ -133,7 +181,7 @@ export default function AdminUsers({ readOnly = false }) {
                         <option value="admin">Admin</option>
                       </select>
                     </div>
-                    {(user.role === "teacher") && (
+                    {isTeacher && (
                       <div className="flex items-center gap-2">
                         <label className="text-xs font-bold text-stone-500 w-16">Matière</label>
                         <select
@@ -153,19 +201,28 @@ export default function AdminUsers({ readOnly = false }) {
                 )}
               </div>
 
-              {/* Badges outils utilisés */}
+              {/* Badges outils utilisés avec matière */}
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {tools.length === 0 ? (
-                  <span className="text-xs text-stone-400 italic">Aucun outil utilisé</span>
-                ) : (
-                  tools.map((tool) => {
-                    const conf = TOOL_CONFIG[tool];
-                    return conf ? (
-                      <span key={tool} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${conf.color}`}>{conf.label}</span>
-                    ) : (
-                      <span key={tool} className="text-xs px-2 py-0.5 rounded-full font-semibold bg-stone-100 text-stone-600">{tool}</span>
+                {toolSubjects.length > 0 ? (
+                  toolSubjects.map(({ key, tool, subject }) => {
+                    const label = TOOL_LABEL[tool] || tool;
+                    const color = getToolBadgeColor(tool, subject);
+                    return (
+                      <span key={key} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${color}`}>
+                        {label}{subject ? ` · ${subject}` : ""}
+                      </span>
                     );
                   })
+                ) : fallbackTools.length > 0 ? (
+                  fallbackTools.map((tool) => {
+                    const label = TOOL_LABEL[tool] || tool;
+                    const color = getToolBadgeColor(tool, null);
+                    return (
+                      <span key={tool} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${color}`}>{label}</span>
+                    );
+                  })
+                ) : (
+                  <span className="text-xs text-stone-400 italic">Aucun outil utilisé</span>
                 )}
               </div>
             </div>
