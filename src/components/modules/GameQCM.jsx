@@ -599,7 +599,7 @@ export default function GameQCM({ subject }) {
       </div>
 
       {/* ── Canvas — grand écran desktop ── */}
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "16/5" }}>
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-duo-lg" style={{ aspectRatio: "16/9" }}>
         <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
         {/* Question banner */}
