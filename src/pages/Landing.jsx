@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
 import RoleModal from "@/components/landing/RoleModal";
-import { BarChart2, Landmark } from "lucide-react";
+import { BarChart2, Landmark, BookOpen, Globe } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 
 export default function Landing() {
@@ -55,6 +55,22 @@ export default function Landing() {
             tagline="Conseil/Expertise en Solution Bancaire & Financière"
             gradient="from-orange-400 via-orange-500 to-red-500"
             delay={0.2} />
+
+          <SubjectCard
+            to="/anglais"
+            label="Anglais"
+            Icon={BookOpen}
+            tagline="Business English — Vocabulaire & Grammaire"
+            gradient="from-sky-400 via-sky-500 to-blue-500"
+            delay={0.3} />
+
+          <SubjectCard
+            to="/culture-generale"
+            label="Culture Générale"
+            Icon={Globe}
+            tagline="Modules de révision — bientôt disponible"
+            gradient="from-orange-300 via-amber-400 to-yellow-500"
+            delay={0.4} />
           
         </div>
         <p className="text-center text-stone-400 text-sm font-semibold mt-6">plate-forme de révision pour la classe d'Antonin</p>

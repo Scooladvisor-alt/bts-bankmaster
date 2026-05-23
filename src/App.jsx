@@ -14,6 +14,9 @@ import AmfRevision from '@/pages/AmfRevision';
 import TradingDesk from '@/pages/TradingDesk';
 import VojesAnalyseur from '@/pages/VojesAnalyseur';
 import CesbfProgramme from '@/pages/CesbfProgramme';
+import Anglais from '@/pages/Anglais';
+import AnglaisVocabulaire from '@/pages/AnglaisVocabulaire';
+import CultureGenerale from '@/pages/CultureGenerale';
 import FelicitationToast from '@/components/felicitations/FelicitationToast';
 import GlobalLoginGate from '@/components/GlobalLoginGate';
 
@@ -52,6 +55,9 @@ const AuthenticatedApp = () => {
       <Route path="/cesbf/amf/trading" element={<TradingDesk />} />
       <Route path="/vojes/analyseur" element={<VojesAnalyseur />} />
       <Route path="/cesbf/programme" element={<CesbfProgramme />} />
+      <Route path="/anglais" element={<Anglais />} />
+      <Route path="/anglais/vocabulaire" element={<AnglaisVocabulaire />} />
+      <Route path="/culture-generale" element={<CultureGenerale />} />
 
       <Route path="/:subject" element={<Subject />} />
       <Route path="/:subject/:method" element={<Module />} />
