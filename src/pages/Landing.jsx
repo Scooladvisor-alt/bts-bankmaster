@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import FloatingPopup from "@/components/popup/FloatingPopup";
-import TopBar from "@/components/layout/TopBar";
+import NavAuth from "@/components/landing/NavAuth";
 import {
   BarChart2, Landmark, BookOpen, Globe, Target, Gamepad2,
   Infinity as InfinityIcon, ListChecks, PenLine, Bot, Pen,
@@ -111,8 +111,6 @@ const TESTIMONIALS = [
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function Landing() {
-  const [billingAnnual, setBillingAnnual] = useState(false);
-
   return (
     <div className="min-h-screen bg-white font-nunito overflow-x-hidden">
       <FloatingPopup subject="ALL" />
@@ -131,9 +129,7 @@ export default function Landing() {
             <a href="#methodes" className="hover:text-stone-900 transition-colors">Méthodes</a>
             <a href="#tarifs" className="hover:text-stone-900 transition-colors">Tarifs</a>
           </div>
-          <div className="flex items-center gap-3">
-            <TopBar />
-          </div>
+          <NavAuth />
         </div>
       </nav>
 
@@ -145,11 +141,6 @@ export default function Landing() {
 
         <div className="relative max-w-4xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/40 text-green-300 px-4 py-1.5 rounded-full text-sm font-bold mb-8">
-              <Sparkles className="w-4 h-4" />
-              Plateforme officielle BTS Banque 2025-2026
-            </div>
-
             <h1 className="font-display text-5xl md:text-7xl font-bold leading-tight mb-6">
               Révise{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
@@ -181,20 +172,7 @@ export default function Landing() {
               </a>
             </div>
 
-            {/* Social proof */}
-            <div className="mt-12 flex flex-wrap justify-center gap-8 text-center">
-              {[
-                { val: "4 matières", lbl: "couvertes intégralement" },
-                { val: "8 méthodes", lbl: "d'apprentissage" },
-                { val: "10 ans", lbl: "de sujets analysés" },
-                { val: "Certif AMF", lbl: "incluse dans CESBF" },
-              ].map((s, i) => (
-                <div key={i}>
-                  <div className="font-display text-2xl font-bold text-green-400">{s.val}</div>
-                  <div className="text-stone-400 text-xs font-semibold mt-0.5">{s.lbl}</div>
-                </div>
-              ))}
-            </div>
+
           </motion.div>
         </div>
       </section>
@@ -517,10 +495,22 @@ export default function Landing() {
           >
             <div className="text-3xl mb-2">🛡️</div>
             <div className="font-display font-bold text-green-900 text-lg mb-1">Garantie Admis ou Remboursé</div>
-            <p className="text-green-700 text-sm">
+            <p className="text-green-700 text-sm mb-3">
               Si tu utilises la plateforme sérieusement et que tu n'obtiens pas ton BTS Banque, 
-              on te rembourse intégralement. Sans questions.
+              on te rembourse intégralement.
             </p>
+            <details className="text-left bg-white border border-green-200 rounded-xl overflow-hidden">
+              <summary className="px-4 py-2.5 text-xs font-bold text-green-800 cursor-pointer hover:bg-green-50 transition-colors select-none">
+                📋 Conditions de la garantie (cliquer pour lire)
+              </summary>
+              <div className="px-4 py-3 text-xs text-stone-600 leading-relaxed space-y-2 border-t border-green-100">
+                <p><strong>Condition d'utilisation sérieuse :</strong> Pour bénéficier du remboursement, l'étudiant doit avoir utilisé la plateforme de manière active pendant au minimum <strong>1 heure cumulée</strong> (temps de session enregistré) au cours de son abonnement. En deçà de ce seuil, la demande de remboursement ne pourra pas être accordée.</p>
+                <p><strong>Preuve d'échec :</strong> L'étudiant doit fournir une preuve officielle de non-admission à son BTS Banque (relevé de notes ou attestation de résultats).</p>
+                <p><strong>Délai de demande :</strong> La demande doit être effectuée dans les 30 jours suivant la publication des résultats officiels.</p>
+                <p><strong>Remboursement :</strong> Le montant remboursé correspond à l'abonnement mensuel payé (39€) ou au paiement unique (79€) selon la formule souscrite.</p>
+                <p className="text-stone-400">Pour toute demande : contact@btsbanquepro.fr</p>
+              </div>
+            </details>
           </motion.div>
         </div>
       </section>
