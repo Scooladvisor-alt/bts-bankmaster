@@ -8,7 +8,7 @@ import {
   Infinity as InfinityIcon, ListChecks, PenLine, Bot, Pen,
   Brain, FileText, Headphones, Map, CheckCircle, Star,
   Zap, Shield, TrendingUp, Award, ChevronRight, Sparkles,
-  ArrowRight, RefreshCcw
+  RefreshCcw
 } from "lucide-react";
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
@@ -18,65 +18,88 @@ const SUBJECTS = [
     to: "/vojes",
     label: "VOJES",
     fullName: "Veille, Organisationnel, Juridique & Sectoriel",
-    accentBg: "bg-[#1a1a1a]",
-    accentText: "text-white",
+    gradient: "from-purple-500 to-indigo-600",
+    border: "border-purple-700",
+    badge: "bg-purple-100 text-purple-700",
     Icon: BarChart2,
     features: [
-      "QCM Pareto 20/80", "Mode Jeu voiture", "QCM Infini hardcore",
-      "Questions révision", "Réponse libre IA", "Flashcards",
-      "10 ans de sujets (2016→2026)", "GPT spécialisé VOJES",
+      { icon: Target,       label: "QCM Pareto 20/80" },
+      { icon: Gamepad2,     label: "Mode Jeu voiture" },
+      { icon: InfinityIcon, label: "QCM Infini hardcore" },
+      { icon: ListChecks,   label: "Questions révision" },
+      { icon: PenLine,      label: "Réponse libre IA" },
+      { icon: Brain,        label: "Flashcards" },
+      { icon: FileText,     label: "10 ans de sujets (2016→2026)" },
+      { icon: Bot,          label: "GPT spécialisé VOJES" },
+      { icon: Headphones,   label: "Podcasts & ressources" },
+      { icon: Map,          label: "Fiches de révision" },
     ],
   },
   {
     to: "/cesbf",
     label: "CESBF",
     fullName: "Conseil & Expertise en Solutions Bancaires & Financières",
-    accentBg: "bg-[#D45A1A]",
-    accentText: "text-white",
+    gradient: "from-orange-400 to-red-500",
+    border: "border-orange-700",
+    badge: "bg-orange-100 text-orange-700",
     Icon: Landmark,
     features: [
-      "QCM Pareto 20/80", "Mode Jeu voiture", "QCM Infini hardcore",
-      "Questions révision", "Réponse libre IA", "Flashcards",
-      "Certif AMF incluse 🎁", "10 ans de sujets (2016→2026)",
+      { icon: Target,       label: "QCM Pareto 20/80" },
+      { icon: Gamepad2,     label: "Mode Jeu voiture" },
+      { icon: InfinityIcon, label: "QCM Infini hardcore" },
+      { icon: ListChecks,   label: "Questions révision" },
+      { icon: PenLine,      label: "Réponse libre IA" },
+      { icon: Brain,        label: "Flashcards" },
+      { icon: Award,        label: "Certif AMF incluse 🎁" },
+      { icon: FileText,     label: "10 ans de sujets (2016→2026)" },
+      { icon: Bot,          label: "GPT spécialisé CESBF" },
+      { icon: Headphones,   label: "Podcasts & ressources" },
     ],
   },
   {
     to: "/anglais",
     label: "Anglais",
     fullName: "Business English — Vocabulaire & Expression",
-    accentBg: "bg-[#2d5a8e]",
-    accentText: "text-white",
+    gradient: "from-sky-400 to-blue-600",
+    border: "border-sky-700",
+    badge: "bg-sky-100 text-sky-700",
     Icon: BookOpen,
     features: [
-      "150 flashcards métier", "QCM de traduction",
-      "Exercices d'écriture", "Suivi de progression",
-      "Mode express", "Lexique par catégorie",
+      { icon: Brain,        label: "150 flashcards métier" },
+      { icon: Target,       label: "QCM de traduction" },
+      { icon: Pen,          label: "Exercices d'écriture" },
+      { icon: TrendingUp,   label: "Suivi de progression" },
+      { icon: Zap,          label: "Mode express" },
+      { icon: Map,          label: "Lexique par catégorie" },
     ],
   },
   {
     to: "/culture-generale",
     label: "Culture Générale",
     fullName: "Actualités, histoire & questions de société",
-    accentBg: "bg-[#6b6b6b]",
-    accentText: "text-white",
+    gradient: "from-amber-400 to-orange-500",
+    border: "border-amber-700",
+    badge: "bg-amber-100 text-amber-700",
     Icon: Globe,
     features: [
-      "Fiches thématiques", "QCM d'entraînement",
-      "Flashcards culture", "Contenu bientôt disponible",
+      { icon: FileText,     label: "Fiches thématiques" },
+      { icon: Target,       label: "QCM d'entraînement" },
+      { icon: Brain,        label: "Flashcards culture" },
+      { icon: Sparkles,     label: "Contenu bientôt disponible" },
     ],
     soon: true,
   },
 ];
 
 const METHODS = [
-  { icon: Target,       label: "QCM Pareto",      desc: "La méthode 20/80 : apprends l'essentiel en priorité." },
-  { icon: Gamepad2,     label: "Jeu voiture",      desc: "Révise en conduisant et en choisissant la bonne voie." },
-  { icon: InfinityIcon, label: "QCM Infini",       desc: "Mode hardcore : enchaîne les questions sans limite." },
-  { icon: Brain,        label: "Flashcards",       desc: "Mémorise avec le système de cartes recto-verso." },
-  { icon: PenLine,      label: "Réponse libre IA", desc: "L'IA évalue ta rédaction et te donne un feedback." },
-  { icon: Pen,          label: "Mémo Dessin",      desc: "Trace pour mémoriser : schémas et formules." },
-  { icon: ListChecks,   label: "Révision mentale", desc: "Questions ouvertes, réfléchis puis révèle la réponse." },
-  { icon: Bot,          label: "Assistant GPT",    desc: "Pose tes questions à un GPT spécialisé par matière." },
+  { icon: Target,       label: "QCM Pareto",       desc: "La méthode 20/80 : apprends l'essentiel en priorité.", color: "bg-yellow-50 border-yellow-200" },
+  { icon: Gamepad2,     label: "Jeu voiture",       desc: "Révise en conduisant et en choisissant la bonne voie.", color: "bg-pink-50 border-pink-200" },
+  { icon: InfinityIcon, label: "QCM Infini",        desc: "Mode hardcore : enchaîne les questions sans limite.", color: "bg-red-50 border-red-200" },
+  { icon: Brain,        label: "Flashcards",        desc: "Mémorise avec le système de cartes recto-verso.", color: "bg-blue-50 border-blue-200" },
+  { icon: PenLine,      label: "Réponse libre IA",  desc: "L'IA évalue ta rédaction et te donne un feedback.", color: "bg-teal-50 border-teal-200" },
+  { icon: Pen,          label: "Mémo Dessin",       desc: "Trace pour mémoriser : schémas et formules.", color: "bg-violet-50 border-violet-200" },
+  { icon: ListChecks,   label: "Révision mentale",  desc: "Questions ouvertes, réfléchis puis révèle la réponse.", color: "bg-green-50 border-green-200" },
+  { icon: Bot,          label: "Assistant GPT",     desc: "Pose tes questions à un GPT spécialisé par matière.", color: "bg-stone-50 border-stone-200" },
 ];
 
 const TESTIMONIALS = [
@@ -89,430 +112,446 @@ const TESTIMONIALS = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: "#F5F0E8", fontFamily: "'Nunito', sans-serif", color: "#1a1a1a" }}>
+    <div className="min-h-screen bg-white font-nunito overflow-x-hidden">
       <FloatingPopup subject="ALL" />
 
       {/* ── NAV ── */}
-      <nav className="sticky top-0 z-50 border-b border-[#1a1a1a]/10" style={{ background: "#F5F0E8" }}>
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#1a1a1a] flex items-center justify-center">
-              <span className="text-white font-black text-sm" style={{ fontFamily: "'Fredoka', sans-serif" }}>b</span>
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow">
+              <span className="text-white font-black text-sm">B</span>
             </div>
-            <span className="font-bold text-sm text-[#1a1a1a]">btsbanque.co</span>
+            <span className="font-display font-bold text-xl text-stone-900">BTS Banque Pro</span>
           </div>
-
-          {/* Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#1a1a1a]/60">
-            <a href="#matieres" className="hover:text-[#1a1a1a] transition-colors">Matières</a>
-            <a href="#methodes" className="hover:text-[#1a1a1a] transition-colors">Méthode</a>
-            <a href="#tarifs" className="hover:text-[#1a1a1a] transition-colors">Tarifs</a>
-            <a href="#faq" className="hover:text-[#1a1a1a] transition-colors">FAQ</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-stone-500">
+            <a href="#matieres" className="hover:text-stone-900 transition-colors">Matières</a>
+            <a href="#methodes" className="hover:text-stone-900 transition-colors">Méthodes</a>
+            <a href="#tarifs" className="hover:text-stone-900 transition-colors">Tarifs</a>
           </div>
-
-          {/* CTA */}
-          <div className="flex items-center gap-3">
-            <NavAuth />
-            <a href="#tarifs" className="hidden md:flex items-center gap-2 bg-[#1a1a1a] text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-[#333] transition-colors">
-              Commencer <ArrowRight className="w-3.5 h-3.5" />
-            </a>
-          </div>
+          <NavAuth />
         </div>
       </nav>
 
-      {/* ── TICKER ── */}
-      <div className="border-b border-[#1a1a1a]/10 px-6 py-3">
-        <div className="max-w-6xl mx-auto flex items-center gap-3 text-sm">
-          <span className="w-2 h-2 rounded-full bg-[#D45A1A] animate-pulse shrink-0" />
-          <span className="text-[#1a1a1a]/60 font-medium">2 826 étudiants ont rejoint la promo 2026</span>
+      {/* ── HERO ── */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-stone-950 via-stone-900 to-green-950 text-white pt-20 pb-28 px-6">
+        {/* Déco blobs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-4xl mx-auto text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="font-display text-5xl md:text-7xl font-bold leading-tight mb-6">
+              Révise{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+                intelligemment.
+              </span>
+              <br />
+              Décroche ton BTS.
+            </h1>
+
+            <p className="text-stone-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+              La plateforme <strong className="text-white">100% dédiée aux étudiants BTS Banque</strong> — 
+              programme officiel, 10 ans de sujets, 8 méthodes d'apprentissage, certif AMF incluse.
+              <br />
+              <span className="text-green-400 font-bold">Admis ou remboursé.</span>
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <a href="#tarifs">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="bg-primary text-white font-display font-bold text-lg px-8 py-4 rounded-2xl shadow-lg border-b-4 border-green-700 hover:bg-green-500 transition-colors"
+                >
+                  Commencer — dès 39€/mois →
+                </motion.button>
+              </a>
+              <a href="#matieres" className="text-stone-300 font-bold text-sm hover:text-white transition-colors flex items-center gap-1">
+                Voir le contenu <ChevronRight className="w-4 h-4" />
+              </a>
+            </div>
+
+
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── BADGE GARANTIE ── */}
+      <div className="bg-gradient-to-r from-green-500 to-emerald-500 py-4 px-6">
+        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-6 text-white text-sm font-bold">
+          <div className="flex items-center gap-2"><Shield className="w-5 h-5" /> Admis ou remboursé — garantie 30 jours</div>
+          <div className="flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Basé sur le programme officiel de l'Éducation Nationale</div>
+          <div className="flex items-center gap-2"><RefreshCcw className="w-5 h-5" /> Mise à jour continue du contenu</div>
         </div>
       </div>
 
-      {/* ── HERO ── */}
-      <section className="px-6 pt-16 pb-20 max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-16 items-start">
-          {/* Left */}
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <h1 style={{ fontFamily: "'Georgia', 'Times New Roman', serif", lineHeight: 1.05 }}
-              className="text-6xl md:text-8xl font-black text-[#1a1a1a] mb-8">
-              Décroche ton{" "}
-              <em className="not-italic" style={{ fontStyle: "italic" }}>BTS Banque</em>
-              {" "}sans{" "}
-              <span style={{ color: "#D45A1A", textDecoration: "underline", textDecorationThickness: "3px" }}>bachoter</span>
-              {" "}3 mois.
-            </h1>
-
-            <p className="text-[#1a1a1a]/65 text-base leading-relaxed mb-10 max-w-sm">
-              La plateforme de révision <strong className="text-[#1a1a1a] font-bold">la plus complète</strong> pour réviser
-              CESB, Voies, Anglais et Culture Générale. Fiches, quiz,
-              annales corrigées —{" "}
-              <strong className="text-[#1a1a1a] font-bold">tout dans un seul outil</strong>, conçu par
-              des anciens majors de promo.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <a href="#tarifs">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-2 bg-[#1a1a1a] text-white font-bold text-base px-7 py-4 rounded-full hover:bg-[#333] transition-colors"
-                >
-                  Essayer gratuitement <ArrowRight className="w-4 h-4" />
-                </motion.button>
-              </a>
-              <a href="#methodes" className="text-[#1a1a1a]/60 font-medium text-sm hover:text-[#1a1a1a] transition-colors underline underline-offset-4">
-                Voir la méthode
-              </a>
-            </div>
-          </motion.div>
-
-          {/* Right — social proof */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="flex flex-col justify-end items-start md:items-end pt-8 md:pt-32 gap-4"
-          >
-            {/* Avatars */}
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {["LM", "TK", "NB", "AR"].map((initials, i) => (
-                  <div key={i} className="w-9 h-9 rounded-full border-2 border-[#F5F0E8] flex items-center justify-center text-xs font-bold text-white"
-                    style={{ background: ["#6366f1", "#059669", "#d97706", "#dc2626"][i] }}>
-                    {initials}
-                  </div>
-                ))}
-                <div className="w-9 h-9 rounded-full border-2 border-[#F5F0E8] bg-[#1a1a1a] flex items-center justify-center text-xs font-bold text-white">+</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-[#D45A1A] text-[#D45A1A]" />
-                  ))}
-                  <span className="text-sm font-bold text-[#1a1a1a] ml-1">4.9/5</span>
-                </div>
-                <div className="text-xs text-[#1a1a1a]/50 font-medium"><strong className="text-[#1a1a1a]">2 826</strong> étudiants déjà inscrits</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── DIVIDER ── */}
-      <div className="border-t border-[#1a1a1a]/10" />
-
       {/* ── MATIÈRES ── */}
-      <section id="matieres" className="px-6 py-20 max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/40 mb-3">Programme complet</p>
-          <h2 style={{ fontFamily: "'Georgia', serif" }} className="text-4xl md:text-6xl font-black text-[#1a1a1a] leading-tight">
-            Tout le programme<br />BTS Banque.
-          </h2>
-        </motion.div>
+      <section id="matieres" className="py-20 px-6 bg-stone-50">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <div className="inline-flex items-center gap-2 bg-stone-200 text-stone-600 px-3 py-1 rounded-full text-xs font-bold mb-4 uppercase tracking-wider">
+              Contenu complet
+            </div>
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-stone-900 mb-3">
+              Tout le programme BTS Banque
+            </h2>
+            <p className="text-stone-500 text-lg max-w-2xl mx-auto">
+              Chaque matière dispose de son propre espace avec des dizaines d'heures de contenu structuré.
+            </p>
+          </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          {SUBJECTS.map((subj, i) => (
-            <motion.div
-              key={subj.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-            >
-              <Link to={subj.to}>
-                <div className="group border border-[#1a1a1a]/12 rounded-2xl overflow-hidden hover:border-[#1a1a1a]/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ background: "#EEEAE0" }}>
-                  {/* Header */}
-                  <div className={`${subj.accentBg} px-6 py-5 flex items-center justify-between`}>
-                    <div className="flex items-center gap-3">
-                      <subj.Icon className="w-5 h-5 text-white/70" />
-                      <div>
-                        <div className="font-black text-white text-lg leading-none" style={{ fontFamily: "'Georgia', serif" }}>{subj.label}</div>
-                        <div className="text-white/55 text-xs mt-0.5">{subj.fullName}</div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {SUBJECTS.map((subj, i) => (
+              <motion.div
+                key={subj.label}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Link to={subj.to}>
+                  <div className="bg-white rounded-3xl border border-stone-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-1">
+                    {/* Header matière */}
+                    <div className={`bg-gradient-to-br ${subj.gradient} p-6 relative`}>
+                      {subj.soon && (
+                        <div className="absolute top-4 right-4 bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                          Bientôt
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3 mb-1">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                          <subj.Icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-display font-bold text-white text-2xl leading-tight">{subj.label}</div>
+                          <div className="text-white/80 text-xs font-medium">{subj.fullName}</div>
+                        </div>
                       </div>
                     </div>
-                    {subj.soon ? (
-                      <span className="text-xs font-bold text-white/50 border border-white/20 px-2 py-0.5 rounded-full">Bientôt</span>
-                    ) : (
-                      <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white/80 group-hover:translate-x-1 transition-all" />
-                    )}
-                  </div>
-                  {/* Features */}
-                  <div className="px-6 py-5">
-                    <div className="flex flex-wrap gap-2">
-                      {subj.features.map((feat, j) => (
-                        <span key={j} className="text-xs font-semibold text-[#1a1a1a]/60 bg-[#1a1a1a]/6 px-2.5 py-1 rounded-full">
-                          {feat}
-                        </span>
-                      ))}
+
+                    {/* Features list */}
+                    <div className="p-5">
+                      <div className="grid grid-cols-2 gap-2">
+                        {subj.features.map((feat, j) => (
+                          <div key={j} className="flex items-center gap-2 text-stone-700 text-xs font-semibold">
+                            <div className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 ${subj.badge}`}>
+                              <feat.icon className="w-3 h-3" />
+                            </div>
+                            {feat.label}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 flex items-center justify-end text-xs font-bold text-stone-400 group-hover:text-primary transition-colors">
+                        Accéder <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                </Link>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
-
-      <div className="border-t border-[#1a1a1a]/10" />
 
       {/* ── MÉTHODES ── */}
-      <section id="methodes" className="px-6 py-20 max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/40 mb-3">8 méthodes</p>
-          <h2 style={{ fontFamily: "'Georgia', serif" }} className="text-4xl md:text-6xl font-black text-[#1a1a1a] leading-tight">
-            Chaque cerveau<br />apprend <em style={{ color: "#D45A1A" }}>différemment.</em>
-          </h2>
-        </motion.div>
+      <section id="methodes" className="py-20 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <div className="inline-flex items-center gap-2 bg-stone-200 text-stone-600 px-3 py-1 rounded-full text-xs font-bold mb-4 uppercase tracking-wider">
+              8 méthodes d'apprentissage
+            </div>
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-stone-900 mb-3">
+              Chaque cerveau apprend différemment
+            </h2>
+            <p className="text-stone-500 text-lg max-w-2xl mx-auto">
+              Flashcards, jeux, QCM, IA… Tu choisis ta méthode. La plateforme s'adapte.
+            </p>
+          </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {METHODS.map((m, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.06 }}
-              className="border border-[#1a1a1a]/10 rounded-2xl p-5 hover:border-[#1a1a1a]/25 hover:-translate-y-0.5 transition-all"
-              style={{ background: "#EEEAE0" }}
-            >
-              <div className="w-8 h-8 rounded-lg bg-[#1a1a1a] flex items-center justify-center mb-4">
-                <m.icon className="w-4 h-4 text-white" />
-              </div>
-              <div className="font-bold text-[#1a1a1a] text-sm mb-1" style={{ fontFamily: "'Georgia', serif" }}>{m.label}</div>
-              <div className="text-[#1a1a1a]/50 text-xs leading-snug">{m.desc}</div>
-            </motion.div>
-          ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {METHODS.map((m, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className={`${m.color} border rounded-2xl p-4 hover:-translate-y-1 transition-transform`}
+              >
+                <div className="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center mb-3">
+                  <m.icon className="w-5 h-5 text-stone-700" />
+                </div>
+                <div className="font-display font-bold text-stone-900 text-sm mb-1">{m.label}</div>
+                <div className="text-stone-500 text-xs leading-snug">{m.desc}</div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
-
-      <div className="border-t border-[#1a1a1a]/10" />
 
       {/* ── AMF BONUS ── */}
-      <section className="px-6 py-20 max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="rounded-3xl overflow-hidden"
-          style={{ background: "#1a1a1a" }}
-        >
-          <div className="p-10 md:p-14 flex flex-col md:flex-row items-start gap-10">
-            <div className="flex-1">
-              <span className="inline-block text-xs font-bold text-[#D45A1A] bg-[#D45A1A]/15 px-3 py-1 rounded-full mb-6 uppercase tracking-wider">
-                🎁 Bonus exclusif CESBF
-              </span>
-              <h2 style={{ fontFamily: "'Georgia', serif" }} className="text-3xl md:text-5xl font-black text-white leading-tight mb-5">
-                Certif AMF<br />incluse dans CESBF.
-              </h2>
-              <p className="text-white/55 text-base leading-relaxed mb-8 max-w-sm">
-                12 thèmes officiels, des centaines de questions et un simulateur d'examen
-                te préparent à valider ta certification AMF dès ton BTS.
-              </p>
-              <div className="flex flex-wrap gap-2 mb-8">
-                {["12 thèmes officiels", "Simulateur d'examen", "L'Inspecteur AMF", "Questions réelles"].map(tag => (
-                  <span key={tag} className="text-xs font-semibold text-white/60 border border-white/15 px-3 py-1 rounded-full">
-                    ✓ {tag}
-                  </span>
-                ))}
-              </div>
-              <Link to="/cesbf/amf">
-                <button className="flex items-center gap-2 bg-[#D45A1A] text-white font-bold px-6 py-3 rounded-full hover:bg-[#c04f15] transition-colors text-sm">
-                  Voir le module AMF <ArrowRight className="w-4 h-4" />
-                </button>
-              </Link>
+      <section className="py-16 px-6 bg-gradient-to-br from-blue-950 to-indigo-900 text-white">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-10">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex-1"
+          >
+            <div className="inline-flex items-center gap-2 bg-yellow-400/20 border border-yellow-400/40 text-yellow-300 px-3 py-1 rounded-full text-xs font-bold mb-5">
+              🎁 BONUS EXCLUSIF CESBF
             </div>
-            <div className="text-center md:self-center shrink-0">
-              <div className="text-7xl">🏆</div>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Certif AMF incluse dans CESBF
+            </h2>
+            <p className="text-blue-200 text-base leading-relaxed mb-6">
+              La Certification AMF est obligatoire dans le secteur bancaire. 
+              Notre module dédié avec 12 thèmes, des centaines de questions et un simulateur d'examen 
+              te prépare à la valider dès ton BTS.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {["12 thèmes officiels", "Simulateur d'examen", "L'Inspecteur AMF (jeu)", "Questions réelles"].map(tag => (
+                <div key={tag} className="bg-white/10 border border-white/20 px-3 py-1 rounded-full text-xs font-bold text-blue-100">
+                  ✓ {tag}
+                </div>
+              ))}
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="bg-white/10 border border-white/20 rounded-3xl p-8 text-center min-w-[220px]"
+          >
+            <div className="text-5xl mb-3">🏆</div>
+            <div className="font-display text-2xl font-bold mb-1">Certif AMF</div>
+            <div className="text-blue-300 text-sm mb-4">Incluse dans CESBF</div>
+            <Link to="/cesbf/amf">
+              <button className="bg-yellow-400 text-stone-900 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-yellow-300 transition-colors">
+                Voir le module →
+              </button>
+            </Link>
+          </motion.div>
+        </div>
       </section>
-
-      <div className="border-t border-[#1a1a1a]/10" />
 
       {/* ── TÉMOIGNAGES ── */}
-      <section className="px-6 py-20 max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/40 mb-3">Témoignages</p>
-          <h2 style={{ fontFamily: "'Georgia', serif" }} className="text-4xl md:text-6xl font-black text-[#1a1a1a] leading-tight">
-            Ils ont décroché<br />leur BTS. <span style={{ color: "#D45A1A" }}>🎓</span>
-          </h2>
-        </motion.div>
-
-        <div className="grid md:grid-cols-3 gap-4">
-          {TESTIMONIALS.map((t, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="border border-[#1a1a1a]/10 rounded-2xl p-6"
-              style={{ background: "#EEEAE0" }}
-            >
-              <div className="flex gap-0.5 mb-4">
-                {Array.from({ length: t.stars }).map((_, s) => (
-                  <Star key={s} className="w-3.5 h-3.5 fill-[#D45A1A] text-[#D45A1A]" />
-                ))}
-              </div>
-              <p className="text-[#1a1a1a]/70 text-sm leading-relaxed mb-5">"{t.text}"</p>
-              <div>
-                <div className="font-bold text-[#1a1a1a] text-sm">{t.name}</div>
-                <div className="text-[#D45A1A] text-xs font-semibold mt-0.5">{t.score}</div>
-              </div>
-            </motion.div>
-          ))}
+      <section className="py-20 px-6 bg-stone-50">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-4xl font-bold text-stone-900 mb-3">
+              Ils ont décroché leur BTS 🎓
+            </h2>
+            <p className="text-stone-500">Des étudiants qui ont utilisé la plateforme et réussi leur examen.</p>
+          </motion.div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map((t, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm"
+              >
+                <div className="flex gap-0.5 mb-3">
+                  {Array.from({ length: t.stars }).map((_, s) => (
+                    <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-stone-700 text-sm leading-relaxed mb-4">"{t.text}"</p>
+                <div>
+                  <div className="font-bold text-stone-900 text-sm">{t.name}</div>
+                  <div className="text-primary text-xs font-semibold">{t.score}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
-
-      <div className="border-t border-[#1a1a1a]/10" />
 
       {/* ── TARIFS ── */}
-      <section id="tarifs" className="px-6 py-20 max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/40 mb-3">Tarifs</p>
-          <h2 style={{ fontFamily: "'Georgia', serif" }} className="text-4xl md:text-6xl font-black text-[#1a1a1a] leading-tight">
-            Simple,<br /><em style={{ color: "#D45A1A" }}>transparent.</em>
-          </h2>
-        </motion.div>
-
-        <div className="grid md:grid-cols-2 gap-4 max-w-2xl">
-          {/* Mensuel */}
+      <section id="tarifs" className="py-20 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="border border-[#1a1a1a]/12 rounded-2xl p-8 flex flex-col"
-            style={{ background: "#EEEAE0" }}
+            className="text-center mb-14"
           >
-            <div className="font-bold text-[#1a1a1a] text-base mb-1" style={{ fontFamily: "'Georgia', serif" }}>Accès mensuel</div>
-            <div className="text-[#1a1a1a]/45 text-sm mb-6">Résilie à tout moment</div>
-            <div className="mb-6">
-              <span className="font-black text-[#1a1a1a]" style={{ fontFamily: "'Georgia', serif", fontSize: "3.5rem", lineHeight: 1 }}>39€</span>
-              <span className="text-[#1a1a1a]/45 font-medium text-sm">/mois</span>
+            <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold mb-4 uppercase tracking-wider">
+              Admis ou remboursé
             </div>
-            <ul className="space-y-2.5 mb-8 flex-1">
-              {["Accès à toutes les matières","8 méthodes d'apprentissage","Certif AMF incluse","10 ans de sujets","GPT spécialisé par matière","Garantie admis ou remboursé"].map((f, i) => (
-                <li key={i} className="flex items-center gap-2.5 text-[#1a1a1a]/70 text-sm">
-                  <CheckCircle className="w-4 h-4 text-[#1a1a1a]/40 shrink-0" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link to="/vojes">
-              <button className="w-full bg-[#1a1a1a] text-white font-bold py-3.5 rounded-full hover:bg-[#333] transition-colors text-sm">
-                Commencer maintenant
-              </button>
-            </Link>
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-stone-900 mb-3">
+              Un accès simple, transparent
+            </h2>
+            <p className="text-stone-500 text-lg max-w-xl mx-auto">
+              Pas de surprise. Annule quand tu veux. Remboursé si tu n'es pas admis.
+            </p>
           </motion.div>
 
-          {/* À vie */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {/* Mensuel */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-stone-50 border-2 border-stone-200 rounded-3xl p-8 flex flex-col"
+            >
+              <div className="font-display text-xl font-bold text-stone-900 mb-1">Accès mensuel</div>
+              <div className="text-stone-500 text-sm mb-6">Résilie à tout moment</div>
+              <div className="mb-6">
+                <span className="font-display text-5xl font-black text-stone-900">39€</span>
+                <span className="text-stone-400 font-semibold">/mois</span>
+              </div>
+              <ul className="space-y-2.5 mb-8 flex-1">
+                {[
+                  "Accès à toutes les matières",
+                  "8 méthodes d'apprentissage",
+                  "Certif AMF incluse",
+                  "10 ans de sujets",
+                  "GPT spécialisé par matière",
+                  "Mises à jour incluses",
+                  "Garantie admis ou remboursé",
+                ].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-stone-700 text-sm font-semibold">
+                    <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/vojes">
+                <button className="w-full bg-stone-800 hover:bg-stone-700 text-white font-bold py-3.5 rounded-2xl transition-colors">
+                  Commencer maintenant
+                </button>
+              </Link>
+            </motion.div>
+
+            {/* À vie */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="relative bg-gradient-to-b from-stone-900 to-stone-800 border-2 border-primary rounded-3xl p-8 flex flex-col shadow-2xl"
+            >
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white font-bold text-xs px-4 py-1.5 rounded-full shadow">
+                ⚡ MEILLEURE OFFRE
+              </div>
+              <div className="font-display text-xl font-bold text-white mb-1">Accès à vie</div>
+              <div className="text-stone-400 text-sm mb-6">Paiement unique — accès permanent</div>
+              <div className="mb-2">
+                <span className="font-display text-5xl font-black text-white">79€</span>
+                <span className="text-stone-400 font-semibold"> une fois</span>
+              </div>
+              <div className="text-green-400 text-sm font-bold mb-6">
+                Économise par rapport au mensuel → accès illimité
+              </div>
+              <ul className="space-y-2.5 mb-8 flex-1">
+                {[
+                  "Tout de l'offre mensuelle",
+                  "Accès à vie, pas d'abonnement",
+                  "Contenu mis à jour à vie",
+                  "Accès aux futures matières",
+                  "Support prioritaire",
+                  "Garantie admis ou remboursé",
+                ].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-stone-200 text-sm font-semibold">
+                    <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/vojes">
+                <button className="w-full bg-primary hover:bg-green-500 text-white font-bold py-3.5 rounded-2xl transition-colors border-b-4 border-green-700 active:border-b-0 active:translate-y-1">
+                  Accès à vie — 79€ →
+                </button>
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Garantie */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="relative border-2 border-[#D45A1A] rounded-2xl p-8 flex flex-col"
-            style={{ background: "#1a1a1a" }}
+            className="mt-10 bg-green-50 border border-green-200 rounded-2xl p-6 text-center max-w-xl mx-auto"
           >
-            <span className="absolute -top-3.5 left-6 text-xs font-bold bg-[#D45A1A] text-white px-3 py-1 rounded-full">
-              ⚡ Meilleure offre
-            </span>
-            <div className="font-bold text-white text-base mb-1" style={{ fontFamily: "'Georgia', serif" }}>Accès à vie</div>
-            <div className="text-white/40 text-sm mb-6">Paiement unique — accès permanent</div>
-            <div className="mb-2">
-              <span className="font-black text-white" style={{ fontFamily: "'Georgia', serif", fontSize: "3.5rem", lineHeight: 1 }}>79€</span>
-              <span className="text-white/40 font-medium text-sm"> une fois</span>
-            </div>
-            <div className="text-[#D45A1A] text-xs font-bold mb-6">Économise par rapport au mensuel</div>
-            <ul className="space-y-2.5 mb-8 flex-1">
-              {["Tout de l'offre mensuelle","Accès à vie, pas d'abonnement","Contenu mis à jour à vie","Accès aux futures matières","Support prioritaire","Garantie admis ou remboursé"].map((f, i) => (
-                <li key={i} className="flex items-center gap-2.5 text-white/60 text-sm">
-                  <CheckCircle className="w-4 h-4 text-[#D45A1A] shrink-0" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link to="/vojes">
-              <button className="w-full bg-[#D45A1A] text-white font-bold py-3.5 rounded-full hover:bg-[#c04f15] transition-colors text-sm">
-                Accès à vie — 79€ →
-              </button>
-            </Link>
+            <div className="text-3xl mb-2">🛡️</div>
+            <div className="font-display font-bold text-green-900 text-lg mb-1">Garantie Admis ou Remboursé</div>
+            <p className="text-green-700 text-sm mb-3">
+              Si tu utilises la plateforme sérieusement et que tu n'obtiens pas ton BTS Banque, 
+              on te rembourse intégralement.
+            </p>
+            <details className="text-left bg-white border border-green-200 rounded-xl overflow-hidden">
+              <summary className="px-4 py-2.5 text-xs font-bold text-green-800 cursor-pointer hover:bg-green-50 transition-colors select-none">
+                📋 Conditions de la garantie (cliquer pour lire)
+              </summary>
+              <div className="px-4 py-3 text-xs text-stone-600 leading-relaxed space-y-2 border-t border-green-100">
+                <p><strong>Condition d'utilisation sérieuse :</strong> Pour bénéficier du remboursement, l'étudiant doit avoir utilisé la plateforme de manière active pendant au minimum <strong>1 heure cumulée</strong> (temps de session enregistré) au cours de son abonnement. En deçà de ce seuil, la demande de remboursement ne pourra pas être accordée.</p>
+                <p><strong>Preuve d'échec :</strong> L'étudiant doit fournir une preuve officielle de non-admission à son BTS Banque (relevé de notes ou attestation de résultats).</p>
+                <p><strong>Délai de demande :</strong> La demande doit être effectuée dans les 30 jours suivant la publication des résultats officiels.</p>
+                <p><strong>Remboursement :</strong> Le montant remboursé correspond à l'abonnement mensuel payé (39€) ou au paiement unique (79€) selon la formule souscrite.</p>
+                <p className="text-stone-400">Pour toute demande : contact@btsbanquepro.fr</p>
+              </div>
+            </details>
           </motion.div>
         </div>
-
-        {/* Garantie */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="mt-8 border border-[#1a1a1a]/12 rounded-2xl p-6 max-w-2xl"
-          style={{ background: "#EEEAE0" }}
-        >
-          <div className="flex items-start gap-3">
-            <span className="text-2xl shrink-0">🛡️</span>
-            <div>
-              <div className="font-bold text-[#1a1a1a] text-sm mb-1" style={{ fontFamily: "'Georgia', serif" }}>Garantie Admis ou Remboursé</div>
-              <p className="text-[#1a1a1a]/55 text-xs leading-relaxed mb-3">
-                Si tu utilises la plateforme sérieusement et que tu n'obtiens pas ton BTS Banque, on te rembourse intégralement.
-              </p>
-              <details>
-                <summary className="text-xs font-bold text-[#1a1a1a]/40 cursor-pointer hover:text-[#1a1a1a]/70 transition-colors select-none">
-                  📋 Voir les conditions →
-                </summary>
-                <div className="mt-3 text-xs text-[#1a1a1a]/55 leading-relaxed space-y-2 border-t border-[#1a1a1a]/10 pt-3">
-                  <p><strong className="text-[#1a1a1a]">Utilisation sérieuse :</strong> Minimum 1 heure cumulée de session enregistrée.</p>
-                  <p><strong className="text-[#1a1a1a]">Preuve d'échec :</strong> Relevé de notes ou attestation officielle de résultats.</p>
-                  <p><strong className="text-[#1a1a1a]">Délai :</strong> 30 jours après publication des résultats officiels.</p>
-                  <p className="text-[#1a1a1a]/35">contact@btsbanquepro.fr</p>
-                </div>
-              </details>
-            </div>
-          </div>
-        </motion.div>
       </section>
 
-      <div className="border-t border-[#1a1a1a]/10" />
-
       {/* ── CTA FINAL ── */}
-      <section className="px-6 py-24 max-w-6xl mx-auto">
+      <section className="py-20 px-6 bg-gradient-to-br from-stone-950 to-green-950 text-white text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center"
+          className="max-w-2xl mx-auto"
         >
-          <h2 style={{ fontFamily: "'Georgia', serif" }} className="text-5xl md:text-7xl font-black text-[#1a1a1a] leading-tight mb-6">
-            Prêt à décrocher<br />ton <span style={{ color: "#D45A1A" }}>BTS ?</span>
+          <div className="text-5xl mb-4">🎯</div>
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
+            Prêt à décrocher ton BTS ?
           </h2>
-          <p className="text-[#1a1a1a]/55 text-base mb-10 max-w-md mx-auto">
+          <p className="text-stone-300 text-lg mb-8">
             Rejoins les étudiants qui révisent intelligemment et passent leur examen avec confiance.
           </p>
           <a href="#tarifs">
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-2 bg-[#1a1a1a] text-white font-bold text-lg px-10 py-5 rounded-full hover:bg-[#333] transition-colors"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="bg-primary text-white font-display font-bold text-xl px-10 py-5 rounded-2xl shadow-2xl border-b-4 border-green-700 hover:bg-green-500 transition-colors"
             >
-              Commencer maintenant <ArrowRight className="w-5 h-5" />
+              Commencer maintenant →
             </motion.button>
           </a>
         </motion.div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-[#1a1a1a]/10 px-6 py-8" style={{ background: "#EEEAE0" }}>
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-[#1a1a1a]/40">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-[#1a1a1a] flex items-center justify-center">
-              <span className="text-white font-black text-xs">b</span>
-            </div>
-            <span className="font-bold text-[#1a1a1a]/70 text-xs">btsbanque.co</span>
+      <footer className="bg-stone-950 text-stone-500 py-8 px-6 text-center text-sm">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-white font-black text-xs">B</span>
           </div>
-          <p className="text-xs">Plateforme de révision dédiée aux étudiants BTS Banque · Programme officiel</p>
-          <p className="text-xs">© 2025 BTS Banque Pro · Tous droits réservés</p>
+          <span className="font-bold text-stone-300">BTS Banque Pro</span>
         </div>
+        <p>Plateforme de révision dédiée aux étudiants BTS Banque · Basée sur le programme officiel</p>
+        <p className="mt-1 text-stone-600 text-xs">© 2025 BTS Banque Pro · Tous droits réservés</p>
       </footer>
     </div>
   );
