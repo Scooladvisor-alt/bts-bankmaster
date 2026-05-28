@@ -406,8 +406,50 @@ export default function Landing() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            {/* Mensuel */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {/* Essentiel 29€ */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-stone-50 border-2 border-stone-200 rounded-3xl p-8 flex flex-col"
+            >
+              <div className="font-display text-xl font-bold text-stone-900 mb-1">Essentiel</div>
+              <div className="text-stone-500 text-sm mb-6">VOJES + CESBF uniquement</div>
+              <div className="mb-6">
+                <span className="font-display text-5xl font-black text-stone-900">29€</span>
+                <span className="text-stone-400 font-semibold">/mois</span>
+              </div>
+              <ul className="space-y-2.5 mb-8 flex-1">
+                {[
+                  "VOJES — programme complet",
+                  "CESBF — programme complet",
+                  "Certif AMF incluse",
+                  "8 méthodes d'apprentissage",
+                  "10 ans de sujets",
+                  "GPT spécialisé par matière",
+                  "Garantie admis ou remboursé",
+                ].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-stone-700 text-sm font-semibold">
+                    <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+                    {f}
+                  </li>
+                ))}
+                {["Anglais Business", "Culture Générale"].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-stone-300 text-sm line-through">
+                    <CheckCircle className="w-4 h-4 text-stone-200 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/vojes">
+                <button className="w-full bg-stone-800 hover:bg-stone-700 text-white font-bold py-3.5 rounded-2xl transition-colors">
+                  Commencer — 29€/mois
+                </button>
+              </Link>
+            </motion.div>
+
+            {/* Mensuel complet */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
