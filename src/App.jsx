@@ -19,10 +19,16 @@ import AnglaisVocabulaire from '@/pages/AnglaisVocabulaire';
 import CultureGenerale from '@/pages/CultureGenerale';
 import FelicitationToast from '@/components/felicitations/FelicitationToast';
 import GlobalLoginGate from '@/components/GlobalLoginGate';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import { Navigate } from 'react-router-dom';
 
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -33,34 +39,37 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
+  // Handle user_not_registered error
+  if (authError?.type === 'user_not_registered') {
+    return <UserNotRegisteredError />;
   }
 
   // Render the main app
   return (
     <Routes>
+      {/* Public routes */}
       <Route path="/" element={<Landing />} />
-      <Route path="/admin" element={<Admin />} />
-      <Route path="/teacher/:subject" element={<Teacher />} />
-      <Route path="/teacher" element={<Teacher />} />
-      <Route path="/cesbf/amf" element={<AmfRevision />} />
-      <Route path="/cesbf/amf/trading" element={<TradingDesk />} />
-      <Route path="/vojes/analyseur" element={<VojesAnalyseur />} />
-      <Route path="/cesbf/programme" element={<CesbfProgramme />} />
-      <Route path="/anglais" element={<Anglais />} />
-      <Route path="/anglais/vocabulaire" element={<AnglaisVocabulaire />} />
-      <Route path="/culture-generale" element={<CultureGenerale />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route path="/:subject" element={<Subject />} />
-      <Route path="/:subject/:method" element={<Module />} />
+      {/* Protected routes */}
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/teacher/:subject" element={<Teacher />} />
+        <Route path="/teacher" element={<Teacher />} />
+        <Route path="/cesbf/amf" element={<AmfRevision />} />
+        <Route path="/cesbf/amf/trading" element={<TradingDesk />} />
+        <Route path="/vojes/analyseur" element={<VojesAnalyseur />} />
+        <Route path="/cesbf/programme" element={<CesbfProgramme />} />
+        <Route path="/anglais" element={<Anglais />} />
+        <Route path="/anglais/vocabulaire" element={<AnglaisVocabulaire />} />
+        <Route path="/culture-generale" element={<CultureGenerale />} />
+        <Route path="/:subject" element={<Subject />} />
+        <Route path="/:subject/:method" element={<Module />} />
+      </Route>
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
