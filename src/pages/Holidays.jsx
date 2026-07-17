@@ -1,199 +1,215 @@
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Palmtree, IceCream, Umbrella, Waves, PartyPopper } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
-const FLOATING_ITEMS = [
-  { Icon: Sun, color: "#fbbf24", delay: 0,    duration: 6 },
-  { Icon: Palmtree, color: "#16a34a", delay: 0.8,  duration: 7 },
-  { Icon: IceCream, color: "#f472b6", delay: 1.6,  duration: 8 },
-  { Icon: PartyPopper, color: "#0ea5e9", delay: 2.4, duration: 6.5 },
-  { Icon: Umbrella, color: "#ef4444", delay: 3.2, duration: 7.5 },
-  { Icon: Waves, color: "#38bdf8", delay: 4.0,  duration: 9 },
+// ── Petit mot "manuscrit" épinglé sur la vitre ──
+const NOTE_LINES = [
+  "On revient à la rentrée,",
+  "fraîchement bronzés ☀️",
+  "et les neurones rechargés.",
+  "",
+  "— La team BTS Banque",
 ];
 
-const COUNTDOWN_TARGET = new Date("2026-08-31T08:00:00+02:00");
+function StickyNote() {
+  const [hover, setHover] = useState(false);
+  return (
+    <motion.div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      animate={{ rotate: hover ? -1.5 : -3 }}
+      transition={{ type: "spring", stiffness: 200, damping: 18 }}
+      className="absolute left-1/2 -translate-x-1/2 top-[58%] z-30 cursor-default"
+      style={{ filter: "drop-shadow(0 12px 18px rgba(0,0,0,0.45))" }}
+    >
+      {/* punaise */}
+      <div
+        className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full"
+        style={{
+          background: "radial-gradient(circle at 35% 30%, #fca5a5, #b91c1c)",
+          boxShadow: "0 2px 3px rgba(0,0,0,0.5), inset 0 -1px 1px rgba(0,0,0,0.3)",
+        }}
+      />
+      <div
+        className="px-7 py-6 w-[260px] max-w-[78vw] rounded-sm"
+        style={{
+          background: "linear-gradient(160deg, #fef9c3 0%, #fde68a 100%)",
+          fontFamily: "'Caveat', 'Segoe Script', cursive",
+          backgroundImage:
+            "repeating-linear-gradient(transparent 0px, transparent 27px, rgba(180,83,9,0.12) 27px, rgba(180,83,9,0.12) 28px)",
+        }}
+      >
+        {NOTE_LINES.map((l, i) => (
+          <div
+            key={i}
+            className="text-amber-900 leading-[28px]"
+            style={{ fontSize: l === "" ? 14 : 21, minHeight: l === "" ? 14 : 28 }}
+          >
+            {l}
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
 
-function useCountdown() {
-  const calc = () => {
-    const diff = COUNTDOWN_TARGET.getTime() - Date.now();
-    if (diff <= 0) return null;
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    const secs = Math.floor((diff % 60000) / 1000);
-    return { days, hours, mins, secs };
-  };
-  const [left, setLeft] = useState(calc);
+// ── Néon "FERMÉ" qui scintille ──
+function NeonSign() {
+  const [glitch, setGlitch] = useState(false);
   useEffect(() => {
-    const t = setInterval(() => setLeft(calc()), 1000);
-    return () => clearInterval(t);
+    let t;
+    const flicker = () => {
+      setGlitch(true);
+      setTimeout(() => setGlitch(false), 80);
+      setTimeout(() => { setGlitch(true); setTimeout(() => setGlitch(false), 60); }, 200);
+      t = setTimeout(flicker, 2500 + Math.random() * 3500);
+    };
+    t = setTimeout(flicker, 1800);
+    return () => clearTimeout(t);
   }, []);
-  return left;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1.2, delay: 0.3 }}
+      className="relative select-none"
+      style={{ filter: glitch ? "brightness(0.55) blur(0.5px)" : "none" }}
+    >
+      {/* halo */}
+      <div
+        className="absolute inset-0 -z-10 blur-2xl rounded-full"
+        style={{
+          background: glitch
+            ? "radial-gradient(circle, rgba(239,68,68,0.25), transparent 70%)"
+            : "radial-gradient(circle, rgba(239,68,68,0.55), transparent 70%)",
+          transition: "background 80ms",
+        }}
+      />
+      <div
+        className="font-display font-black tracking-tighter text-[22vw] md:text-[180px] leading-none"
+        style={{
+          color: "#fff",
+          textShadow: glitch
+            ? "0 0 6px #ef4444, 0 0 12px #ef4444"
+            : "0 0 4px #fff, 0 0 11px #ff4444, 0 0 22px #ef4444, 0 0 42px #b91c1c, 0 0 80px #7f1d1d",
+          transition: "text-shadow 80ms",
+        }}
+      >
+        FERMÉ
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Reflet sur la vitrine (bandes diagonales animées) ──
+function WindowReflection() {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <motion.div
+        className="absolute -top-1/2 -left-1/4 w-[60%] h-[200%]"
+        style={{
+          background:
+            "linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.06) 47%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 53%, transparent 60%)",
+        }}
+        animate={{ x: ["0%", "260%"], y: ["0%", "0%"] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+      />
+      <motion.div
+        className="absolute -top-1/2 left-1/4 w-[40%] h-[200%]"
+        style={{
+          background:
+            "linear-gradient(115deg, transparent 45%, rgba(255,255,255,0.04) 50%, transparent 55%)",
+        }}
+        animate={{ x: ["0%", "320%"] }}
+        transition={{ duration: 13, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
+      />
+    </div>
+  );
+}
+
+// ── Petites étoiles / poussière flottante ──
+function Dust() {
+  const dots = Array.from({ length: 18 });
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {dots.map((_, i) => {
+        const left = (i * 53) % 100;
+        const top = (i * 37) % 100;
+        const dur = 6 + (i % 5) * 2;
+        return (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-amber-100/40"
+            style={{ left: `${left}%`, top: `${top}%`, width: 2, height: 2 }}
+            animate={{ y: [0, -30, 0], opacity: [0, 0.6, 0] }}
+            transition={{ duration: dur, repeat: Infinity, delay: i * 0.4, ease: "easeInOut" }}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 export default function Holidays() {
-  const left = useCountdown();
-
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center"
-      style={{ background: "linear-gradient(180deg, #87ceeb 0%, #38bdf8 45%, #fde68a 100%)" }}>
-
-      {/* Soleil pulsant en haut */}
-      <motion.div
-        className="absolute top-[-60px] right-[-40px] w-56 h-56 rounded-full"
-        style={{ background: "radial-gradient(circle, #fde047 30%, rgba(253,224,71,0.3) 70%, transparent 100%)" }}
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+    <div
+      className="min-h-screen w-full relative overflow-hidden flex flex-col items-center justify-center"
+      style={{
+        background:
+          "radial-gradient(120% 100% at 50% 18%, #1e293b 0%, #0f172a 55%, #020617 100%)",
+      }}
+    >
+      {/* grain */}
+      <div
+        className="absolute inset-0 opacity-[0.07] pointer-events-none mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+        }}
       />
 
-      {/* Nuages */}
-      {[
-        { top: "12%", left: "8%",  delay: 0,   dur: 45 },
-        { top: "24%", left: "70%", delay: 8,   dur: 55 },
-        { top: "45%", left: "15%", delay: 16,  dur: 50 },
-      ].map((c, i) => (
-        <motion.div
-          key={i}
-          className="absolute text-white/90 select-none"
-          style={{ top: c.top, left: c.left, fontSize: 60 }}
-          animate={{ x: [0, 40, 0] }}
-          transition={{ duration: c.dur, repeat: Infinity, ease: "easeInOut", delay: c.delay }}
-        >
-          ☁️
-        </motion.div>
-      ))}
+      {/* Cadre de la devanture */}
+      <div className="relative w-full max-w-5xl mx-auto px-6 py-16 flex flex-col items-center">
+        {/* Enseigne au plafond */}
+        <div className="mb-2 text-[11px] tracking-[0.45em] font-bold text-amber-200/40 uppercase">
+          · BTS Banque ·
+        </div>
 
-      {/* Icônes flottantes */}
-      {FLOATING_ITEMS.map(({ Icon, color, delay, duration }, i) => (
-        <motion.div
-          key={i}
-          className="absolute opacity-30 select-none pointer-events-none"
-          style={{
-            top: `${15 + (i * 13) % 65}%`,
-            left: `${5 + (i * 17) % 85}%`,
-          }}
-          animate={{ y: [0, -22, 0], rotate: [0, 12, -12, 0] }}
-          transition={{ duration, repeat: Infinity, ease: "easeInOut", delay }}
-        >
-          <Icon size={42} color={color} />
-        </motion.div>
-      ))}
+        {/* La vitrine + néon */}
+        <div className="relative w-full flex flex-col items-center">
+          <NeonSign />
 
-      {/* Vagues animées en bas */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-        <motion.svg viewBox="0 0 1440 120" className="w-full h-24 md:h-32"
-          preserveAspectRatio="none" style={{ display: "block" }}>
-          <motion.path
-            fill="#0ea5e9"
-            fillOpacity="0.5"
-            animate={{
-              d: [
-                "M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 L1440,120 L0,120 Z",
-                "M0,60 C240,20 480,100 720,60 C960,20 1200,100 1440,60 L1440,120 L0,120 Z",
-                "M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 L1440,120 L0,120 Z",
-              ],
-            }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.path
-            fill="#0284c7"
-            fillOpacity="0.7"
-            animate={{
-              d: [
-                "M0,80 C240,40 480,120 720,80 C960,40 1200,120 1440,80 L1440,120 L0,120 Z",
-                "M0,80 C240,120 480,40 720,80 C960,120 1200,40 1440,80 L1440,120 L0,120 Z",
-                "M0,80 C240,40 480,120 720,80 C960,40 1200,120 1440,80 L1440,120 L0,120 Z",
-              ],
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </motion.svg>
+          {/* sous-titre sobre */}
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.8 }}
+            className="mt-6 text-center text-slate-300/80 font-medium text-sm md:text-base tracking-wide"
+          >
+            Fermeture temporaire de la plateforme.
+          </motion.p>
+        </div>
+
+        {/* La note épinglée */}
+        <div className="relative w-full h-24 md:h-28">
+          <StickyNote />
+        </div>
       </div>
 
-      {/* Carte centrale */}
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 200, damping: 22 }}
-          className="relative z-10 mx-4 w-full max-w-md"
-        >
-          <div className="bg-white/95 backdrop-blur-md rounded-[2rem] shadow-2xl border-4 border-white overflow-hidden">
+      {/* Reflets vitrine + poussière par-dessus */}
+      <WindowReflection />
+      <Dust />
 
-            {/* Bandeau */}
-            <div className="relative px-6 pt-8 pb-6 text-center"
-              style={{ background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)" }}>
-              <motion.div
-                animate={{ rotate: [0, -8, 8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="inline-block mb-3"
-              >
-                <Umbrella size={56} className="text-white" />
-              </motion.div>
-              <h1 className="font-display text-4xl font-black text-white tracking-tight drop-shadow-sm">
-                Fermé pour les vacances !
-              </h1>
-              <p className="text-white/90 text-sm font-semibold mt-2">
-                🏖️ Le BTS Banque prend une pause bien méritée
-              </p>
-            </div>
+      {/* Vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ boxShadow: "inset 0 0 220px 60px rgba(0,0,0,0.85)" }}
+      />
 
-            {/* Corps */}
-            <div className="px-6 py-7 text-center">
-              <p className="text-stone-700 font-semibold text-sm leading-relaxed mb-6">
-                La plateforme est temporairement inaccessible.
-                Profites-en pour te reposer, bronzer et recharger les batteries — on se retrouve à la rentrée pour réviser encore plus fort ! ☀️
-              </p>
-
-              {/* Compteur */}
-              {left && (
-                <div className="mb-6">
-                  <div className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-3">
-                    ⏳ Réouverture dans
-                  </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { v: left.days,   l: "Jours" },
-                      { v: left.hours,  l: "Heures" },
-                      { v: left.mins,   l: "Min" },
-                      { v: left.secs,   l: "Sec" },
-                    ].map((x, i) => (
-                      <div key={i} className="bg-orange-50 border-2 border-orange-200 rounded-2xl py-2.5 px-1 shadow-duo">
-                        <div className="font-display text-2xl font-black text-orange-600 tabular-nums">
-                          {String(x.v).padStart(2, "0")}
-                        </div>
-                        <div className="text-[10px] font-bold uppercase tracking-wide text-stone-500 mt-0.5">
-                          {x.l}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-[11px] text-stone-400 mt-2 font-medium">
-                    Rentrée prévue le 31 août 2026
-                  </div>
-                </div>
-              )}
-
-              {/* Suggestions vacances */}
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-1">
-                <div className="text-xs font-bold uppercase tracking-wide text-amber-600 mb-2">
-                  🎒 Programme de vacances recommandé
-                </div>
-                <ul className="text-left text-stone-700 text-sm font-semibold space-y-1.5">
-                  <li className="flex items-center gap-2"><span>😴</span> Dormir jusqu'à 11h</li>
-                  <li className="flex items-center gap-2"><span>🏊</span> Se baigner sans penser aux QCM</li>
-                  <li className="flex items-center gap-2"><span>🍦</span> Manger une glace (pas une "loss")</li>
-                  <li className="flex items-center gap-2"><span>📚</span> Zéro révision (promis !)</li>
-                </ul>
-              </div>
-
-              <div className="mt-5 text-stone-400 text-[11px] font-medium">
-                Bons vacances à tous les réviseurs ! 🌴
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+      {/* Pied discret */}
+      <div className="absolute bottom-4 left-0 right-0 text-center text-slate-500/40 text-[10px] tracking-[0.3em] uppercase font-semibold">
+        Rideau baissé · on revient bientôt
+      </div>
     </div>
   );
 }
