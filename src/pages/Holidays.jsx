@@ -1,215 +1,152 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 
-// ── Petit mot "manuscrit" épinglé sur la vitre ──
-const NOTE_LINES = [
-  "On revient à la rentrée,",
-  "fraîchement bronzés ☀️",
-  "et les neurones rechargés.",
-  "",
-  "— La team BTS Banque",
-];
-
-function StickyNote() {
-  const [hover, setHover] = useState(false);
+// ── Hamac qui balance doucement ──
+function Hammock() {
   return (
     <motion.div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      animate={{ rotate: hover ? -1.5 : -3 }}
-      transition={{ type: "spring", stiffness: 200, damping: 18 }}
-      className="absolute left-1/2 -translate-x-1/2 top-[58%] z-30 cursor-default"
-      style={{ filter: "drop-shadow(0 12px 18px rgba(0,0,0,0.45))" }}
+      animate={{ rotate: [-1.6, 1.6, -1.6] }}
+      transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+      className="relative"
+      style={{ transformOrigin: "top center" }}
     >
-      {/* punaise */}
-      <div
-        className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full"
-        style={{
-          background: "radial-gradient(circle at 35% 30%, #fca5a5, #b91c1c)",
-          boxShadow: "0 2px 3px rgba(0,0,0,0.5), inset 0 -1px 1px rgba(0,0,0,0.3)",
-        }}
-      />
-      <div
-        className="px-7 py-6 w-[260px] max-w-[78vw] rounded-sm"
-        style={{
-          background: "linear-gradient(160deg, #fef9c3 0%, #fde68a 100%)",
-          fontFamily: "'Caveat', 'Segoe Script', cursive",
-          backgroundImage:
-            "repeating-linear-gradient(transparent 0px, transparent 27px, rgba(180,83,9,0.12) 27px, rgba(180,83,9,0.12) 28px)",
-        }}
-      >
-        {NOTE_LINES.map((l, i) => (
-          <div
-            key={i}
-            className="text-amber-900 leading-[28px]"
-            style={{ fontSize: l === "" ? 14 : 21, minHeight: l === "" ? 14 : 28 }}
-          >
-            {l}
-          </div>
-        ))}
-      </div>
+      <svg viewBox="0 0 300 200" className="w-[300px] max-w-[80vw] h-auto">
+        {/* les deux palmiers */}
+        <g stroke="#78350f" strokeWidth="6" strokeLinecap="round">
+          <line x1="60" y1="180" x2="60" y2="70" />
+          <line x1="240" y1="180" x2="240" y2="70" />
+        </g>
+        {/* palmes */}
+        <g fill="#16a34a">
+          {[
+            [60, 60], [240, 60],
+          ].map(([cx, cy], i) => (
+            <g key={i}>
+              {[0, 72, 144, 216, 288].map((a) => (
+                <ellipse
+                  key={a}
+                  cx={cx + Math.cos((a * Math.PI) / 180) * 22}
+                  cy={cy + Math.sin((a * Math.PI) / 180) * 22}
+                  rx="20" ry="7"
+                  transform={`rotate(${a} ${cx} ${cy})`}
+                />
+              ))}
+            </g>
+          ))}
+        </g>
+
+        {/* corde du hamac */}
+        <g stroke="#92400e" strokeWidth="2.5">
+          <line x1="60" y1="72" x2="100" y2="110" />
+          <line x1="240" y1="72" x2="200" y2="110" />
+        </g>
+        {/* le hamac */}
+        <path
+          d="M100 110 Q150 150 200 110"
+          fill="none"
+          stroke="#0f766e"
+          strokeWidth="14"
+          strokeLinecap="round"
+        />
+        <path
+          d="M100 110 Q150 138 200 110"
+          fill="#14b8a6"
+          stroke="#0f766e"
+          strokeWidth="2"
+        />
+        {/* Armand qui dort (petit bonhomme) */}
+        <g>
+          <ellipse cx="150" cy="120" rx="34" ry="9" fill="#fcd34d" opacity="0.9" />
+          <circle cx="150" cy="116" r="11" fill="#fbbf24" />
+          {/* couverture */}
+          <path d="M126 122 Q150 132 174 122 L174 130 Q150 140 126 130 Z" fill="#dc2626" />
+          {/* Z de sommeil */}
+        </g>
+        <text x="168" y="104" fill="#64748b" fontFamily="Fredoka, sans-serif" fontSize="14" fontWeight="700">z</text>
+        <text x="178" y="94" fill="#94a3b8" fontFamily="Fredoka, sans-serif" fontSize="18" fontWeight="700">z</text>
+        <text x="190" y="82" fill="#cbd5e1" fontFamily="Fredoka, sans-serif" fontSize="22" fontWeight="700">z</text>
+      </svg>
     </motion.div>
   );
 }
 
-// ── Néon "FERMÉ" qui scintille ──
-function NeonSign() {
-  const [glitch, setGlitch] = useState(false);
-  useEffect(() => {
-    let t;
-    const flicker = () => {
-      setGlitch(true);
-      setTimeout(() => setGlitch(false), 80);
-      setTimeout(() => { setGlitch(true); setTimeout(() => setGlitch(false), 60); }, 200);
-      t = setTimeout(flicker, 2500 + Math.random() * 3500);
-    };
-    t = setTimeout(flicker, 1800);
-    return () => clearTimeout(t);
-  }, []);
-
+// ── Soleil doux ──
+function Sun() {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1.2, delay: 0.3 }}
-      className="relative select-none"
-      style={{ filter: glitch ? "brightness(0.55) blur(0.5px)" : "none" }}
+      animate={{ y: [0, -6, 0] }}
+      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      className="absolute top-10 right-8 md:right-24"
     >
-      {/* halo */}
-      <div
-        className="absolute inset-0 -z-10 blur-2xl rounded-full"
-        style={{
-          background: glitch
-            ? "radial-gradient(circle, rgba(239,68,68,0.25), transparent 70%)"
-            : "radial-gradient(circle, rgba(239,68,68,0.55), transparent 70%)",
-          transition: "background 80ms",
-        }}
-      />
-      <div
-        className="font-display font-black tracking-tighter text-[22vw] md:text-[180px] leading-none"
-        style={{
-          color: "#fff",
-          textShadow: glitch
-            ? "0 0 6px #ef4444, 0 0 12px #ef4444"
-            : "0 0 4px #fff, 0 0 11px #ff4444, 0 0 22px #ef4444, 0 0 42px #b91c1c, 0 0 80px #7f1d1d",
-          transition: "text-shadow 80ms",
-        }}
-      >
-        FERMÉ
-      </div>
+      <div className="text-6xl md:text-7xl drop-shadow-sm">☀️</div>
     </motion.div>
   );
 }
 
-// ── Reflet sur la vitrine (bandes diagonales animées) ──
-function WindowReflection() {
+// ── Nuages qui dérivent ──
+function Clouds() {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <motion.div
-        className="absolute -top-1/2 -left-1/4 w-[60%] h-[200%]"
-        style={{
-          background:
-            "linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.06) 47%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 53%, transparent 60%)",
-        }}
-        animate={{ x: ["0%", "260%"], y: ["0%", "0%"] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
-      />
+        className="absolute top-16 left-[8%] text-4xl md:text-5xl opacity-80"
+        animate={{ x: [0, 80, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+      >☁️</motion.div>
       <motion.div
-        className="absolute -top-1/2 left-1/4 w-[40%] h-[200%]"
-        style={{
-          background:
-            "linear-gradient(115deg, transparent 45%, rgba(255,255,255,0.04) 50%, transparent 55%)",
-        }}
-        animate={{ x: ["0%", "320%"] }}
-        transition={{ duration: 13, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
-      />
-    </div>
-  );
-}
-
-// ── Petites étoiles / poussière flottante ──
-function Dust() {
-  const dots = Array.from({ length: 18 });
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {dots.map((_, i) => {
-        const left = (i * 53) % 100;
-        const top = (i * 37) % 100;
-        const dur = 6 + (i % 5) * 2;
-        return (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-amber-100/40"
-            style={{ left: `${left}%`, top: `${top}%`, width: 2, height: 2 }}
-            animate={{ y: [0, -30, 0], opacity: [0, 0.6, 0] }}
-            transition={{ duration: dur, repeat: Infinity, delay: i * 0.4, ease: "easeInOut" }}
-          />
-        );
-      })}
+        className="absolute top-28 left-[60%] text-3xl md:text-4xl opacity-70"
+        animate={{ x: [0, -60, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      >☁️</motion.div>
+      <motion.div
+        className="absolute top-10 left-[38%] text-2xl opacity-60"
+        animate={{ x: [0, 50, 0] }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+      >☁️</motion.div>
     </div>
   );
 }
 
 export default function Holidays() {
   return (
-    <div
-      className="min-h-screen w-full relative overflow-hidden flex flex-col items-center justify-center"
-      style={{
-        background:
-          "radial-gradient(120% 100% at 50% 18%, #1e293b 0%, #0f172a 55%, #020617 100%)",
-      }}
-    >
-      {/* grain */}
-      <div
-        className="absolute inset-0 opacity-[0.07] pointer-events-none mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}
-      />
+    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-b from-green-50 via-sky-50 to-white flex flex-col items-center justify-center px-6">
+      <Sun />
+      <Clouds />
 
-      {/* Cadre de la devanture */}
-      <div className="relative w-full max-w-5xl mx-auto px-6 py-16 flex flex-col items-center">
-        {/* Enseigne au plafond */}
-        <div className="mb-2 text-[11px] tracking-[0.45em] font-bold text-amber-200/40 uppercase">
-          · BTS Banque ·
+      {/* Carte centrale */}
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 140, damping: 16 }}
+        className="relative z-10 w-full max-w-md bg-white rounded-[28px] shadow-xl border-2 border-green-100 px-8 py-10 text-center"
+      >
+        {/* badge */}
+        <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider mb-6">
+          🌴 Vacances
         </div>
 
-        {/* La vitrine + néon */}
-        <div className="relative w-full flex flex-col items-center">
-          <NeonSign />
+        <Hammock />
 
-          {/* sous-titre sobre */}
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 0.8 }}
-            className="mt-6 text-center text-slate-300/80 font-medium text-sm md:text-base tracking-wide"
-          >
-            Fermeture temporaire de la plateforme.
-          </motion.p>
+        <h1
+          className="font-display text-3xl md:text-4xl font-bold text-stone-800 mt-4 leading-tight"
+          style={{ fontFamily: "var(--font-fredoka)" }}
+        >
+          Chut… Armand dort.
+        </h1>
+
+        <p className="text-stone-500 text-sm md:text-base leading-relaxed mt-3 font-medium">
+          La plateforme fait une petite sieste le temps des vacances.
+          <br />
+          Pas de révisions — repose-toi bien, on se retrouve à la rentrée, frais et dispo&nbsp;! 😴
+        </p>
+
+        <div className="mt-7 flex items-center justify-center gap-2 text-xs text-stone-400 font-semibold">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+          On revient bientôt
         </div>
+      </motion.div>
 
-        {/* La note épinglée */}
-        <div className="relative w-full h-24 md:h-28">
-          <StickyNote />
-        </div>
-      </div>
-
-      {/* Reflets vitrine + poussière par-dessus */}
-      <WindowReflection />
-      <Dust />
-
-      {/* Vignette */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ boxShadow: "inset 0 0 220px 60px rgba(0,0,0,0.85)" }}
-      />
-
-      {/* Pied discret */}
-      <div className="absolute bottom-4 left-0 right-0 text-center text-slate-500/40 text-[10px] tracking-[0.3em] uppercase font-semibold">
-        Rideau baissé · on revient bientôt
-      </div>
+      {/* herbe discrète en bas */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-green-100/80 to-transparent" />
     </div>
   );
 }
