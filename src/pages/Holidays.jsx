@@ -130,7 +130,7 @@ export default function Holidays() {
           className="font-display text-3xl md:text-4xl font-bold text-stone-800 mt-4 leading-tight"
           style={{ fontFamily: "var(--font-fredoka)" }}
         >
-          Chut… Armand dort.
+          Chut… Antonin dort.
         </h1>
 
         <p className="text-stone-500 text-sm md:text-base leading-relaxed mt-3 font-medium">
