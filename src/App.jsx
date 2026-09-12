@@ -19,14 +19,6 @@ import AnglaisVocabulaire from '@/pages/AnglaisVocabulaire';
 import CultureGenerale from '@/pages/CultureGenerale';
 import FelicitationToast from '@/components/felicitations/FelicitationToast';
 import GlobalLoginGate from '@/components/GlobalLoginGate';
-import Holidays from '@/pages/Holidays';
-
-
-// FERMETURE VACANCES — le gate intercepte tout et affiche la page vacances.
-// Les routes réelles sont conservées (pour ne pas casser la base de code) mais
-// ne sont jamais atteintes : HolidaysGate ignore ses children.
-const HolidaysGate = ({ children }) => <Holidays />;
-
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
@@ -50,10 +42,9 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Pendant les vacances : tout est bloqué, on affiche Holidays.
+  // Render the main app
   return (
-    <HolidaysGate>
-      <Routes>
+    <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/teacher/:subject" element={<Teacher />} />
@@ -70,7 +61,6 @@ const AuthenticatedApp = () => {
         <Route path="/:subject/:method" element={<Module />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
-    </HolidaysGate>
   );
 };
 

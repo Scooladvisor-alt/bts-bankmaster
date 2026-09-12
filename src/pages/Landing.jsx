@@ -105,7 +105,9 @@ const SubjectCard = ({ to, label, Icon, tagline, gradient, delay }) =>
     <Link to={to}>
       <div
       className={`group relative bg-gradient-to-br ${gradient} rounded-3xl p-8 shadow-duo-lg border-b-[6px] border-black/20 hover:-translate-y-1 transition-transform cursor-pointer h-64 flex flex-col justify-between`}>
-      
+        <span className="absolute top-4 left-4 bg-black/30 backdrop-blur text-white text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border border-white/20 z-10">
+          Bêta
+        </span>
         <div>
           <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
             <Icon className="w-7 h-7 text-white" />
