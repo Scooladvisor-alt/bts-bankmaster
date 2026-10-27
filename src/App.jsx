@@ -19,6 +19,10 @@ import AnglaisVocabulaire from '@/pages/AnglaisVocabulaire';
 import CultureGenerale from '@/pages/CultureGenerale';
 import FelicitationToast from '@/components/felicitations/FelicitationToast';
 import GlobalLoginGate from '@/components/GlobalLoginGate';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
@@ -45,6 +49,10 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/" element={<Landing />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/teacher/:subject" element={<Teacher />} />
